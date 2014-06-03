@@ -452,10 +452,15 @@ static void decode_three_data(xor_code_t *code_desc, char **data, char **parity,
      fprintf(stderr, "Shit is broken, cannot construct equations to repair 3 failures!!!\n");
       exit(2);
     }
+    // Copy the appropriate parity into the data buffer
+    fast_memcpy(data[data_index], parity_buffer, blocksize);
+    // Free up the buffer we allocated above
+    aligned_free(parity_buffer);
+  } else {
+    // Copy the appropriate parity into the data buffer
+    fast_memcpy(data[data_index], parity_buffer, blocksize);
   }
 
-  // Copy the appropriate parity into the data buffer
-  fast_memcpy(data[data_index], parity_buffer, blocksize);
   
   for (i=0; i < code_desc->k; i++) {
     if (i != data_index && is_data_in_parity(i, parity_bm)) {
