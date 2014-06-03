@@ -75,6 +75,10 @@ int test_hd_code(xor_code_t *code_desc, int num_failure_combs, int failure_combs
   data = (char**)malloc(code_desc->k * sizeof(char*));
   parity = (char**)malloc(code_desc->m * sizeof(char*));
   fragments_needed = (int*)malloc(code_desc->k*code_desc->m*sizeof(int));
+  if (!fragments_needed) {
+      fprintf(stderr, "Could not allocate memory for fragments %d\n", i);
+      exit(2);
+  }
 
   bzero(fragments_needed, code_desc->k*code_desc->m*sizeof(int));
 
@@ -82,7 +86,7 @@ int test_hd_code(xor_code_t *code_desc, int num_failure_combs, int failure_combs
     data[i] = aligned_malloc(blocksize, 16);
     fill_buffer(data[i], blocksize, i);
     if (!data[i]) {
-      fprintf(stderr, "Could not allocate memnory for data %d\n", i);
+      fprintf(stderr, "Could not allocate memory for data %d\n", i);
       exit(2);
     }
   }
@@ -91,7 +95,7 @@ int test_hd_code(xor_code_t *code_desc, int num_failure_combs, int failure_combs
     parity[i] = aligned_malloc(blocksize, 16);
     memset(parity[i], 0, blocksize);
     if (!parity[i]) {
-      fprintf(stderr, "Could not allocate memnory for parity %d\n", i);
+      fprintf(stderr, "Could not allocate memory for parity %d\n", i);
       exit(2);
     }
   }
@@ -210,6 +214,15 @@ int test_hd_code(xor_code_t *code_desc, int num_failure_combs, int failure_combs
   end_time = clock();
   
   fprintf(stderr, "Decode: %.2f MB/s\n", ((double)(num_iter * blocksize * code_desc->k) / 1000 / 1000 ) / ((double)(end_time-start_time) / CLOCKS_PER_SEC));
+  free(fragments_needed);
+  for (i = 0; i < code_desc->k; i++) {
+      aligned_free(data[i]);
+  }
+  free(data);
+  for (i = 0; i < code_desc->m; i++) {
+      aligned_free(parity[i]);
+  }
+  free(parity);
 
   return 0;
 }
@@ -328,10 +341,49 @@ int run_test(int k, int m, int hd)
   return ret; 
 }
 
+/**
+ * Runs a series aligned_malloc/aligned_free calls with a set of size and
+ * alignment values. For each alignment value, perform a series of boundry
+ * value anaylsis alloctions for every power-of-two between 2 and 32768.
+ * Then perform an aligned_free for each allocation.
+ *
+ * @return 0 is test behaves as expected, else -1.
+ *
+ */
+int run_aligned_malloc_test() {
+    int align = 8;
+    size_t amount;
+    int modifier;
+
+    for (align = 8; align <= 128; align *= 2) {
+        size_t amount = 2;
+        for (amount = 2; amount <= 32768; amount *= 2) {
+            int modifier;
+            for (modifier = -1; modifier <= 1; modifier++) {
+                size_t actual_amount = amount + modifier;
+                void *tmem = aligned_malloc(actual_amount,align);
+                if (!tmem) {
+                    return -1;
+                }
+                if (memset(tmem,'0',actual_amount) != tmem) {
+                    return -1;
+                }
+                aligned_free(tmem);
+            }
+        }
+    }
+    return 0;
+}
+
 int main()
 {
   int ret = 0;
   int i;
+
+  ret = run_aligned_malloc_test();
+  if (ret != 0) {
+    return ret;
+  }
   
   for (i=6; i < 16; i++) {
     ret = run_test(i, 6, 3);

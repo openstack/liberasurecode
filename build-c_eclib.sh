@@ -160,6 +160,12 @@ for lib in ${LIB_ORDER}; do
     else
       export DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}":"${LIBDIR}
     fi
+  else
+    if [ -z ${LD_LIBRARY_PATH} ]; then
+      export LD_LIBRARY_PATH=${LIBDIR}
+    else
+      export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}":"${LIBDIR}
+    fi
   fi
 
   # Generate INCLUDE lines for c_eclib
