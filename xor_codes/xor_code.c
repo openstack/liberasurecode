@@ -38,12 +38,12 @@ const int g_bit_lookup[] = {0x1, 0x2, 0x4, 0x8,
                                  0x1000000, 0x2000000, 0x4000000, 0x8000000,
                                  0x10000000, 0x20000000, 0x40000000, 0x80000000};
 
-int is_data_in_parity(int data_idx, int parity_bm)
+int is_data_in_parity(int data_idx, unsigned int parity_bm)
 {
   return ((g_bit_lookup[data_idx] & parity_bm) == g_bit_lookup[data_idx]);
 }
 
-int does_parity_have_data(int parity_idx, int data_bm)
+int does_parity_have_data(int parity_idx, unsigned int data_bm)
 {
   return ((g_bit_lookup[parity_idx] & data_bm) == g_bit_lookup[parity_idx]);
 }

@@ -365,7 +365,7 @@ int run_aligned_malloc_test() {
                 if (!tmem) {
                     return -1;
                 }
-                if (memset(tmem,'0',actual_amount) != tmem) {
+                if (memset(tmem,0,actual_amount) != tmem) {
                     return -1;
                 }
                 aligned_free(tmem);
@@ -379,7 +379,6 @@ int main()
 {
   int ret = 0;
   int i;
-
   ret = run_aligned_malloc_test();
   if (ret != 0) {
     return ret;
@@ -405,12 +404,12 @@ int main()
       return ret;
     }
   }
-  
   for (i=5; i < 11; i++) {
     ret = run_test(i, 5, 4);
     if (ret != 0) {
       return ret;
     }
   }
+  exit(0);
 }
 

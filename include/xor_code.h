@@ -61,9 +61,9 @@ typedef struct xor_code_s
   int (*fragments_needed)(struct xor_code_s *code_desc, int *missing_idxs, int *fragments_needed);
 } xor_code_t;
 
-int is_data_in_parity(int data_idx, int parity_bm);
+int is_data_in_parity(int data_idx, unsigned int parity_bm);
 
-int does_parity_have_data(int parity_idx, int data_bm);
+int does_parity_have_data(int parity_idx, unsigned int data_bm);
 
 int parity_bit_lookup(xor_code_t *code_desc, int index);
 

@@ -31,7 +31,7 @@
 /*
  * Returns -1 if not possible
  */
-static int fragments_needed_one_data(xor_code_t *code_desc, int *missing_data, int *missing_parity, int *data_bm, int *parity_bm)
+static int fragments_needed_one_data(xor_code_t *code_desc, int *missing_data, int *missing_parity, unsigned int *data_bm, unsigned int *parity_bm)
 {
   int data_index = missing_data[0];
   int parity_index = index_of_connected_parity(code_desc, data_index, missing_parity, missing_data);
@@ -53,7 +53,7 @@ static int fragments_needed_one_data(xor_code_t *code_desc, int *missing_data, i
 /*
  * Returns -1 if not possible
  */
-static int fragments_needed_two_data(xor_code_t *code_desc, int *missing_data, int *missing_parity, int *data_bm, int *parity_bm)
+static int fragments_needed_two_data(xor_code_t *code_desc, int *missing_data, int *missing_parity, unsigned int *data_bm, unsigned int *parity_bm)
 {
   // Verify that missing_data[2] == -1?
   int data_index = missing_data[0];
@@ -89,7 +89,7 @@ static int fragments_needed_two_data(xor_code_t *code_desc, int *missing_data, i
 /*
  * Returns -1 if not possible
  */
-static int fragments_needed_three_data(xor_code_t *code_desc, int *missing_data, int *missing_parity, int *data_bm, int *parity_bm)
+static int fragments_needed_three_data(xor_code_t *code_desc, int *missing_data, int *missing_parity, unsigned int *data_bm, unsigned int *parity_bm)
 {
   int i = 0;
   int parity_index = -1;
@@ -179,7 +179,7 @@ static int fragments_needed_three_data(xor_code_t *code_desc, int *missing_data,
 int xor_hd_fragments_needed(xor_code_t *code_desc, int *missing_idxs, int *fragments_needed)
 {
   failure_pattern_t pattern = get_failure_pattern(code_desc, missing_idxs);
-  int data_bm = 0, parity_bm = 0;
+  unsigned int data_bm = 0, parity_bm = 0;
   int ret = 0;
   int i, j;
 
@@ -211,7 +211,7 @@ int xor_hd_fragments_needed(xor_code_t *code_desc, int *missing_idxs, int *fragm
     {
       int *missing_data = get_missing_data(code_desc, missing_idxs);
       int *missing_parity = get_missing_parity(code_desc, missing_idxs);
-      int missing_data_bm = missing_elements_bm(code_desc, missing_data, data_bit_lookup);
+      unsigned int missing_data_bm = missing_elements_bm(code_desc, missing_data, data_bit_lookup);
       ret = fragments_needed_one_data(code_desc, missing_data, missing_parity, &data_bm, &parity_bm);
       // OR all parities
       i=0;
@@ -245,7 +245,7 @@ int xor_hd_fragments_needed(xor_code_t *code_desc, int *missing_idxs, int *fragm
     {
       int *missing_data = get_missing_data(code_desc, missing_idxs);
       int *missing_parity = get_missing_parity(code_desc, missing_idxs);
-      int missing_data_bm = missing_elements_bm(code_desc, missing_data, data_bit_lookup);
+      unsigned int missing_data_bm = missing_elements_bm(code_desc, missing_data, data_bit_lookup);
       ret = fragments_needed_two_data(code_desc, missing_data, missing_parity, &data_bm, &parity_bm);
       // OR all parities
       i=0;
@@ -384,7 +384,7 @@ static void decode_three_data(xor_code_t *code_desc, char **data, char **parity,
   int i = 0;
   int parity_index = -1;
   int data_index = -1;
-  int parity_bm = -1;
+  unsigned int parity_bm = -1;
   char *parity_buffer = NULL;
 
   /*
