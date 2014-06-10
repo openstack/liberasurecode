@@ -1,7 +1,7 @@
 # c_eclib autoconf template
 
 # FIXME - add project url as the last argument
-AC_INIT(c_eclib,0.9)
+AC_INIT(erasurecode,0.1)
 
 AC_PREREQ([2.61])
 
@@ -23,19 +23,19 @@ AC_PROG_CC
 # Check for jerasure/gf_complete headers
 AC_CHECK_HEADERS(jerasure.h cauchy.h galois.h liberation.h reed_sol.h gf_complete.h)
 
-#AC_CHECK_LIB([Jerasure], [jerasure_autoconf_test], [],
-#             [
-#              echo "Error! You need to have libJerasure installed."
-#              echo "libJerasure is available from bitbucket.org/kmgreen2/jerasure-kmg.git"
-#              exit -1
-#             ])
-#
-#AC_CHECK_LIB([gf_complete], [gf_init_easy], [],
-#             [
-#              echo "Error! You need to have gf_complete installed."
-#              echo "gf_complete is available from http://web.eecs.utk.edu/~plank/plank/papers/CS-13-703.html"
-#              exit -1
-#             ])
+AC_CHECK_LIB([Jerasure], [jerasure_autoconf_test], [],
+             [
+              echo "Error! You need to have libJerasure installed."
+              echo "libJerasure is available from bitbucket.org/kmgreen2/jerasure-kmg.git"
+              exit -1
+             ])
+
+AC_CHECK_LIB([gf_complete], [gf_init_easy], [],
+             [
+              echo "Error! You need to have gf_complete installed."
+              echo "gf_complete is available from http://web.eecs.utk.edu/~plank/plank/papers/CS-13-703.html"
+              exit -1
+             ])
 
 AX_EXT()
 
