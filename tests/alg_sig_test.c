@@ -245,5 +245,6 @@ int main(int argc, char**argv)
   if (num_failed == 0) {
     fprintf(stderr, "Tests pass!!!\n");
   }
+  return num_failed;
 }
 

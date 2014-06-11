@@ -5,11 +5,10 @@ AC_INIT(erasurecode,0.1)
 
 AC_PREREQ([2.61])
 
-AM_INIT_AUTOMAKE(no-dependencies)
+AM_INIT_AUTOMAKE([subdir-objects no-dependencies])
 LT_INIT # libtool
 
-AC_CONFIG_SRCDIR(xor_codes)
-AC_CONFIG_SRCDIR(alg_sig)
+AC_CONFIG_SRCDIR(src)
 AC_CONFIG_HEADER(include/config.h)
 
 dnl Needed when reconfiguring with 'autoreconf -i -s'
@@ -39,4 +38,15 @@ AC_CHECK_LIB([gf_complete], [gf_init_easy], [],
 
 AX_EXT()
 
-AC_OUTPUT(Makefile xor_codes/Makefile alg_sig/Makefile)
+AC_ARG_ENABLE(debug,
+AS_HELP_STRING([--enable-debug],
+               [enable debugging, default: no]),
+[case "${enableval}" in
+               yes) debug=true ;;
+               no)  debug=false ;;
+               *)   AC_MSG_ERROR([bad value ${enableval} for --enable-debug]) ;;
+esac],
+[debug=false])
+AM_CONDITIONAL(DEBUG, test x"$debug" = x"true")
+AC_OUTPUT(Makefile)
+
