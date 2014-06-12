@@ -15,7 +15,7 @@
 @SET_MAKE@
 
 
-
+VALGRIND_EXEC_COMMAND = $(LIBTOOL_COMMAND) valgrind --tool=memcheck --error-exitcode=1 --leak-check=yes --track-fds=yes --malloc-fill=A5 --free-fill=DE --fullpath-after=.
 VPATH = @srcdir@
 am__is_gnu_make = test -n '$(MAKEFILE_LIST)' && test -n '$(MAKELEVEL)'
 am__make_running_with_option = \
@@ -930,6 +930,10 @@ uninstall-am: uninstall-includeHEADERS uninstall-libLTLIBRARIES
 test: alg_sig_test test_xor_hd_code
 	./alg_sig_test
 	./test_xor_hd_code
+
+valgrind-test: alg_sig_test test_xor_hd_code
+	$(VALGRIND_EXEC_COMMAND) ./alg_sig_test
+	$(VALGRIND_EXEC_COMMAND) ./test_xor_hd_code
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
