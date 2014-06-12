@@ -156,6 +156,29 @@ alg_sig_t *init_alg_sig(int sig_len, int gf_w)
   return NULL;
 }
 
+void destroy_alg_sig(alg_sig_t* alg_sig_handle)
+{
+  if (alg_sig_handle == NULL) {
+    return;
+  }
+  if (alg_sig_handle->gf_w == 0) {
+    free(alg_sig_handle);
+    return;
+  }
+  int num_components = alg_sig_handle->sig_len / alg_sig_handle->gf_w;
+
+  free(alg_sig_handle->tbl1_l);
+  free(alg_sig_handle->tbl1_r);
+  if (num_components >= 4) {
+    free(alg_sig_handle->tbl2_l);
+    free(alg_sig_handle->tbl2_r);
+    free(alg_sig_handle->tbl3_l);
+    free(alg_sig_handle->tbl3_r);
+  }
+  free(alg_sig_handle);
+}
+
+
 static
 int compute_w8_alg_sig_32(alg_sig_t *alg_sig_handle, char *buf, int len, char *sig)
 {

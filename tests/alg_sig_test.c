@@ -123,6 +123,7 @@ static int basic_xor_test_8_32()
   free(sigs[num_data]);
   free(sigs);
   free(data);
+  destroy_alg_sig(sig_handle);
 
   return ret;
 }
@@ -168,6 +169,7 @@ static int basic_xor_test_16_64()
   free(sigs[num_data]);
   free(sigs);
   free(data);
+  destroy_alg_sig(sig_handle);
 
   return ret;
 
@@ -215,6 +217,7 @@ static int basic_xor_test_16_32()
   free(sigs[num_data]);
   free(sigs);
   free(data);
+  destroy_alg_sig(sig_handle);
 
   return ret;
 }
