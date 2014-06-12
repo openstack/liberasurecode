@@ -27,12 +27,6 @@
 /* Define to 1 if you have the <liberation.h> header file. */
 #undef HAVE_LIBERATION_H
 
-/* Define to 1 if you have the `gf_complete' library (-lgf_complete). */
-#undef HAVE_LIBGF_COMPLETE
-
-/* Define to 1 if you have the `Jerasure' library (-lJerasure). */
-#undef HAVE_LIBJERASURE
-
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 

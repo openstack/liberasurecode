@@ -25,7 +25,7 @@ check_PROGRAMS = text_xor_hd_code
 
 alg_sig_test_SOURCES = tests/alg_sig_test.c
 alg_sig_test_CPPFLAGS = -I./tests
-alg_sig_test_LDFLAGS = -static -lerasurecode -lgf_complete
+alg_sig_test_LDFLAGS = -static -lerasurecode -lgf_complete -lJerasure
 check_PROGRAMS += alg_sig_test
 
 test: alg_sig_test test_xor_hd_code

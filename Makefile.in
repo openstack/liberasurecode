@@ -375,7 +375,7 @@ test_xor_hd_code_CPPFLAGS = -I./tests
 test_xor_hd_code_LDFLAGS = -static -lerasurecode -lgf_complete
 alg_sig_test_SOURCES = tests/alg_sig_test.c
 alg_sig_test_CPPFLAGS = -I./tests
-alg_sig_test_LDFLAGS = -static -lerasurecode -lgf_complete
+alg_sig_test_LDFLAGS = -static -lerasurecode -lgf_complete -lJerasure
 all: all-am
 
 .SUFFIXES:

@@ -11914,11 +11914,9 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_Jerasure_jerasure_autoconf_test" >&5
 $as_echo "$ac_cv_lib_Jerasure_jerasure_autoconf_test" >&6; }
 if test "x$ac_cv_lib_Jerasure_jerasure_autoconf_test" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBJERASURE 1
-_ACEOF
 
-  LIBS="-lJerasure $LIBS"
+               echo "Found libJerasure"
+               HAVE_LIBJERASURE = 1
 
 else
 
@@ -11966,11 +11964,9 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gf_complete_gf_init_easy" >&5
 $as_echo "$ac_cv_lib_gf_complete_gf_init_easy" >&6; }
 if test "x$ac_cv_lib_gf_complete_gf_init_easy" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBGF_COMPLETE 1
-_ACEOF
 
-  LIBS="-lgf_complete $LIBS"
+               echo "Found libgf_complete"
+               HAVE_LIBGF_COMPLETE = 1
 
 else
 
