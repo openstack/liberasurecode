@@ -15,7 +15,7 @@
 @SET_MAKE@
 
 
-VALGRIND_EXEC_COMMAND = $(LIBTOOL_COMMAND) valgrind --tool=memcheck --error-exitcode=1 --leak-check=yes --track-fds=yes --malloc-fill=A5 --free-fill=DE --fullpath-after=.
+
 VPATH = @srcdir@
 am__is_gnu_make = test -n '$(MAKEFILE_LIST)' && test -n '$(MAKELEVEL)'
 am__make_running_with_option = \
@@ -81,7 +81,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 noinst_PROGRAMS = test_xor_hd_code$(EXEEXT) alg_sig_test$(EXEEXT)
-check_PROGRAMS = text_xor_hd_code$(EXEEXT) alg_sig_test$(EXEEXT)
+check_PROGRAMS = test_xor_hd_code$(EXEEXT) alg_sig_test$(EXEEXT)
 subdir = .
 DIST_COMMON = INSTALL NEWS README AUTHORS ChangeLog \
 	$(srcdir)/Makefile.in $(srcdir)/Makefile.am \
@@ -158,9 +158,6 @@ test_xor_hd_code_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) \
 	$(AM_CFLAGS) $(CFLAGS) $(test_xor_hd_code_LDFLAGS) $(LDFLAGS) \
 	-o $@
-text_xor_hd_code_SOURCES = text_xor_hd_code.c
-text_xor_hd_code_OBJECTS = text_xor_hd_code.$(OBJEXT)
-text_xor_hd_code_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -195,9 +192,9 @@ am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
 SOURCES = $(liberasurecode_la_SOURCES) $(alg_sig_test_SOURCES) \
-	$(test_xor_hd_code_SOURCES) text_xor_hd_code.c
+	$(test_xor_hd_code_SOURCES)
 DIST_SOURCES = $(liberasurecode_la_SOURCES) $(alg_sig_test_SOURCES) \
-	$(test_xor_hd_code_SOURCES) text_xor_hd_code.c
+	$(test_xor_hd_code_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -360,6 +357,7 @@ AM_CPPFLAGS = -I./ -I../include -I/usr/local/include/jerasure
 @DEBUG_FALSE@	-L/usr/local/lib
 @DEBUG_TRUE@AM_CFLAGS = -g3 -O0 $(SIMD_FLAGS) -fPIC $(AM_CPPFLAGS) \
 @DEBUG_TRUE@	-L/usr/local/lib
+VALGRIND_EXEC_COMMAND = $(LIBTOOL_COMMAND) valgrind --tool=memcheck --error-exitcode=1 --leak-check=yes --track-fds=yes --malloc-fill=A5 --free-fill=DE --fullpath-after=.
 include_HEADERS = include/xor_hd_code_defs.h include/xor_code.h include/alg_sig.h
 lib_LTLIBRARIES = liberasurecode.la
 liberasurecode_la_SOURCES = \
@@ -506,10 +504,6 @@ tests/test_xor_hd_code-test_xor_hd_code.$(OBJEXT):  \
 test_xor_hd_code$(EXEEXT): $(test_xor_hd_code_OBJECTS) $(test_xor_hd_code_DEPENDENCIES) $(EXTRA_test_xor_hd_code_DEPENDENCIES) 
 	@rm -f test_xor_hd_code$(EXEEXT)
 	$(AM_V_CCLD)$(test_xor_hd_code_LINK) $(test_xor_hd_code_OBJECTS) $(test_xor_hd_code_LDADD) $(LIBS)
-
-text_xor_hd_code$(EXEEXT): $(text_xor_hd_code_OBJECTS) $(text_xor_hd_code_DEPENDENCIES) $(EXTRA_text_xor_hd_code_DEPENDENCIES) 
-	@rm -f text_xor_hd_code$(EXEEXT)
-	$(AM_V_CCLD)$(LINK) $(text_xor_hd_code_OBJECTS) $(text_xor_hd_code_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -927,13 +921,13 @@ uninstall-am: uninstall-includeHEADERS uninstall-libLTLIBRARIES
 	uninstall-am uninstall-includeHEADERS uninstall-libLTLIBRARIES
 
 
-test: alg_sig_test test_xor_hd_code
-	./alg_sig_test
-	./test_xor_hd_code
+test: check
+	@./alg_sig_test
+	@./test_xor_hd_code
 
-valgrind-test: alg_sig_test test_xor_hd_code
-	$(VALGRIND_EXEC_COMMAND) ./alg_sig_test
-	$(VALGRIND_EXEC_COMMAND) ./test_xor_hd_code
+valgrind-test: check
+	@$(VALGRIND_EXEC_COMMAND) ./alg_sig_test
+	@$(VALGRIND_EXEC_COMMAND) ./test_xor_hd_code
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
