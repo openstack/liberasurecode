@@ -320,6 +320,8 @@ void xor_reconstruct_one(xor_code_t *code_desc, char **data, char **parity, int 
       code_desc->decode(code_desc, data, parity, missing_idxs, blocksize, 1);
     }
   }
+  free(missing_data);
+  free(missing_parity);
 }
 
 int num_missing_data_in_parity(xor_code_t *code_desc, int parity_idx, int *missing_data)
