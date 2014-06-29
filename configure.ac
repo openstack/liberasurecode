@@ -52,7 +52,7 @@ AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 
 dnl Set up compile and link options
-INCLUDE="-I$srcdir/include"
+INCLUDE="-I$srcdir/include -I$srcdir/include/erasurecode -I$srcdir/xor_codes"
 BASE_CFLAGS="-D_GNU_SOURCE=1"
 BASE_LDFLAGS=""
 BUILD_CFLAGS="$CFLAGS $CPPFLAGS"

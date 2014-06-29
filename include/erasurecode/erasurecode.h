@@ -25,8 +25,9 @@
 #ifndef _ERASURECODE_H_
 #define _ERASURECODE_H_
 
-#include "erasurecode_version.h"
+#include "erasurecode_list.h"
 #include "erasurecode_stdinc.h"
+#include "erasurecode_version.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -100,6 +101,8 @@ typedef enum {
 } LIBERASURECODE_ERROR_CODES;
 
 /* Backend registration interface */
+extern liberasurecode_registered_backends;
+
 int liberasurecode_backend_register(ec_backend_t *backend);
 int liberasurecode_backend_unregister(ec_backend_t *backend);
 
