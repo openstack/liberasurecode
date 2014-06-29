@@ -70,6 +70,9 @@
 #if defined(HAVE_ICONV) && defined(HAVE_ICONV_H)
 # include <iconv.h>
 #endif
+#ifdef HAVE_DLFCN_H
+# include <dlfcn.h>
+#endif
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 # define DECLSPEC	__attribute__ ((visibility("default")))
