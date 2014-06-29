@@ -1,0 +1,25 @@
+## Introduction
+
+Liberasurecode is an erasure code library which can support multiple
+erasure code 'backends'. The repository includes a Jerasure for Reed-Solomon
+implementation.
+
+[TODO: flesh this out a bit more]
+
+## Dependencies
+
+liberasurecode requires that the following dependencies be installed:
+
+* gf-complete: http://www.kaymgee.com/Kevin_Greenan/Software_files/gf-complete.tar.gz
+* Jerasure: http://www.kaymgee.com/Kevin_Greenan/Software_files/jerasure.tar.gz
+
+## Build
+
+To build the liberasurecode repository, perform the following from the root
+directory of the repository:
+
+`$ ./configure`
+`$ make`
+`$ make test`
+`$ sudo make install`
+
