@@ -74,6 +74,8 @@ SOURCES="$SOURCES $srcdir/src/backends/jerasure/*.c"
 SOURCES="$SOURCES $srcdir/src/backends/gf_complete/*.c"
 SOURCES="$SOURCES $srcdir/src/backends/isa_l/*.c"
 SOURCES="$SOURCES $srcdir/src/backends/xor/*.c"
+SOURCES="$SOURCES $srcdir/src/builtins/xor/*.c"
+SOURCES="$SOURCES $srcdir/src/utils/chksum/*.c"
 SOURCES="$SOURCES $srcdir/test/*.c"
 
 # Check for jerasure/gf_complete headers
