@@ -131,4 +131,6 @@ extern DECLSPEC void    ERASURECODE_free(void *mem);
 /** The prototype for the application's main() function */
 extern C_LINKAGE int EC_main(int argc, char *argv[]);
 
+#endif  // MACOSX
+
 #endif // _ERASURECODE_STDINC_H
