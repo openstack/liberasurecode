@@ -1,0 +1,15 @@
+# Xorcode pkg-config source file
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: Xorcode
+Description: Flat XOR-based erasure codes
+Version: @XORCODE_VERSION@
+Requires:
+Conflicts:
+Libs: -L${libdir} @XORCODE_RLD_FLAGS@ -lXorcode
+Libs.private: @XORCODE_STATIC_LIBS@
+Cflags: -I${includedir}/ -I${includedir}/xor_codes @XORCODE_CFLAGS@

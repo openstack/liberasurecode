@@ -1,5 +1,6 @@
 ACLOCAL_AMFLAGS = -I m4
-AM_CPPFLAGS=-I./ -I../include -I/usr/local/include/jerasure
+AM_CPPFLAGS = $(CPPFLAGS) -I$(abs_top_builddir)/include/xor_codes -I$(abs_top_builddir)/include/erasurecode
+
 if DEBUG
 AM_CFLAGS = -g3 -O0
 else
