@@ -22,4 +22,79 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <pthread.h>
+
+/* Registered erasure code backends */
+SLIST_HEAD(, ec_backend_t) registered_backends =
+    SLIST_HEAD_INITIALIZER(registered_backends);
+pthread_mutex_t registered_backends_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+/* Add erasurecode backend to the supported backends list */
+int liberasurecode_backend_register(ec_backend_t *backend)
+{
+    pthread_mutex_lock(&registered_backends_mutex);
+    SLIST_INSERT_HEAD(&registered_backends, backend, link);
+    pthread_mutex_unlock(&registered_backends_mutex);
+}
+
+/* Remove erasurecode backend from the supported backends list */
+int liberasurecode_backend_unregister(ec_backend_t *backend)
+{
+    pthread_mutex_lock(&registered_backends_mutex);
+    SLIST_REMOVE(&registered_backends, backend, ec_backend, link);
+    pthread_mutex_unlock(&registered_backends_mutex);
+}
+
+/* Backend query interfaces */
+ec_backend_t* liberasurecode_backend_get_by_name(const char *name)
+{
+    ec_backend_t *b;
+
+    SLIST_FOREACH(b, &registered_backends, link) {
+        if (strcmp(b->name, name) == 0) {
+            ++b->users;
+            return b;
+        }
+    }
+
+    return NULL;
+}
+
+ec_backend_t* liberasurecode_backend_get_by_soname(const char *soname)
+{
+    ec_backend_t *b;
+
+    SLIST_FOREACH(b, &registered_backends, link) {
+        if (strcmp(b->soname, soname) == 0) {
+            ++b->users;
+            return b;
+        }
+    }
+
+    return NULL;
+}
+
+void liberasurecode_backend_put(ec_backend_t *backend)
+{
+    if (b->users > 0)
+        --b->users;
+}
+
+int liberasurecode_backend_supported(const char *name)
+{
+    return (liberasurecode_backend_get_by_name(name) != NULL);
+}
+
+/* Validate backend before calling init */
+int validate_backend(ec_backend_t backend)
+{
+    /* Verify that the backend implements all required methods */
+}
+
+/* Try to register all supported backends */
+int liberasurecode_backend_init_all(ec_backend_t backend)
+{
+    // FIXME - implement init table for other backend init methods
+    // for now, init just the xor backend
+}
 
