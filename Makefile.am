@@ -1,14 +1,15 @@
 ACLOCAL_AMFLAGS = -I m4
-AM_CPPFLAGS = $(CPPFLAGS) -I$(abs_top_builddir)/include/xor_codes -I$(abs_top_builddir)/include/erasurecode -Werror
 
 if DEBUG
 AM_CFLAGS = -g3 -O0
 else
 AM_CFLAGS = -O2
 endif
-AM_CFLAGS += -fPIC $(AM_CPPFLAGS) -L/usr/local/lib
 
-VALGRIND_EXEC_COMMAND = $(LIBTOOL_COMMAND) valgrind --tool=memcheck --error-exitcode=1 --leak-check=yes --track-fds=yes --malloc-fill=A5 --free-fill=DE --fullpath-after=.
+AM_CPPFLAGS = $(CPPFLAGS) -I$(abs_top_builddir)/include/xor_codes
+AM_CPPFLAGS += -I$(abs_top_builddir)/include/erasurecode -Werror
+
+AM_CFLAGS += -fPIC $(AM_CPPFLAGS) -L/usr/local/lib
 
 include_HEADERS = \
 	include/erasurecode/list.h \
@@ -21,6 +22,7 @@ include_HEADERS = \
 
 lib_LTLIBRARIES = libXorcode.la liberasurecode.la
 
+# libXorcode params
 libXorcode_la_SOURCES = \
 	src/builtin/xor_codes/xor_code.c \
 	src/builtin/xor_codes/xor_hd_code.c
@@ -28,13 +30,14 @@ libXorcode_la_SOURCES = \
 # Version format  (C - A).(A).(R) for C:R:A input
 libXorcode_la_LDFLAGS = -rpath '$(libdir)' -version-info 1:1:0
 
+# liberasurecode params
 liberasurecode_la_SOURCES = \
 	src/main.c \
 	src/backends/xor/flat_xor_3.c \
 	src/utils/chksum/crc32.c \
 	src/utils/chksum/alg_sig.c
 
-liberasurecode_la_LIBADD = libXorcode_la
+liberasurecode_la_LIBADD = -lXorcode
 
 noinst_HEADERS = tests/test_xor_hd_code.h
 noinst_PROGRAMS = test_xor_hd_code alg_sig_test
@@ -53,6 +56,10 @@ check_PROGRAMS += alg_sig_test
 test: check
 	@./alg_sig_test
 	@./test_xor_hd_code
+
+VALGRIND_EXEC_COMMAND = $(LIBTOOL_COMMAND) valgrind --tool=memcheck \
+	--error-exitcode=1 --leak-check=yes --track-fds=yes \
+	--malloc-fill=A5 --free-fill=DE --fullpath-after=.
 
 valgrind-test: check
 	@$(VALGRIND_EXEC_COMMAND) ./alg_sig_test
