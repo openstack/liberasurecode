@@ -22,9 +22,9 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include<alg_sig.h>
-#include<stdlib.h>
-#include<string.h>
+#include "alg_sig.h"
+#include <stdlib.h>
+#include <string.h>
 
 int valid_gf_w[] = { 8, 16, -1 };
 int valid_pairs[][2] = { { 8, 32}, {16, 32}, {16, 64}, {-1, -1} };
