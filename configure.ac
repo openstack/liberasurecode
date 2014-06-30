@@ -63,8 +63,8 @@ EXTRA_LDFLAGS="$BASE_LDFLAGS"
 
 dnl Check for C library headers
 AC_HEADER_STDC
-AC_CHECK_HEADERS(sys/types.h stdio.h stdlib.h stddef.h stdarg.h 
-                 malloc.h memory.h string.h strings.h inttypes.h 
+AC_CHECK_HEADERS(sys/types.h stdio.h stdlib.h stddef.h stdarg.h \
+                 malloc.h memory.h string.h strings.h inttypes.h \
                  stdint.h ctype.h math.h iconv.h signal.h dlfcn.h)
 AC_CHECK_FUNCS(malloc calloc realloc free)
 
@@ -81,34 +81,6 @@ SOURCES="$SOURCES $srcdir/test/*.c"
 
 # Check for jerasure/gf_complete headers
 AC_CHECK_HEADERS(jerasure.h cauchy.h galois.h liberation.h reed_sol.h gf_complete.h)
-
-dnl Default behavior of AC_CHECK_LIB if the library is found is to set the HAVE_LIB* 
-dnl variable and add the library to LIBS, which has the result of all compiles
-dnl --including those performed by configure-- linking against the discovered
-dnl library. This un-necessary linkage can increase build time as well as
-dnl complicates configuration, so default behavior has been overridden so we dont
-dnl set the LIBS.
-AC_CHECK_LIB([Jerasure], [jerasure_autoconf_test], 
-             [
-               echo "Found libJerasure"
-               HAVE_LIBJERASURE = 1
-             ],
-             [
-              echo "Error! You need to have libJerasure installed."
-              echo "libJerasure is available from bitbucket.org/kmgreen2/jerasure-kmg.git"
-              exit -1
-             ])
-
-AC_CHECK_LIB([gf_complete], [gf_init_easy],
-             [
-               echo "Found libgf_complete"
-               HAVE_LIBGF_COMPLETE = 1
-             ],
-             [
-              echo "Error! You need to have gf_complete installed."
-              echo "gf_complete is available from http://web.eecs.utk.edu/~plank/plank/papers/CS-13-703.html"
-              exit -1
-             ])
 
 AX_EXT()
 
@@ -133,5 +105,6 @@ AC_SUBST(EXTRA_CFLAGS)
 AC_SUBST(BUILD_LDFLAGS)
 AC_SUBST(EXTRA_LDFLAGS)
 
-AC_OUTPUT(Makefile, erasurecode.pc)
+AC_OUTPUT(Makefile)
+AC_OUTPUT(erasurecode.pc)
 

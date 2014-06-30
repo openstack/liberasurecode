@@ -5,7 +5,7 @@ AM_CFLAGS = -g3 -O0
 else
 AM_CFLAGS = -O2
 endif
-AM_CFLAGS += $(SIMD_FLAGS) -fPIC $(AM_CPPFLAGS) -L/usr/local/lib
+AM_CFLAGS += -fPIC $(AM_CPPFLAGS) -L/usr/local/lib
 
 VALGRIND_EXEC_COMMAND = $(LIBTOOL_COMMAND) valgrind --tool=memcheck --error-exitcode=1 --leak-check=yes --track-fds=yes --malloc-fill=A5 --free-fill=DE --fullpath-after=.
 
