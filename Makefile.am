@@ -1,6 +1,4 @@
 # Top-level liberasurecode automake configuration
-SUBDIRS = src/utils/chksum
-
 ACLOCAL_AMFLAGS = -I m4
 
 if DEBUG

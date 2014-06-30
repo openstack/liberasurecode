@@ -24,9 +24,45 @@
 
 #include "erasurecode.h"
 
+static int flat_xor_3_encode()
+{
+}
+
+static int flat_xor_3_decode()
+{
+}
+
+static int flat_xor_3_reconstruct()
+{
+}
+
+static int flat_xor_3_min_fragments()
+{
+}
+
+static int flat_xor_3_fragment_metadata()
+{
+}
+
+static int flat_xor_3_verify_frag_metadata()
+{
+}
+
+static int flat_xor_3_verify_stripe_metadata()
+{
+}
+
+static ec_backend_handle_t flat_xor_3_open(void)
+{
+    
+}
+
+static void flat_xor_3_close(ec_backend_handle_t handle)
+{
+    
+}
+
 struct ec_backend_ops flat_xor_3_ops = {
-    .init                       = flat_xor_3_init,
-    .exit                       = flat_xor_3_exit,
     .open                       = flat_xor_3_open,
     .close                      = flat_xor_3_close,
     .encode                     = flat_xor_3_encode,
@@ -47,16 +83,6 @@ struct ec_backend flat_xor_3 = {
     .ops                = &flat_xor_3_ops,
 };
 
-static ec_backend_handle_t flat_xor_3_open(void)
-{
-    
-}
-
-static void flat_xor_3_close(ec_backend_handle_t handle)
-{
-    
-}
-
 static int flat_xor_3_init(void)
 {
     return liberasurecode_backend_register(&flat_xor_3);
@@ -66,3 +92,4 @@ static int flat_xor_3_exit(void)
 {
     return liberasurecode_backend_unregister(&flat_xor_3);
 }
+

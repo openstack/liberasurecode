@@ -125,7 +125,6 @@ AC_SUBST(BUILD_LDFLAGS)
 AC_SUBST(EXTRA_LDFLAGS)
 
 AC_CONFIG_FILES([Makefile \
-                 src/utils/chksum/Makefile \
                  erasurecode.pc \
                  Xorcode.pc])
 AC_OUTPUT
