@@ -24,6 +24,9 @@ libXorcode_la_SOURCES = \
 	src/builtin/xor_codes/xor_code.c \
 	src/builtin/xor_codes/xor_hd_code.c
 
+# Version format  (C - A).(A).(R) for C:R:A input
+libXorcode_la_LDFLAGS = -rpath '$(libdir)' -version-info 1:1:0
+
 liberasurecode_la_SOURCES = \
 	src/main.c \
 	src/backends/xor/flat_xor_3.c \
