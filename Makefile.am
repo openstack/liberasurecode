@@ -16,19 +16,19 @@ include_HEADERS = \
 	include/erasurecode/erasurecode.h \
 	include/erasurecode/erasurecode_version.h \
 	include/xor_codes/xor_hd_code_defs.h \
-	include/xor_codes/xor_code.h \
+	include/xor_codes/xor_code.h
 
-lib_LTLIBRARIES = libXorcode_la liberasurecode.la
+lib_LTLIBRARIES = libXorcode.la liberasurecode.la
 
 libXorcode_la_SOURCES = \
 	src/builtin/xor_codes/xor_code.c \
-	src/builtin/xor_codes/xor_hd_code.c \
+	src/builtin/xor_codes/xor_hd_code.c
 
 liberasurecode_la_SOURCES = \
 	src/main.c \
 	src/backends/xor/flat_xor_3.c \
 	src/utils/chksum/crc32.c \
-	src/utils/chksum/alg_sig.c \
+	src/utils/chksum/alg_sig.c
 
 liberasurecode_la_LIBADD = libXorcode_la
 
@@ -37,7 +37,7 @@ noinst_PROGRAMS = test_xor_hd_code alg_sig_test
 
 test_xor_hd_code_SOURCES = \
 	test/builtin/xor_codes/test_xor_hd_code.c \
-	test/builtin/xor_codes/test_xor_hd_code.h \
+	test/builtin/xor_codes/test_xor_hd_code.h
 
 test_xor_hd_code_LDFLAGS = -lerasurecode -lXorcode
 check_PROGRAMS = test_xor_hd_code

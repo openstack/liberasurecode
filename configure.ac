@@ -46,6 +46,7 @@ AM_MAINTAINER_MODE([disable])
 
 dnl Compiling with per-target flags requires AM_PROG_CC_C_O.
 AC_PROG_CC
+AM_PROG_CC_C_O
 AC_PROG_LIBTOOL
 AC_PROG_CXX
 AC_PROG_INSTALL
@@ -132,5 +133,5 @@ AC_SUBST(EXTRA_CFLAGS)
 AC_SUBST(BUILD_LDFLAGS)
 AC_SUBST(EXTRA_LDFLAGS)
 
-AC_OUTPUT(Makefile, erasurecode.pc, erasurecode.spec)
+AC_OUTPUT(Makefile, erasurecode.pc)
 
