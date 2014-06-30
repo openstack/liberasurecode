@@ -1,5 +1,5 @@
 ACLOCAL_AMFLAGS = -I m4
-AM_CPPFLAGS = $(CPPFLAGS) -I$(abs_top_builddir)/include/xor_codes -I$(abs_top_builddir)/include/erasurecode
+AM_CPPFLAGS = $(CPPFLAGS) -I$(abs_top_builddir)/include/xor_codes -I$(abs_top_builddir)/include/erasurecode -Werror
 
 if DEBUG
 AM_CFLAGS = -g3 -O0
