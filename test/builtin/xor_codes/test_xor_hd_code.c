@@ -27,7 +27,7 @@
 #include <string.h>
 #include <time.h>
 #include <xor_code.h>
-#include <test_xor_hd_code.h>
+#include "test_xor_hd_code.h"
 
 void fill_buffer(unsigned char *buf, int size, int seed)
 {

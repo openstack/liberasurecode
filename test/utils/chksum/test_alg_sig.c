@@ -22,11 +22,11 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include<alg_sig.h>
-#include<stdlib.h>
-#include<stdio.h>
-#include<string.h>
-#include<time.h>
+#include "alg_sig.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <time.h>
 
 // Max is 8 bytes right now (64-bits)
 #define MAX_SIG_LEN 8
