@@ -38,6 +38,9 @@ liberasurecode_la_SOURCES = \
 	src/utils/chksum/alg_sig.c
 
 liberasurecode_la_LIBADD = -lXorcode
+# Version format  (C - A).(A).(R) for C:R:A input
+liberasurecode_la_LDFLAGS = -rpath '$(libdir)' -version-info 9:4:9
+
 
 noinst_HEADERS = tests/test_xor_hd_code.h
 noinst_PROGRAMS = test_xor_hd_code alg_sig_test
