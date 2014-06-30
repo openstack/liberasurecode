@@ -25,7 +25,7 @@
 #ifndef _ERASURECODE_H_
 #define _ERASURECODE_H_
 
-#include "erasurecode_list.h"
+#include "list.h"
 #include "erasurecode_stdinc.h"
 #include "erasurecode_version.h"
 
@@ -52,34 +52,32 @@ typedef enum {
 
 typedef void * ec_backend_handle_t;
 
-struct ec_backend_ops {
-    int (*init)(TBD);
-    int (*exit)(TBD);
+typedef struct ec_backend_ops {
+    int (*init)(void);
+    int (*exit)(void);
 
-    ec_backend_handle_t (*open)(TBD);
+    ec_backend_handle_t (*open)(void);
     void (*close)(ec_backend_handle_t handle);
 
-    int (*encode)(TBD);
-    int (*decode)(TBD);
-    int (*reconstruct)(TBD);
-    int (*get_fragments_needed)(TBD);
-    int (*get_fragment_metadata)(TBD);
-    int (*verify_fragment_metadata)(TBD);
-    int (*verify_stripe_metadata)(TBD);
-};
-typedef struct ec_backend_ops ec_backend_ops_t;
+    int (*encode)(void);
+    int (*decode)(void);
+    int (*reconstruct)(void);
+    int (*get_fragments_needed)(void);
+    int (*get_fragment_metadata)(void);
+    int (*verify_fragment_metadata)(void);
+    int (*verify_stripe_metadata)(void);
+} *ec_backend_ops_t;
 
-struct ec_backend_private {
+typedef struct ec_backend_private {
         uint32_t flags;
         /* other common/private EC backend members go here */
-};
-typedef struct ec_backend_private ec_backend_private_t;
+} *ec_backend_private_t;
 
 
-#define MAX_BASENAMELEN 64
-#define MAX_LIBNAMELEN 64
-#define MAX_LIBVERLEN 64
-struct ec_backend {
+#define MAX_BASENAMELEN     64
+#define MAX_LIBNAMELEN      64
+#define MAX_LIBVERLEN       64
+typedef struct ec_backend {
     ec_backend_id_t         id;                         /* EC backend id */
     char                    name[MAX_BASENAMELEN];      /* EC backend common name */
     char                    soname[MAX_LIBNAMELEN];     /* EC backend shared library path */
@@ -91,22 +89,13 @@ struct ec_backend {
     ec_backend_private_t    private;                    /* EC backend private data */
 
     SLIST_ENTRY(ec_backend) link;
-};
-typedef struct ec_backend ec_backend_t;
+} *ec_backend_t;
 
 /* Error codes */
 typedef enum {
     EBACKENDNOTSUPP = 200,
     EECMETHODNOTIMPL = 201,
 } LIBERASURECODE_ERROR_CODES;
-
-/* Backend registration interface */
-extern liberasurecode_registered_backends;
-
-int liberasurecode_backend_register(ec_backend_t *backend);
-int liberasurecode_backend_unregister(ec_backend_t *backend);
-
-/* 
 
 #ifdef __cplusplus
 }

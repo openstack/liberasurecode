@@ -32,11 +32,19 @@ extern "C" {
 #include "erasurecode.h"
 
 /* Init/exit routines */
-int liberasurecode_backend_init(ec_backend_t *backend);
-int liberasurecode_backend_exit(ec_backend_t *backend);
+int liberasurecode_backend_init(ec_backend_t backend);
+int liberasurecode_backend_exit(ec_backend_t backend);
+
+/* Backend registration interface */
+int liberasurecode_backend_register(ec_backend_t backend);
+int liberasurecode_backend_unregister(ec_backend_t backend);
 
 /* Backend query interface */
 ec_backend_t liberasurecode_backend_get_by_name(const char *name);
 ec_backend_t liberasurecode_backend_get_by_soname(const char *soname);
+void liberasurecode_backend_put(ec_backend_t backend);
+
+/* Validate backend before calling init */
+int validate_backend(ec_backend_t backend);
 
 #endif  // _ERASURECODE_INTERNAL_H_

@@ -22,15 +22,19 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "erasurecode.h"
+#include "erasurecode_internal.h"
+#include "list.h"
+
 #include <pthread.h>
 
 /* Registered erasure code backends */
-SLIST_HEAD(, ec_backend_t) registered_backends =
+SLIST_HEAD(backend_list, ec_backend) registered_backends =
     SLIST_HEAD_INITIALIZER(registered_backends);
 pthread_mutex_t registered_backends_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 /* Add erasurecode backend to the supported backends list */
-int liberasurecode_backend_register(ec_backend_t *backend)
+int liberasurecode_backend_register(ec_backend_t backend)
 {
     pthread_mutex_lock(&registered_backends_mutex);
     SLIST_INSERT_HEAD(&registered_backends, backend, link);
@@ -38,7 +42,7 @@ int liberasurecode_backend_register(ec_backend_t *backend)
 }
 
 /* Remove erasurecode backend from the supported backends list */
-int liberasurecode_backend_unregister(ec_backend_t *backend)
+int liberasurecode_backend_unregister(ec_backend_t backend)
 {
     pthread_mutex_lock(&registered_backends_mutex);
     SLIST_REMOVE(&registered_backends, backend, ec_backend, link);
@@ -46,9 +50,9 @@ int liberasurecode_backend_unregister(ec_backend_t *backend)
 }
 
 /* Backend query interfaces */
-ec_backend_t* liberasurecode_backend_get_by_name(const char *name)
+ec_backend_t liberasurecode_backend_get_by_name(const char *name)
 {
-    ec_backend_t *b;
+    ec_backend_t b;
 
     SLIST_FOREACH(b, &registered_backends, link) {
         if (strcmp(b->name, name) == 0) {
@@ -60,9 +64,9 @@ ec_backend_t* liberasurecode_backend_get_by_name(const char *name)
     return NULL;
 }
 
-ec_backend_t* liberasurecode_backend_get_by_soname(const char *soname)
+ec_backend_t liberasurecode_backend_get_by_soname(const char *soname)
 {
-    ec_backend_t *b;
+    ec_backend_t b;
 
     SLIST_FOREACH(b, &registered_backends, link) {
         if (strcmp(b->soname, soname) == 0) {
@@ -74,10 +78,10 @@ ec_backend_t* liberasurecode_backend_get_by_soname(const char *soname)
     return NULL;
 }
 
-void liberasurecode_backend_put(ec_backend_t *backend)
+void liberasurecode_backend_put(ec_backend_t backend)
 {
-    if (b->users > 0)
-        --b->users;
+    if (backend->users > 0)
+        --backend->users;
 }
 
 int liberasurecode_backend_supported(const char *name)
