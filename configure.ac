@@ -9,7 +9,6 @@ AC_PREREQ([2.61])
 AM_INIT_AUTOMAKE([subdir-objects no-dependencies])
 LT_INIT # libtool
 
-AC_CONFIG_SRCDIR(src)
 AC_CONFIG_HEADER(include/config.h)
 
 # Making releases:
@@ -79,6 +78,15 @@ AC_CHECK_HEADERS(sys/types.h stdio.h stdlib.h stddef.h stdarg.h \
                  stdint.h ctype.h math.h iconv.h signal.h dlfcn.h)
 AC_CHECK_FUNCS(malloc calloc realloc free)
 
+# Enable this check when gf_complete is external
+AC_CHECK_LIB([gf_complete], [gf_init_easy], [],
+[
+    echo "Error! You need to have gf_complete installed."
+    echo "gf_complete is available from https://bitbucket.org/jimplank/gf-complete.git"
+    exit -1
+])
+
+
 # C sources
 SOURCES="$SOURCES $srcdir/src/*.c"
 SOURCES="$SOURCES $srcdir/src/backends/null/*.c"
@@ -116,7 +124,9 @@ AC_SUBST(EXTRA_CFLAGS)
 AC_SUBST(BUILD_LDFLAGS)
 AC_SUBST(EXTRA_LDFLAGS)
 
-AC_OUTPUT(Makefile)
-AC_OUTPUT(erasurecode.pc)
-AC_OUTPUT(Xorcode.pc)
+AC_CONFIG_FILES([Makefile \
+                 src/utils/chksum/Makefile \
+                 erasurecode.pc \
+                 Xorcode.pc])
+AC_OUTPUT
 

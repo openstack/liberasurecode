@@ -1,3 +1,6 @@
+# Top-level liberasurecode automake configuration
+SUBDIRS = src/utils/chksum
+
 ACLOCAL_AMFLAGS = -I m4
 
 if DEBUG
@@ -34,26 +37,27 @@ libXorcode_la_LDFLAGS = -rpath '$(libdir)' -version-info 1:1:0
 liberasurecode_la_SOURCES = \
 	src/main.c \
 	src/backends/xor/flat_xor_3.c \
+	src/utils/chksum/galois.c \
 	src/utils/chksum/crc32.c \
 	src/utils/chksum/alg_sig.c
 
-liberasurecode_la_LIBADD = -lXorcode
+liberasurecode_la_LIBADD = -lXorcode -lgf_complete
 # Version format  (C - A).(A).(R) for C:R:A input
 liberasurecode_la_LDFLAGS = -rpath '$(libdir)' -version-info 9:4:9
 
 
-noinst_HEADERS = tests/test_xor_hd_code.h
+noinst_HEADERS = test/builtin/xor_codes/test_xor_hd_code.h
 noinst_PROGRAMS = test_xor_hd_code alg_sig_test
 
 test_xor_hd_code_SOURCES = \
 	test/builtin/xor_codes/test_xor_hd_code.c \
 	test/builtin/xor_codes/test_xor_hd_code.h
 
-test_xor_hd_code_LDFLAGS = -lerasurecode -lXorcode
+test_xor_hd_code_LDFLAGS = -lerasurecode -lXorcode -lgf_complete
 check_PROGRAMS = test_xor_hd_code
 
 alg_sig_test_SOURCES = test/utils/chksum/test_alg_sig.c
-alg_sig_test_LDFLAGS = -lerasurecode -lXorcode
+alg_sig_test_LDFLAGS = -lerasurecode -lXorcode -lgf_complete
 check_PROGRAMS += alg_sig_test
 
 test: check

@@ -39,6 +39,9 @@
 /* Define to 1 if you have the <liberation.h> header file. */
 #undef HAVE_LIBERATION_H
 
+/* Define to 1 if you have the `gf_complete' library (-lgf_complete). */
+#undef HAVE_LIBGF_COMPLETE
+
 /* Define to 1 if you have the `malloc' function. */
 #undef HAVE_MALLOC
 
