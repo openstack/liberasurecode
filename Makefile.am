@@ -70,3 +70,9 @@ valgrind-test: check
 	@$(VALGRIND_EXEC_COMMAND) ./alg_sig_test
 	@$(VALGRIND_EXEC_COMMAND) ./test_xor_hd_code
 
+CLEANFILES = cscope.in.out cscope.out cscope.po.out
+
+.PHONY: cscope
+cscope:
+	cscope -b -q -R -Iinclude -ssrc;
+
