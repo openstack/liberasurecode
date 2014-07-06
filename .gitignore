@@ -29,3 +29,14 @@
 
 # cscope files
 cscope.*out
+
+# autoconf/automake files
+.dirstamp
+.libs
+autom4te.cache
+config.guess
+config.log
+config.status
+config.sub
+Makefile
+

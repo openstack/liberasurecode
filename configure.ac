@@ -1,6 +1,3 @@
-# c_eclib autoconf template
-
-# FIXME - add project url as the last argument
 AC_INIT(erasurecode,0.9.4)
 AC_GNU_SOURCE
 
@@ -24,15 +21,6 @@ AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 
-dnl Set up compile and link options
-INCLUDE="-I$srcdir/include -I$srcdir/include/erasurecode -I$srcdir/xor_codes"
-BASE_CFLAGS="-D_GNU_SOURCE=1"
-BASE_LDFLAGS=""
-BUILD_CFLAGS="$CFLAGS $CPPFLAGS"
-EXTRA_CFLAGS="$INCLUDE $BASE_CFLAGS"
-BUILD_LDFLAGS="$LDFLAGS"
-EXTRA_LDFLAGS="$BASE_LDFLAGS"
-
 dnl Check for C library headers
 AC_HEADER_STDC
 AC_CHECK_HEADERS(sys/types.h stdio.h stdlib.h stddef.h stdarg.h \
@@ -47,18 +35,6 @@ AC_CHECK_LIB([gf_complete], [gf_init_easy], [],
     echo "gf_complete is available from https://bitbucket.org/jimplank/gf-complete.git"
     exit -1
 ])
-
-
-# C sources
-SOURCES="$SOURCES $srcdir/src/*.c"
-SOURCES="$SOURCES $srcdir/src/backends/null/*.c"
-SOURCES="$SOURCES $srcdir/src/backends/jerasure/*.c"
-SOURCES="$SOURCES $srcdir/src/backends/gf_complete/*.c"
-SOURCES="$SOURCES $srcdir/src/backends/isa_l/*.c"
-SOURCES="$SOURCES $srcdir/src/backends/xor/*.c"
-SOURCES="$SOURCES $srcdir/src/builtins/xor/*.c"
-SOURCES="$SOURCES $srcdir/src/utils/chksum/*.c"
-SOURCES="$SOURCES $srcdir/test/*.c"
 
 # Check for jerasure/gf_complete headers
 AC_CHECK_HEADERS(jerasure.h cauchy.h galois.h liberation.h reed_sol.h gf_complete.h)
@@ -78,15 +54,11 @@ AM_CONDITIONAL(DEBUG, test x"$debug" = x"true")
 
 dnl Expand the sources and objects needed to build the library
 AC_SUBST(ac_aux_dir)
-AC_SUBST(INCLUDE)
-AC_SUBST(SOURCES)
 AC_SUBST(OBJECTS)
-AC_SUBST(BUILD_CFLAGS)
-AC_SUBST(EXTRA_CFLAGS)
-AC_SUBST(BUILD_LDFLAGS)
-AC_SUBST(EXTRA_LDFLAGS)
 
 AC_CONFIG_FILES([Makefile \
+                 src/builtin/xor_codes/Makefile \
+                 test/Makefile \
                  erasurecode.pc \
                  Xorcode.pc])
 AC_OUTPUT
