@@ -71,15 +71,7 @@ int data_bit_lookup(xor_code_t *code_desc, int index);
 
 int missing_elements_bm(xor_code_t *code_desc, int *missing_elements, int (*bit_lookup_func)(xor_code_t *code_desc, int index));
 
-void *aligned_malloc( size_t size, int align );
-
-void aligned_free( void *mem );
-
 failure_pattern_t get_failure_pattern(xor_code_t *code_desc, int *missing_idxs);
-
-void *aligned_malloc( size_t size, int align);
-
-void aligned_free(void *mem);
 
 void fast_memcpy(char *dst, char *src, int size);
 

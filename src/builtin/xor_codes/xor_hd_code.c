@@ -429,7 +429,10 @@ static void decode_three_data(xor_code_t *code_desc, char **data, char **parity,
       exit(2);
     }
 
-    parity_buffer = aligned_malloc(blocksize, 16);
+    if (posix_memalign((void **) &parity_buffer, 16, blocksize) != 0) {
+      fprintf(stderr, "Can't get aligned memory!\n");
+      exit(1);
+    }
 
     // P XOR Q
     parity_bm = code_desc->parity_bms[contains_2d] ^ code_desc->parity_bms[contains_3d];
@@ -455,7 +458,7 @@ static void decode_three_data(xor_code_t *code_desc, char **data, char **parity,
     // Copy the appropriate parity into the data buffer
     fast_memcpy(data[data_index], parity_buffer, blocksize);
     // Free up the buffer we allocated above
-    aligned_free(parity_buffer);
+    free(parity_buffer);
   } else {
     // Copy the appropriate parity into the data buffer
     fast_memcpy(data[data_index], parity_buffer, blocksize);
