@@ -23,16 +23,17 @@ AC_PROG_MAKE_SET
 
 dnl Check for C library headers
 AC_HEADER_STDC
-AC_CHECK_HEADERS(sys/types.h stdio.h stdlib.h stddef.h stdarg.h \
-                 malloc.h memory.h string.h strings.h inttypes.h \
-                 stdint.h ctype.h math.h iconv.h signal.h dlfcn.h)
+AC_CHECK_HEADERS(sys/types.h stdio.h stdlib.h stddef.h stdarg.h malloc.h memory.h \
+                 string.h strings.h inttypes.h stdint.h ctype.h math.h iconv.h \
+                 signal.h dlfcn.h pthread.h)
 AC_CHECK_FUNCS(malloc calloc realloc free)
 
 # Enable this check when gf_complete is external
 AC_CHECK_LIB([gf_complete], [gf_init_easy], [],
 [
-    echo "Error! You need to have gf_complete installed."
+    echo "Error! gf_complete is required for algorithmic signature support."
     echo "gf_complete is available from https://bitbucket.org/jimplank/gf-complete.git"
+    echo "On Debian/Ubuntu systems, you can use \'apt-get install gf-complete\'"
     exit -1
 ])
 
