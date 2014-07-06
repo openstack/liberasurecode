@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <xor_code.h>
+#include "xor_code.h"
 
 const int g_bit_lookup[] = {0x1, 0x2, 0x4, 0x8,
                                  0x10, 0x20, 0x40, 0x80,

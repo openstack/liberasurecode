@@ -25,8 +25,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <xor_code.h>
-#include <xor_hd_code_defs.h>
+#include "xor_code.h"
+#include "xor_hd_code_defs.h"
 
 /*
  * Returns -1 if not possible
