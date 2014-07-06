@@ -348,7 +348,7 @@ static void decode_one_data(xor_code_t *code_desc, char **data, char **parity, i
   }
 }
 
-static void decode_two_data(xor_code_t *code_desc, char **data, char **parity, int *missing_data, int *missing_parity, int blocksize)
+static int decode_two_data(xor_code_t *code_desc, char **data, char **parity, int *missing_data, int *missing_parity, int blocksize)
 {
   // Verify that missing_data[2] == -1?
   int data_index = missing_data[0];
@@ -360,7 +360,7 @@ static void decode_two_data(xor_code_t *code_desc, char **data, char **parity, i
     parity_index = index_of_connected_parity(code_desc, data_index, missing_parity, missing_data);
     if (parity_index < 0) {
       fprintf(stderr, "Shit is broken, cannot find a proper parity!!!\n");
-      exit(2);
+      return -2;
     }
     missing_data[1] = -1;
   } else {
@@ -377,9 +377,11 @@ static void decode_two_data(xor_code_t *code_desc, char **data, char **parity, i
     }
   }
   decode_one_data(code_desc, data, parity, missing_data, missing_parity, blocksize);
+
+  return 0;
 }
 
-static void decode_three_data(xor_code_t *code_desc, char **data, char **parity, int *missing_data, int *missing_parity, int blocksize)
+static int decode_three_data(xor_code_t *code_desc, char **data, char **parity, int *missing_data, int *missing_parity, int blocksize)
 {
   int i = 0;
   int parity_index = -1;
@@ -426,12 +428,12 @@ static void decode_three_data(xor_code_t *code_desc, char **data, char **parity,
 
     if (contains_2d < 0 || contains_3d < 0) {
       fprintf(stderr, "Shit is broken, cannot find a proper parity (2 and 3-connected parities)!!!\n");
-      exit(2);
+      return -2;
     }
 
     if (posix_memalign((void **) &parity_buffer, 16, blocksize) != 0) {
       fprintf(stderr, "Can't get aligned memory!\n");
-      exit(1);
+      return -1;
     }
 
     // P XOR Q
@@ -453,7 +455,7 @@ static void decode_three_data(xor_code_t *code_desc, char **data, char **parity,
 
     if (data_index < 0) {
      fprintf(stderr, "Shit is broken, cannot construct equations to repair 3 failures!!!\n");
-      exit(2);
+      return -2;
     }
     // Copy the appropriate parity into the data buffer
     fast_memcpy(data[data_index], parity_buffer, blocksize);
@@ -473,11 +475,12 @@ static void decode_three_data(xor_code_t *code_desc, char **data, char **parity,
 
   remove_from_missing_list(data_index, missing_data);
 
-  decode_two_data(code_desc, data, parity, missing_data, missing_parity, blocksize);
+  return decode_two_data(code_desc, data, parity, missing_data, missing_parity, blocksize);
 }
 
-void xor_hd_decode(xor_code_t *code_desc, char **data, char **parity, int *missing_idxs, int blocksize, int decode_parity)
+int xor_hd_decode(xor_code_t *code_desc, char **data, char **parity, int *missing_idxs, int blocksize, int decode_parity)
 {
+  int ret = 0;
   failure_pattern_t pattern = get_failure_pattern(code_desc, missing_idxs);
 
   switch(pattern) {
@@ -493,14 +496,14 @@ void xor_hd_decode(xor_code_t *code_desc, char **data, char **parity, int *missi
     case FAIL_PATTERN_2D_0P: 
     {
       int *missing_data = get_missing_data(code_desc, missing_idxs);
-      decode_two_data(code_desc, data, parity, missing_data, NULL, blocksize);
+      ret = decode_two_data(code_desc, data, parity, missing_data, NULL, blocksize);
       free(missing_data);
       break;
     }
     case FAIL_PATTERN_3D_0P: 
     {
       int *missing_data = get_missing_data(code_desc, missing_idxs);
-      decode_three_data(code_desc, data, parity, missing_data, NULL, blocksize);
+      ret = decode_three_data(code_desc, data, parity, missing_data, NULL, blocksize);
       free(missing_data);
       break;
     }
@@ -532,7 +535,7 @@ void xor_hd_decode(xor_code_t *code_desc, char **data, char **parity, int *missi
     {
       int *missing_data = get_missing_data(code_desc, missing_idxs);
       int *missing_parity = get_missing_parity(code_desc, missing_idxs);
-      decode_two_data(code_desc, data, parity, missing_data, missing_parity, blocksize);
+      ret = decode_two_data(code_desc, data, parity, missing_data, missing_parity, blocksize);
       if (decode_parity) {
         selective_encode(code_desc, data, parity, missing_parity, blocksize);
       }
@@ -566,7 +569,7 @@ void xor_hd_decode(xor_code_t *code_desc, char **data, char **parity, int *missi
       break;
   }
 
-  return;
+  return ret;
 }
 
 xor_code_t* init_xor_hd_code(int k, int m, int hd)
