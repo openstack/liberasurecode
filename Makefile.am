@@ -39,8 +39,8 @@ VALGRIND_EXEC_COMMAND = $(LIBTOOL_COMMAND) valgrind --tool=memcheck \
 
 valgrind-test: check
 	@$(VALGRIND_EXEC_COMMAND) ./test/liberasurecode_test
-#	@$(VALGRIND_EXEC_COMMAND) ./test/alg_sig_test
-#	@$(VALGRIND_EXEC_COMMAND) ./test/test_xor_hd_code
+	@$(VALGRIND_EXEC_COMMAND) ./test/alg_sig_test
+	@$(VALGRIND_EXEC_COMMAND) ./test/test_xor_hd_code
 
 CLEANFILES = cscope.in.out cscope.out cscope.po.out
 
