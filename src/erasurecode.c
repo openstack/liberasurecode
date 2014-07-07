@@ -97,6 +97,15 @@ int liberasurecode_backend_supported(const char *name)
     return (liberasurecode_backend_lookup_by_name(name) != NULL);
 }
 
+static void print_dlerror(const char *caller)
+{
+    char *msg = dlerror();
+    if (NULL == msg)
+        fprintf (stderr, "%s: unknown dynamic linking error\n", caller);
+    else
+        fprintf (stderr, "%s: dynamic linking error %s\n", caller, msg);
+}
+
 /* Generic dlopen/dlclose routines */
 int liberasurecode_backend_open(ec_backend_t instance)
 {
@@ -107,7 +116,7 @@ int liberasurecode_backend_open(ec_backend_t instance)
     /* Use RTLD_LOCAL to avoid symbol collisions */
     instance->handle = dlopen(instance->common.soname, RTLD_LAZY | RTLD_LOCAL);
     if (NULL == instance->handle) {
-        fprintf(stderr, "%s\n", dlerror());
+        print_dlerror(__func__);
         return -EBACKENDNOTAVAIL;
     }
 
