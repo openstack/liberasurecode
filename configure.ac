@@ -22,12 +22,17 @@ AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 
+AX_EXT()
+
 dnl Check for C library headers
 AC_HEADER_STDC
 AC_CHECK_HEADERS(sys/types.h stdio.h stdlib.h stddef.h stdarg.h malloc.h memory.h \
                  string.h strings.h inttypes.h stdint.h ctype.h math.h iconv.h \
                  signal.h dlfcn.h pthread.h)
 AC_CHECK_FUNCS(malloc calloc realloc free)
+
+# Check for jerasure/gf_complete headers
+AC_CHECK_HEADERS(jerasure.h cauchy.h galois.h liberation.h reed_sol.h gf_complete.h)
 
 # Enable this check when gf_complete is external
 AC_CHECK_LIB([gf_complete], [gf_init_easy], [],
@@ -37,11 +42,6 @@ AC_CHECK_LIB([gf_complete], [gf_init_easy], [],
     echo "On Debian/Ubuntu systems, you can use \'apt-get install gf-complete\'"
     exit -1
 ])
-
-# Check for jerasure/gf_complete headers
-AC_CHECK_HEADERS(jerasure.h cauchy.h galois.h liberation.h reed_sol.h gf_complete.h)
-
-AX_EXT()
 
 AC_ARG_ENABLE(debug,
 AS_HELP_STRING([--enable-debug],
