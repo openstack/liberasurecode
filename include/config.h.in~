@@ -57,9 +57,6 @@
 /* Support mmx instructions */
 #undef HAVE_MMX
 
-/* Define to 1 if you have the <pthread.h> header file. */
-#undef HAVE_PTHREAD_H
-
 /* Define to 1 if you have the `realloc' function. */
 #undef HAVE_REALLOC
 

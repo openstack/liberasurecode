@@ -24,6 +24,10 @@
 
 #include "erasurecode.h"
 
+/* Forward declarations */
+struct ec_backend_ops flat_xor_3_ops;
+struct ec_backend flat_xor_3;
+
 static int flat_xor_3_encode()
 {
 }
@@ -52,19 +56,17 @@ static int flat_xor_3_verify_stripe_metadata()
 {
 }
 
-static ec_backend_handle_t flat_xor_3_open(void)
+static int flat_xor_3_init()
 {
-    
 }
 
-static void flat_xor_3_close(ec_backend_handle_t handle)
+static int flat_xor_3_exit()
 {
-    
 }
 
 struct ec_backend_ops flat_xor_3_ops = {
-    .open                       = flat_xor_3_open,
-    .close                      = flat_xor_3_close,
+    .init                       = flat_xor_3_init,
+    .exit                       = flat_xor_3_exit,
     .encode                     = flat_xor_3_encode,
     .decode                     = flat_xor_3_decode,
     .reconstruct                = flat_xor_3_reconstruct,
@@ -74,22 +76,12 @@ struct ec_backend_ops flat_xor_3_ops = {
     .verify_stripe_metadata     = flat_xor_3_verify_stripe_metadata,
 };
 
-struct ec_backend flat_xor_3 = {
-    .id                 = EC_BACKEND_FLAT_XOR_3,
-    .name               = "flat_xor_3",
-    .soname             = "Xorcode",
-    .soversion          = "1.0",
-    .handle             = NULL,
-    .ops                = &flat_xor_3_ops,
+struct ec_backend_common backend_flat_xor_3 = {
+    .id                         = EC_BACKEND_FLAT_XOR_3,
+    .name                       = "flat_xor_3",
+    .soname                     = "libXorcode.so",
+    .soversion                  = "1.0",
+    .users                      = 0,
+    .ops                        = &flat_xor_3_ops,
 };
-
-static int flat_xor_3_init(void)
-{
-    return liberasurecode_backend_register(&flat_xor_3);
-}
-
-static int flat_xor_3_exit(void)
-{
-    return liberasurecode_backend_unregister(&flat_xor_3);
-}
 

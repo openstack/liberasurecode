@@ -1,7 +1,7 @@
 # Top-level liberasurecode automake configuration
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = src/builtin/xor_codes test
+SUBDIRS = src test
 EXTRA_DIST = autogen.sh
 
 if DEBUG
@@ -28,20 +28,6 @@ include_HEADERS = \
 	include/xor_codes/xor_hd_code_defs.h \
 	include/xor_codes/xor_code.h
 
-lib_LTLIBRARIES = liberasurecode.la
-
-# liberasurecode params
-liberasurecode_la_SOURCES = \
-	src/main.c \
-	src/backends/xor/flat_xor_3.c \
-	src/utils/chksum/galois.c \
-	src/utils/chksum/crc32.c \
-	src/utils/chksum/alg_sig.c
-
-liberasurecode_la_LIBADD = src/builtin/xor_codes/libXorcode.la -lgf_complete
-# Version format  (C - A).(A).(R) for C:R:A input
-liberasurecode_la_LDFLAGS = -rpath '$(libdir)' -version-info 9:4:9
-
 
 test: check
 	@./test/alg_sig_test
@@ -52,8 +38,9 @@ VALGRIND_EXEC_COMMAND = $(LIBTOOL_COMMAND) valgrind --tool=memcheck \
 	--malloc-fill=A5 --free-fill=DE --fullpath-after=.
 
 valgrind-test: check
-	@$(VALGRIND_EXEC_COMMAND) ./test/alg_sig_test
-	@$(VALGRIND_EXEC_COMMAND) ./test/test_xor_hd_code
+	@$(VALGRIND_EXEC_COMMAND) ./test/liberasurecode_test
+#	@$(VALGRIND_EXEC_COMMAND) ./test/alg_sig_test
+#	@$(VALGRIND_EXEC_COMMAND) ./test/test_xor_hd_code
 
 CLEANFILES = cscope.in.out cscope.out cscope.po.out
 

@@ -1,184 +1,185 @@
+/* include/config.h.  Generated from config.h.in by configure.  */
 /* include/config.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Support Altivec instructions */
-#undef HAVE_ALTIVEC
+/* #undef HAVE_ALTIVEC */
 
 /* Support AVX (Advanced Vector Extensions) instructions */
-#undef HAVE_AVX
+/* #undef HAVE_AVX */
 
 /* Define to 1 if you have the `calloc' function. */
-#undef HAVE_CALLOC
+#define HAVE_CALLOC 1
 
 /* Define to 1 if you have the <cauchy.h> header file. */
-#undef HAVE_CAUCHY_H
+/* #undef HAVE_CAUCHY_H */
 
 /* Define to 1 if you have the <ctype.h> header file. */
-#undef HAVE_CTYPE_H
+#define HAVE_CTYPE_H 1
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
-#undef HAVE_DLFCN_H
+#define HAVE_DLFCN_H 1
 
 /* Define to 1 if you have the `free' function. */
-#undef HAVE_FREE
+#define HAVE_FREE 1
 
 /* Define to 1 if you have the <galois.h> header file. */
-#undef HAVE_GALOIS_H
+/* #undef HAVE_GALOIS_H */
 
 /* Define to 1 if you have the <gf_complete.h> header file. */
-#undef HAVE_GF_COMPLETE_H
+#define HAVE_GF_COMPLETE_H 1
 
 /* Define to 1 if you have the <iconv.h> header file. */
-#undef HAVE_ICONV_H
+#define HAVE_ICONV_H 1
 
 /* Define to 1 if you have the <inttypes.h> header file. */
-#undef HAVE_INTTYPES_H
+#define HAVE_INTTYPES_H 1
 
 /* Define to 1 if you have the <jerasure.h> header file. */
-#undef HAVE_JERASURE_H
+/* #undef HAVE_JERASURE_H */
 
 /* Define to 1 if you have the <liberation.h> header file. */
-#undef HAVE_LIBERATION_H
+/* #undef HAVE_LIBERATION_H */
 
 /* Define to 1 if you have the `gf_complete' library (-lgf_complete). */
-#undef HAVE_LIBGF_COMPLETE
+#define HAVE_LIBGF_COMPLETE 1
 
 /* Define to 1 if you have the `malloc' function. */
-#undef HAVE_MALLOC
+#define HAVE_MALLOC 1
 
 /* Define to 1 if you have the <malloc.h> header file. */
-#undef HAVE_MALLOC_H
+#define HAVE_MALLOC_H 1
 
 /* Define to 1 if you have the <math.h> header file. */
-#undef HAVE_MATH_H
+#define HAVE_MATH_H 1
 
 /* Define to 1 if you have the <memory.h> header file. */
-#undef HAVE_MEMORY_H
+#define HAVE_MEMORY_H 1
 
 /* Support mmx instructions */
-#undef HAVE_MMX
+#define HAVE_MMX /**/
 
 /* Define to 1 if you have the <pthread.h> header file. */
-#undef HAVE_PTHREAD_H
+#define HAVE_PTHREAD_H 1
 
 /* Define to 1 if you have the `realloc' function. */
-#undef HAVE_REALLOC
+#define HAVE_REALLOC 1
 
 /* Define to 1 if you have the <reed_sol.h> header file. */
-#undef HAVE_REED_SOL_H
+/* #undef HAVE_REED_SOL_H */
 
 /* Define to 1 if you have the <signal.h> header file. */
-#undef HAVE_SIGNAL_H
+#define HAVE_SIGNAL_H 1
 
 /* Support SSE (Streaming SIMD Extensions) instructions */
-#undef HAVE_SSE
+#define HAVE_SSE /**/
 
 /* Support SSE2 (Streaming SIMD Extensions 2) instructions */
-#undef HAVE_SSE2
+#define HAVE_SSE2 /**/
 
 /* Support SSE3 (Streaming SIMD Extensions 3) instructions */
-#undef HAVE_SSE3
+#define HAVE_SSE3 /**/
 
 /* Support SSSE4.1 (Streaming SIMD Extensions 4.1) instructions */
-#undef HAVE_SSE4_1
+/* #undef HAVE_SSE4_1 */
 
 /* Support SSSE4.2 (Streaming SIMD Extensions 4.2) instructions */
-#undef HAVE_SSE4_2
+/* #undef HAVE_SSE4_2 */
 
 /* Support SSSE3 (Supplemental Streaming SIMD Extensions 3) instructions */
-#undef HAVE_SSSE3
+#define HAVE_SSSE3 /**/
 
 /* Define to 1 if you have the <stdarg.h> header file. */
-#undef HAVE_STDARG_H
+#define HAVE_STDARG_H 1
 
 /* Define to 1 if you have the <stddef.h> header file. */
-#undef HAVE_STDDEF_H
+#define HAVE_STDDEF_H 1
 
 /* Define to 1 if you have the <stdint.h> header file. */
-#undef HAVE_STDINT_H
+#define HAVE_STDINT_H 1
 
 /* Define to 1 if you have the <stdio.h> header file. */
-#undef HAVE_STDIO_H
+#define HAVE_STDIO_H 1
 
 /* Define to 1 if you have the <stdlib.h> header file. */
-#undef HAVE_STDLIB_H
+#define HAVE_STDLIB_H 1
 
 /* Define to 1 if you have the <strings.h> header file. */
-#undef HAVE_STRINGS_H
+#define HAVE_STRINGS_H 1
 
 /* Define to 1 if you have the <string.h> header file. */
-#undef HAVE_STRING_H
+#define HAVE_STRING_H 1
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
-#undef HAVE_SYS_STAT_H
+#define HAVE_SYS_STAT_H 1
 
 /* Define to 1 if you have the <sys/types.h> header file. */
-#undef HAVE_SYS_TYPES_H
+#define HAVE_SYS_TYPES_H 1
 
 /* Define to 1 if you have the <unistd.h> header file. */
-#undef HAVE_UNISTD_H
+#define HAVE_UNISTD_H 1
 
 /* Define to the sub-directory in which libtool stores uninstalled libraries.
    */
-#undef LT_OBJDIR
+#define LT_OBJDIR ".libs/"
 
 /* Define to 1 if your C compiler doesn't accept -c and -o together. */
-#undef NO_MINUS_C_MINUS_O
+/* #undef NO_MINUS_C_MINUS_O */
 
 /* Name of package */
-#undef PACKAGE
+#define PACKAGE "erasurecode"
 
 /* Define to the address where bug reports for this package should be sent. */
-#undef PACKAGE_BUGREPORT
+#define PACKAGE_BUGREPORT ""
 
 /* Define to the full name of this package. */
-#undef PACKAGE_NAME
+#define PACKAGE_NAME "erasurecode"
 
 /* Define to the full name and version of this package. */
-#undef PACKAGE_STRING
+#define PACKAGE_STRING "erasurecode 0.9.4"
 
 /* Define to the one symbol short name of this package. */
-#undef PACKAGE_TARNAME
+#define PACKAGE_TARNAME "erasurecode"
 
 /* Define to the home page for this package. */
-#undef PACKAGE_URL
+#define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#undef PACKAGE_VERSION
+#define PACKAGE_VERSION "0.9.4"
 
 /* Define to 1 if you have the ANSI C header files. */
-#undef STDC_HEADERS
+#define STDC_HEADERS 1
 
 /* Enable extensions on AIX 3, Interix.  */
 #ifndef _ALL_SOURCE
-# undef _ALL_SOURCE
+# define _ALL_SOURCE 1
 #endif
 /* Enable GNU extensions on systems that have them.  */
 #ifndef _GNU_SOURCE
-# undef _GNU_SOURCE
+# define _GNU_SOURCE 1
 #endif
 /* Enable threading extensions on Solaris.  */
 #ifndef _POSIX_PTHREAD_SEMANTICS
-# undef _POSIX_PTHREAD_SEMANTICS
+# define _POSIX_PTHREAD_SEMANTICS 1
 #endif
 /* Enable extensions on HP NonStop.  */
 #ifndef _TANDEM_SOURCE
-# undef _TANDEM_SOURCE
+# define _TANDEM_SOURCE 1
 #endif
 /* Enable general extensions on Solaris.  */
 #ifndef __EXTENSIONS__
-# undef __EXTENSIONS__
+# define __EXTENSIONS__ 1
 #endif
 
 
 /* Version number of package */
-#undef VERSION
+#define VERSION "0.9.4"
 
 /* Define to 1 if on MINIX. */
-#undef _MINIX
+/* #undef _MINIX */
 
 /* Define to 2 if the system does not provide POSIX.1 features except with
    this defined. */
-#undef _POSIX_1_SOURCE
+/* #undef _POSIX_1_SOURCE */
 
 /* Define to 1 if you need to in order for `stat' and other things to work. */
-#undef _POSIX_SOURCE
+/* #undef _POSIX_SOURCE */

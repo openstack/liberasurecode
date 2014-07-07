@@ -3,7 +3,7 @@ AC_GNU_SOURCE
 
 AC_PREREQ([2.61])
 
-AM_INIT_AUTOMAKE([subdir-objects no-dependencies])
+AM_INIT_AUTOMAKE([subdir-objects no-dependencies silent-rules])
 LT_INIT # libtool
 
 AC_CONFIG_HEADER(include/config.h)
@@ -12,6 +12,7 @@ dnl Needed when reconfiguring with 'autoreconf -i -s'
 AC_CONFIG_MACRO_DIR([m4])
 
 AM_MAINTAINER_MODE([disable])
+AM_SILENT_RULES([yes])
 
 dnl Compiling with per-target flags requires AM_PROG_CC_C_O.
 AC_PROG_CC
@@ -57,10 +58,14 @@ dnl Expand the sources and objects needed to build the library
 AC_SUBST(ac_aux_dir)
 AC_SUBST(OBJECTS)
 
-AC_CONFIG_FILES([Makefile \
-                 src/builtin/xor_codes/Makefile \
-                 test/Makefile \
-                 erasurecode.pc \
-                 Xorcode.pc])
+AC_CONFIG_FILES([\
+    src/builtin/xor_codes/Makefile \
+    src/Makefile \
+    test/Makefile \
+    Makefile \
+    erasurecode.pc \
+    Xorcode.pc
+])
+
 AC_OUTPUT
 
