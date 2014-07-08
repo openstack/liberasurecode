@@ -37,6 +37,7 @@
 # include <stdlib.h>
 # include <stddef.h>
 # include <stdarg.h>
+# include <unistd.h>
 #else
 # if defined(HAVE_STDLIB_H)
 #  include <stdlib.h>
@@ -48,6 +49,9 @@
 # endif
 # if defined(HAVE_STDARG_H)
 #  include <stdarg.h>
+# endif
+# if defined(HAVE_UNISTD_H)
+#  include <unistd.h>
 # endif
 #endif
 #ifdef HAVE_STRING_H
@@ -72,6 +76,15 @@
 #endif
 #ifdef HAVE_DLFCN_H
 # include <dlfcn.h>
+#endif
+#ifdef HAVE_DLFCN_H
+# include <limits.h>
+#endif
+#ifdef HAVE_PTHREAD_H
+# include <pthread.h>
+#endif
+#ifdef HAVE_ERRNO_H
+# include <errno.h>
 #endif
 
 #if defined(__GNUC__) && __GNUC__ >= 4
