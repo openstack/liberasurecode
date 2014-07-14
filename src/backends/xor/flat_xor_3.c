@@ -78,21 +78,21 @@ static int flat_xor_3_exit(void *desc)
 }
 
 struct ec_backend_op_stubs flat_xor_3_op_stubs = {
-    .init                       = flat_xor_3_init,
-    .exit                       = flat_xor_3_exit,
-    .encode                     = flat_xor_3_encode,
-    .decode                     = flat_xor_3_decode,
-    .get_fragments_needed       = flat_xor_3_min_fragments,
-    .reconstruct                = flat_xor_3_reconstruct,
+    .INIT                       = flat_xor_3_init,
+    .EXIT                       = flat_xor_3_exit,
+    .ENCODE                     = flat_xor_3_encode,
+    .DECODE                     = flat_xor_3_decode,
+    .FRAGSNEEDED                = flat_xor_3_min_fragments,
+    .RECONSTRUCT                = flat_xor_3_reconstruct,
 };
 
 struct ec_backend_fnmap flat_xor_3_fn_map[] = {
-    { "init",                   "init_xor_hd_code" },
-    { "exit",                   NULL, },
-    { "encode",                 "encode" },
-    { "decode",                 "decode" },
-    { "get_fragments_needed",   "fragments_needed", },
-    { "reconstruct",            "xor_reconstruct_one" },
+    { FN_NAME(INIT),            "init_xor_hd_code" },
+    { FN_NAME(EXIT),            NULL, },
+    { FN_NAME(ENCODE),          "encode" },
+    { FN_NAME(DECODE),          "decode" },
+    { FN_NAME(FRAGSNEEDED),     "fragments_needed", },
+    { FN_NAME(RECONSTRUCT),     "xor_reconstruct_one" },
 };
 
 struct ec_backend_common backend_flat_xor_3 = {

@@ -157,7 +157,6 @@ static void print_dlerror(const char *caller)
         fprintf (stderr, "%s: dynamic linking error %s\n", caller, msg);
 }
 
-
 /* Generic dlopen/dlclose routines */
 int liberasurecode_backend_open(ec_backend_t instance)
 {
@@ -241,6 +240,9 @@ int liberasurecode_instance_destroy(int desc)
 {
     ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
 
+    if (instance == NULL)
+        return 0;
+
     /* Call private exit() for the backend */
     instance->common.ops->exit(instance->backend_desc);
 
@@ -252,6 +254,31 @@ int liberasurecode_instance_destroy(int desc)
 
     /* Cleanup */
     free(instance);
+}
+
+/**
+ * Erasure encode a data buffer
+ *
+ * @desc: liberasurecode instance descriptor (obtained with
+ *        liberasurecode_instance_create)
+ * @data: original data split into an array of k equal-sized data buffers
+ * @parity: array of m parity buffers
+ * @blocksize: length of each of the k data elements
+ *
+ * @returns: a list of buffers (first k entries are data and
+ *           the last m are parity)
+ */
+int liberasurecode_encode(int desc, char **data, char **parity, int blocksize)
+{
+    int (*fptr)() = NULL;
+    const char *fn_name = FN_NAME(ENCODE);
+    ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
+    if (instance == NULL)
+        return -ENOENT;
+
+    /* find the address of the INIT function */
+    *(void **)(&fptr) = dlsym(instance->backend_sohandle, fn_name);
+    return 0;
 }
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=* misc *=~==~=*=~==~=*=~==~=*=~==~=*=~== */

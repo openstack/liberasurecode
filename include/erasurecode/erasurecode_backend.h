@@ -39,21 +39,30 @@ struct ec_backend_args {
     void*       args;
 };
 
+#define INIT            init
+#define EXIT            exit
+#define ENCODE          encode
+#define DECODE          decode
+#define FRAGSNEEDED     fragments_needed
+#define RECONSTRUCT     reconstruct
+#define FN_NAME(s)      str(s)
+#define str(s)          #s
+
 /* EC backend stubs - implemented per backend */
 struct ec_backend_op_stubs {
     /** Backend register/init, unregister/cleanup routines **/
 
     /* Private backend init routine */
-    void * (*init)(struct ec_backend_args args);
+    void * (*INIT)(struct ec_backend_args args);
 
     /* Private backend cleanup routine */
-    int (*exit)(void *);
+    int (*EXIT)(void *);
 
     /* Do not define these as int (*f)(void) */
-    int (*encode)(void *desc);
-    int (*decode)(void *desc);
-    int (*get_fragments_needed)(void *desc);
-    int (*reconstruct)(void *desc);
+    int (*ENCODE)(void *desc);
+    int (*DECODE)(void *desc);
+    int (*FRAGSNEEDED)(void *desc);
+    int (*RECONSTRUCT)(void *desc);
 };
 
 /**

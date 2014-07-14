@@ -45,10 +45,10 @@ extern "C" {
 void liberasurecode_supported_backends(char **backend_names);
 int liberasurecode_instance_create(const char *backend_name,
         int k, int m, int w, void *args);
-int liberasurecode_instance_destroy(int instance);
-int liberasurecode_encode(int instance);
-int liberasurecode_decode(int instance);
-int liberasurecode_reconstruct(int instance);
+int liberasurecode_instance_destroy(int desc);
+int liberasurecode_encode(int desc, char **data, char **parity, int blocksize);
+int liberasurecode_decode(int desc);
+int liberasurecode_reconstruct(int desc);
 
 /* Supported EC backends */
 typedef enum {
