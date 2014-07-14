@@ -1,4 +1,4 @@
-AC_INIT(liberasurecode,0.9.4)
+AC_INIT(liberasurecode,0.9.10)
 AC_GNU_SOURCE
 
 AC_PREREQ([2.61])

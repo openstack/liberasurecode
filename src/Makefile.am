@@ -19,5 +19,5 @@ liberasurecode_la_LIBADD = \
 		builtin/xor_codes/libXorcode.la -lgf_complete -lpthread
 
 # Version format  (C - A).(A).(R) for C:R:A input
-liberasurecode_la_LDFLAGS = -rpath '$(libdir)' -version-info 9:4:9
+liberasurecode_la_LDFLAGS = -rpath '$(libdir)' -version-info 9:10:9
 
