@@ -45,6 +45,8 @@ struct ec_backend_args {
 #define DECODE          decode
 #define FRAGSNEEDED     fragments_needed
 #define RECONSTRUCT     reconstruct
+#define MAX_FNS         6
+
 #define FN_NAME(s)      str(s)
 #define str(s)          #s
 
@@ -59,7 +61,7 @@ struct ec_backend_op_stubs {
     int (*EXIT)(void *);
 
     /* Do not define these as int (*f)(void) */
-    int (*ENCODE)(void *desc);
+    int (*ENCODE)(void *desc, int (*fptr)());
     int (*DECODE)(void *desc);
     int (*FRAGSNEEDED)(void *desc);
     int (*RECONSTRUCT)(void *desc);

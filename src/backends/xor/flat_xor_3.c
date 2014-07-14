@@ -31,7 +31,7 @@
 struct ec_backend_op_stubs flat_xor_3_ops;
 struct ec_backend flat_xor_3;
 
-static int flat_xor_3_encode(void * desc)
+static int flat_xor_3_encode(void * desc, int (*fptr)())
 {
     xor_code_t *xor_desc = desc;
     // xor_desc->encode(xor_desc, data, parity, blocksize);
@@ -68,8 +68,9 @@ static void * flat_xor_3_init(struct ec_backend_args args)
 {
     /* hd = 3 for flat_xor_3 */
     const int hd = 3;
+    void * desc = (void *) init_xor_hd_code(args.k, args.m, hd);
 
-    return (void *) init_xor_hd_code(args.k, args.m, hd);
+    return desc;
 }
 
 static int flat_xor_3_exit(void *desc)
@@ -86,7 +87,7 @@ struct ec_backend_op_stubs flat_xor_3_op_stubs = {
     .RECONSTRUCT                = flat_xor_3_reconstruct,
 };
 
-struct ec_backend_fnmap flat_xor_3_fn_map[] = {
+struct ec_backend_fnmap flat_xor_3_fn_map[MAX_FNS] = {
     { FN_NAME(INIT),            "init_xor_hd_code" },
     { FN_NAME(EXIT),            NULL, },
     { FN_NAME(ENCODE),          "encode" },

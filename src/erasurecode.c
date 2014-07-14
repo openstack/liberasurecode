@@ -228,6 +228,7 @@ int liberasurecode_instance_create(const char *backend_name,
 
     /* Call private init() for the backend */
     instance->backend_desc = instance->common.ops->init(bargs);
+    printf ("instance->backend_desc = %p\n", instance->backend_desc);
 
     /* Register instance and return a descriptor/instance id */
     instance->instance_desc = liberasurecode_backend_instance_register(instance);
@@ -257,6 +258,29 @@ int liberasurecode_instance_destroy(int desc)
 }
 
 /**
+ * Lookup backend library function name given stub name
+ *
+ * @map - function stub name to library function name map
+ * @stub - backend stub name
+ *
+ * @returns pointer to a string representing backend library function name
+ */
+const char *lookup_fn_name(struct ec_backend_fnmap *map, const char *stub)
+{
+    int i = 0;
+    const char* fn_name = NULL;
+
+    for (i = 0; i < MAX_FNS; i++) {
+        if (!strcmp(map[i].stub_name, stub)) {
+            fn_name = strdup(map[i].fn_name);
+            break;
+        }
+    }
+
+    return fn_name;
+}
+
+/**
  * Erasure encode a data buffer
  *
  * @desc: liberasurecode instance descriptor (obtained with
@@ -271,13 +295,21 @@ int liberasurecode_instance_destroy(int desc)
 int liberasurecode_encode(int desc, char **data, char **parity, int blocksize)
 {
     int (*fptr)() = NULL;
-    const char *fn_name = FN_NAME(ENCODE);
+    const char *fn_name = NULL;
+    const char *stub = FN_NAME(ENCODE);
     ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
     if (instance == NULL)
         return -ENOENT;
 
+    fn_name = lookup_fn_name(instance->common.fnmap, stub);
+
     /* find the address of the INIT function */
     *(void **)(&fptr) = dlsym(instance->backend_sohandle, fn_name);
+
+    /* call the backend encode function passing it fptr */
+    printf ("instance->backend_desc = %p\n", instance->backend_desc);
+    instance->common.ops->encode(instance->backend_desc, fptr);
+
     return 0;
 }
 
