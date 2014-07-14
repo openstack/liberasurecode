@@ -20,6 +20,8 @@
  * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * liberasurecode frontend API header
  */
 
 #ifndef _ERASURECODE_H_
@@ -39,7 +41,14 @@ extern "C" {
 #define dl_restrict
 #endif
 
-/* liberasurecode API header */
+/* liberasurecode frontend API functions */
+void liberasurecode_supported_backends(char **backend_names);
+int liberasurecode_instance_create(const char *backend_name,
+        int k, int m, int w, void *args);
+int liberasurecode_instance_destroy(int instance);
+int liberasurecode_encode(int instance);
+int liberasurecode_decode(int instance);
+int liberasurecode_reconstruct(int instance);
 
 /* Supported EC backends */
 typedef enum {
@@ -50,63 +59,6 @@ typedef enum {
     EC_BACKEND_FLAT_XOR_4       = 4,
     EC_BACKENDS_MAX,
 } ec_backend_id_t;
-
-struct ec_backend_ops {
-    /* Backend register/init, unregister/cleanup routines */
-    int (*init)();
-    int (*exit)();
-
-    /* Generic function pointers to be overridden with dlsym() */
-    /* Do not define these as int (*f)(void) */
-    int (*encode)();
-    int (*decode)();
-    int (*reconstruct)();
-    int (*get_fragments_needed)();
-    int (*get_fragment_metadata)();
-    int (*verify_fragment_metadata)();
-    int (*verify_stripe_metadata)();
-};
-
-#define MAX_BASENAMELEN     64
-#define MAX_LIBNAMELEN      64
-#define MAX_LIBVERLEN       64
-typedef void * ec_backend_handle_t;
-
-/* EC backend private data */
-struct ec_backend_args {
-    uint32_t k;                                         /* Number of data fragments */
-    uint32_t m;                                         /* Number of parity fragments */
-    uint32_t w;                                         /* Word-size in bits */
-    uint32_t arg1;                                      /* Reserved1 */
-    uint32_t arg2;                                      /* Reserved2 */
-    uint32_t arg3;                                      /* Reserved3 */
-};
-
-/* EC backend common attributes */
-struct ec_backend_common {
-    ec_backend_id_t         id;                         /* EC backend id */
-    char                    name[MAX_BASENAMELEN];      /* EC backend common name */
-    char                    soname[MAX_LIBNAMELEN];     /* EC backend shared library path */
-    char                    soversion[MAX_LIBVERLEN];   /* EC backend shared library version */
-    uint8_t                 users;                      /* EC backend number of active references */
-
-    struct ec_backend_ops * ops;                        /* EC backend ops table */
-};
-
-/* EC backend definition */
-typedef struct ec_backend {
-    struct ec_backend_common    common;                 /* EC backend common attributes */
-    struct ec_backend_args      args;                   /* EC backend instance data (private) */
-    void *                      handle;                 /* EC backend shared library handle */
-
-    SLIST_ENTRY(ec_backend)     link;
-} *ec_backend_t;
-
-/* API functions */
-int liberasurecode_backend_create_instance(ec_backend_t *pinstance,
-        const char *name, int k, int m, int w, int arg1, int arg2, int arg3);
-int liberasurecode_backend_destroy_instance(ec_backend_t instance);
-
 
 /* Error codes */
 typedef enum {

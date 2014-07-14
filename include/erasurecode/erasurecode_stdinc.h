@@ -82,6 +82,14 @@
 #endif
 #ifdef HAVE_PTHREAD_H
 # include <pthread.h>
+#define RWLOCK_INITIALIZER PTHREAD_RWLOCK_INITIALIZER
+#define rwlock_t pthread_rwlock_t
+#define rwlock_rdlock pthread_rwlock_rdlock
+#define rwlock_wrlock pthread_rwlock_wrlock
+#define rwlock_tryrdlock pthread_rwlock_tryrdlock
+#define rwlock_trywrlock pthread_rwlock_trywrlock
+#define rwlock_unlock pthread_rwlock_unlock
+#define rwlock_destroy pthread_rwlock_destroy
 #endif
 #ifdef HAVE_ERRNO_H
 # include <errno.h>

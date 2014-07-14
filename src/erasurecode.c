@@ -1,4 +1,4 @@
-/* 
+/*
  * <Copyright>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -20,15 +20,18 @@
  * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * liberasurecode API implementation
+ *
+ * vi: set noai tw=79 ts=4 sw=4:
  */
 
-#include "erasurecode.h"
-#include "erasurecode_internal.h"
 #include "list.h"
+#include "erasurecode.h"
+#include "erasurecode_stdinc.h"
+#include "erasurecode_backend.h"
 
-#include <errno.h>
-#include <stdlib.h>
-#include <pthread.h>
+/* =~=*=~==~=*=~==~=*=~= Supported EC backends =~=*=~==~=*=~==~=*=~==~=*=~== */
 
 /* EC backend references */
 extern struct ec_backend_common backend_flat_xor_3;
@@ -40,29 +43,6 @@ ec_backend_t ec_backends_supported[EC_BACKENDS_MAX] = {
     (ec_backend_t) &backend_flat_xor_3,
     /* backend_flat_xor_4 */ NULL,
 };
-
-/* Registered erasure code backend instances */
-SLIST_HEAD(backend_list, ec_backend) active_instances =
-    SLIST_HEAD_INITIALIZER(active_instances);
-pthread_mutex_t active_instances_mutex = PTHREAD_MUTEX_INITIALIZER;
-
-int liberasurecode_backend_instance_register(ec_backend_t instance)
-{
-    pthread_mutex_lock(&active_instances_mutex);
-    SLIST_INSERT_HEAD(&active_instances, instance, link);
-    pthread_mutex_unlock(&active_instances_mutex);
-
-    return 0;
-}
-
-int liberasurecode_backend_instance_unregister(ec_backend_t instance)
-{
-    pthread_mutex_lock(&active_instances_mutex);
-    SLIST_REMOVE(&active_instances, instance, ec_backend, link);
-    pthread_mutex_unlock(&active_instances_mutex);
-
-    return 0;
-}
 
 /* Get EC backend by name */
 ec_backend_t liberasurecode_backend_lookup_by_name(const char *name)
@@ -91,11 +71,82 @@ ec_backend_id_t liberasurecode_backend_lookup_id(const char *name)
     return -1;
 }
 
-/* Check if a backend name is in the supported list */
-int liberasurecode_backend_supported(const char *name)
+/* =~=*=~==~=*=~==~=*=~= EC backend instance management =~=*=~==~=*=~==~=*= */
+
+/* Registered erasure code backend instances */
+SLIST_HEAD(backend_list, ec_backend) active_instances =
+    SLIST_HEAD_INITIALIZER(active_instances);
+rwlock_t active_instances_rwlock = RWLOCK_INITIALIZER;
+
+/* Backend instance id */
+int next_backend_desc = 0;
+
+/**
+ * Look up a backend instance by descriptor
+ *
+ * Returns pointer to a registered liberasurecode instance
+ * The caller must hold active_instances_rwlock
+ */
+ec_backend_t liberasurecode_backend_instance_get_by_desc(int desc)
 {
-    return (liberasurecode_backend_lookup_by_name(name) != NULL);
+    struct ec_backend *b = NULL;
+    SLIST_FOREACH(b, &active_instances, link) {
+        if (b->instance_desc == desc)
+            break;
+    }
+    return b;
 }
+
+/**
+ * Allocated backend instance descriptor
+ *
+ * Returns a unique descriptor for a new backend.
+ * The caller must hold active_instances_rwlock
+ */
+int liberasurecode_backend_alloc_desc(void)
+{
+    for (;;) {
+       if (++next_backend_desc <= 0)
+            next_backend_desc = 1;
+        if (!liberasurecode_backend_instance_get_by_desc(next_backend_desc))
+            return next_backend_desc;
+    }
+}
+
+/**
+ * Register a backend instance with liberasurecode
+ *
+ * Returns new backend descriptor
+ */
+int liberasurecode_backend_instance_register(ec_backend_t instance)
+{
+    int desc = -1;
+
+    rwlock_wrlock(&active_instances_rwlock);
+    SLIST_INSERT_HEAD(&active_instances, instance, link);
+    desc = liberasurecode_backend_alloc_desc();
+    if (desc <= 0)
+        goto register_out;
+    instance->instance_desc = desc;
+
+register_out:
+    rwlock_unlock(&active_instances_rwlock);
+    return desc;
+}
+
+/**
+ * Unregister a backend instance
+ */
+int liberasurecode_backend_instance_unregister(ec_backend_t instance)
+{
+    rwlock_wrlock(&active_instances_rwlock);
+    SLIST_REMOVE(&active_instances, instance, ec_backend, link);
+    rwlock_unlock(&active_instances_rwlock);
+
+    return 0;
+}
+
+/* =~=*=~==~=*=~== liberasurecode backend API implementation =~=*=~==~=*=~== */
 
 static void print_dlerror(const char *caller)
 {
@@ -106,16 +157,17 @@ static void print_dlerror(const char *caller)
         fprintf (stderr, "%s: dynamic linking error %s\n", caller, msg);
 }
 
+
 /* Generic dlopen/dlclose routines */
 int liberasurecode_backend_open(ec_backend_t instance)
 {
 	void *handle = NULL;
-    if (instance && NULL != instance->handle)
+    if (instance && NULL != instance->backend_sohandle)
         return 0;
 
     /* Use RTLD_LOCAL to avoid symbol collisions */
-    instance->handle = dlopen(instance->common.soname, RTLD_LAZY | RTLD_LOCAL);
-    if (NULL == instance->handle) {
+    instance->backend_sohandle = dlopen(instance->common.soname, RTLD_LAZY | RTLD_LOCAL);
+    if (NULL == instance->backend_sohandle) {
         print_dlerror(__func__);
         return -EBACKENDNOTAVAIL;
     }
@@ -126,31 +178,34 @@ int liberasurecode_backend_open(ec_backend_t instance)
 
 int liberasurecode_backend_close(ec_backend_t instance)
 {
-    if (NULL == instance || NULL == instance->handle)
+    if (NULL == instance || NULL == instance->backend_sohandle)
         return 0;
 
-    dlclose(instance->handle);
+    dlclose(instance->backend_sohandle);
     dlerror();    /* Clear any existing errors */
 
-    instance->handle = NULL;
+    instance->backend_sohandle = NULL;
     return 0;
 }
 
-/* Initialize and open a backend - pointer to backend instance
- * returned in 'pinstance.' */
-int liberasurecode_backend_create_instance(
-        ec_backend_t *pinstance,
-        const char *name, int k, int m, int w,
-        int arg1, int arg2, int arg3)
+/* =~=*=~==~=*=~= liberasurecode frontend API implementation =~=*=~==~=*=~== */
+
+/**
+ * Initialize and register a liberasurecode backend
+ *
+ * Returns instance descriptor (int > 0)
+ */
+int liberasurecode_instance_create(const char *backend_name,
+        int k, int m, int w, void *args)
 {
     int err = 0;
     ec_backend_t instance = NULL;
-    struct ec_backend_args args = {
+    struct ec_backend_args bargs = {
         .k = k, .m = m, .w = w,
-        .arg1 = arg1, .arg2 = arg2, .arg3 = arg3,
+        .args = args,
     };
 
-    ec_backend_id_t id = liberasurecode_backend_lookup_id(name);
+    ec_backend_id_t id = liberasurecode_backend_lookup_id(backend_name);
     if (-1 == id)
         return -EBACKENDNOTSUPP;
 
@@ -161,36 +216,45 @@ int liberasurecode_backend_create_instance(
 
     /* Copy common backend, args struct */
     instance->common = ec_backends_supported[id]->common;
-    instance->args = args;
+    instance->args = bargs;
 
     /* Open backend .so if not already open */
-    /* backend handle is returned in backend->handle */
+    /* .so handle is returned in instance->backend_sohandle */
     err = liberasurecode_backend_open(instance);
     if (err < 0) {
         /* ignore during init, return the same handle */
         free(instance);
-        *pinstance = NULL;
         return err;
     }
 
     /* Call private init() for the backend */
-    instance->common.ops->init();
+    instance->backend_desc = instance->common.ops->init(bargs);
 
-    /* Register instance */
-    liberasurecode_backend_instance_register(instance);
+    /* Register instance and return a descriptor/instance id */
+    instance->instance_desc = liberasurecode_backend_instance_register(instance);
 
-    *pinstance = instance;
-
-    return 0;
+    return instance->instance_desc;
 }
 
-/* deinitialize and close a backend */
-int liberasurecode_backend_destroy_instance(ec_backend_t instance)
+/* Deinitialize and close a backend */
+int liberasurecode_instance_destroy(int desc)
 {
+    ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
+
+    /* Call private exit() for the backend */
+    instance->common.ops->exit(instance->backend_desc);
+
+    /* dlclose() backend library */
     liberasurecode_backend_close(instance);
+
+    /* Remove instace from registry */
     liberasurecode_backend_instance_unregister(instance);
+
+    /* Cleanup */
     free(instance);
 }
+
+/* ==~=*=~==~=*=~==~=*=~==~=*=~==~=* misc *=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
 #if 0
 /* Validate backend before calling init */
@@ -244,4 +308,4 @@ ec_backend_t liberasurecode_backend_lookup_by_soname(const char *soname)
 }
 #endif
 
-
+/* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */

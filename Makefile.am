@@ -5,9 +5,9 @@ SUBDIRS = src test
 EXTRA_DIST = autogen.sh
 
 if DEBUG
-AM_CFLAGS = -g3 -O0 -D_GNU_SOURCE=1
+AM_CFLAGS = -g3 -O0 -D_GNU_SOURCE=1 -Werror
 else
-AM_CFLAGS = -O2 -D_GNU_SOURCE=1
+AM_CFLAGS = -O2 -D_GNU_SOURCE=1 -Werror
 endif
 
 INCLUDE = -I$(abs_top_builddir)/include \
@@ -22,7 +22,7 @@ AM_CFLAGS += -fPIC $(AM_CPPFLAGS) -L/usr/local/lib
 include_HEADERS = \
 	include/erasurecode/list.h \
 	include/erasurecode/erasurecode_stdinc.h \
-	include/erasurecode/erasurecode_internal.h \
+	include/erasurecode/erasurecode_backend.h \
 	include/erasurecode/erasurecode.h \
 	include/erasurecode/erasurecode_version.h \
 	include/xor_codes/xor_hd_code_defs.h \

@@ -14,8 +14,9 @@ liberasurecode_la_SOURCES = \
 		utils/chksum/galois.c \
 		backends/xor/flat_xor_3.c
 
+liberasurecode_la_CPPFLAGS = -Werror
 liberasurecode_la_LIBADD = \
-		builtin/xor_codes/libXorcode.la -lgf_complete
+		builtin/xor_codes/libXorcode.la -lgf_complete -lpthread
 
 # Version format  (C - A).(A).(R) for C:R:A input
 liberasurecode_la_LDFLAGS = -rpath '$(libdir)' -version-info 9:4:9

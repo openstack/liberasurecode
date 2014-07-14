@@ -2,12 +2,8 @@
 
 int main()
 {
-    ec_backend_t backend;
-    
-    int err = liberasurecode_backend_create_instance(&backend, 
-            "flat_xor_3", 10, 4, 0, 0, 0, 0);
-    if (backend)
-        liberasurecode_backend_destroy_instance(backend);
+    int desc = liberasurecode_instance_create("flat_xor_3", 10, 4, 0, NULL);
+    liberasurecode_instance_destroy(desc);
     return 0;
 }
 

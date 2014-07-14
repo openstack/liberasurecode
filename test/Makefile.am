@@ -15,6 +15,6 @@ check_PROGRAMS += alg_sig_test
 
 liberasurecode_test_SOURCES = liberasurecode_test.c
 liberasurecode_test_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/include/erasurecode
-liberasurecode_test_LDFLAGS = -static -lgf_complete $(top_srcdir)/src/liberasurecode.la -ldl
+liberasurecode_test_LDFLAGS = -lgf_complete $(top_srcdir)/src/liberasurecode.la -ldl -lpthread
 check_PROGRAMS += liberasurecode_test
 

@@ -22,14 +22,19 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "erasurecode.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <xor_code.h>
+#include "erasurecode_backend.h"
 
 /* Forward declarations */
-struct ec_backend_ops flat_xor_3_ops;
+struct ec_backend_op_stubs flat_xor_3_ops;
 struct ec_backend flat_xor_3;
 
-static int flat_xor_3_encode()
+static int flat_xor_3_encode(void * desc)
 {
+    xor_code_t *xor_desc = desc;
+    // xor_desc->encode(xor_desc, data, parity, blocksize);
 }
 
 static int flat_xor_3_decode()
@@ -46,34 +51,48 @@ static int flat_xor_3_min_fragments()
 
 static int flat_xor_3_fragment_metadata()
 {
+    return 0;
 }
 
 static int flat_xor_3_verify_frag_metadata()
 {
+    return 0;
 }
 
 static int flat_xor_3_verify_stripe_metadata()
 {
+    return 0;
 }
 
-static int flat_xor_3_init()
+static void * flat_xor_3_init(struct ec_backend_args args)
 {
+    /* hd = 3 for flat_xor_3 */
+    const int hd = 3;
+
+    return (void *) init_xor_hd_code(args.k, args.m, hd);
 }
 
-static int flat_xor_3_exit()
+static int flat_xor_3_exit(void *desc)
 {
+    free((xor_code_t *) desc);
 }
 
-struct ec_backend_ops flat_xor_3_ops = {
+struct ec_backend_op_stubs flat_xor_3_op_stubs = {
     .init                       = flat_xor_3_init,
     .exit                       = flat_xor_3_exit,
     .encode                     = flat_xor_3_encode,
     .decode                     = flat_xor_3_decode,
-    .reconstruct                = flat_xor_3_reconstruct,
     .get_fragments_needed       = flat_xor_3_min_fragments,
-    .get_fragment_metadata      = flat_xor_3_fragment_metadata,
-    .verify_fragment_metadata   = flat_xor_3_verify_frag_metadata,
-    .verify_stripe_metadata     = flat_xor_3_verify_stripe_metadata,
+    .reconstruct                = flat_xor_3_reconstruct,
+};
+
+struct ec_backend_fnmap flat_xor_3_fn_map[] = {
+    { "init",                   "init_xor_hd_code" },
+    { "exit",                   NULL, },
+    { "encode",                 "encode" },
+    { "decode",                 "decode" },
+    { "get_fragments_needed",   "fragments_needed", },
+    { "reconstruct",            "xor_reconstruct_one" },
 };
 
 struct ec_backend_common backend_flat_xor_3 = {
@@ -81,7 +100,8 @@ struct ec_backend_common backend_flat_xor_3 = {
     .name                       = "flat_xor_3",
     .soname                     = "libXorcode.so",
     .soversion                  = "1.0",
+    .ops                        = &flat_xor_3_op_stubs,
+    .fnmap                      = flat_xor_3_fn_map,
     .users                      = 0,
-    .ops                        = &flat_xor_3_ops,
 };
 
