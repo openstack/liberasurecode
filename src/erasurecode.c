@@ -303,16 +303,122 @@ int liberasurecode_encode(int desc, char **data, char **parity, int blocksize)
 
     fn_name = lookup_fn_name(instance->common.fnmap, stub);
 
-    /* find the address of the INIT function */
+    /* find the address of the ENCODE function */
     *(void **)(&fptr) = dlsym(instance->backend_sohandle, fn_name);
 
     /* call the backend encode function passing it fptr */
-    printf ("instance->backend_desc = %p\n", instance->backend_desc);
-    instance->common.ops->encode(instance->backend_desc, fptr);
+    instance->common.ops->encode(instance->backend_desc, fptr,
+                                 data, parity, blocksize);
 
     return 0;
 }
 
+/**
+ * Reconstruct all of the missing fragments from a set of fragments
+ *
+ * @desc: liberasurecode instance descriptor (obtained with
+ *        liberasurecode_instance_create)
+ * @data: array of k encoded data buffers
+ * @parity: array of m parity buffers
+ * @missing_idx_list: list of indexes of missing elements
+ * @blocksize: length of each of the k data elements
+ * @fragment_size: size in bytes of the fragments
+ *
+ * @return list of fragments
+ */
+int liberasurecode_decode(int desc, char **data, char **parity,
+                          int *missing_idxs, int blocksize)
+{
+    int (*fptr)() = NULL;
+    const char *fn_name = NULL;
+    const char *stub = FN_NAME(DECODE);
+    ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
+    if (instance == NULL)
+        return -ENOENT;
+
+    fn_name = lookup_fn_name(instance->common.fnmap, stub);
+
+    /* find the address of the DECODE function */
+    *(void **)(&fptr) = dlsym(instance->backend_sohandle, fn_name);
+
+    /* call the backend encode function passing it fptr */
+    instance->common.ops->decode(instance->backend_desc, fptr,
+                                 data, parity, missing_idxs, blocksize);
+
+    return 0;
+}
+
+/**
+ * Reconstruct a missing fragment from the the remaining fragments.
+ *
+ * @desc: liberasurecode instance descriptor (obtained with
+ *        liberasurecode_instance_create)
+ * @data: array of k encoded data buffers
+ * @parity: array of m parity buffers
+ * @missing_idx_list: list of indexes of missing elements
+ * @destination_idx: index of fragment to reconstruct
+ * @blocksize: length of each of the k data elements
+ * @fragment_size: size in bytes of the fragments
+ *
+ * @return reconstructed destination fragment or NULL on error
+ */
+int liberasurecode_reconstruct(int desc, char **data, char **parity,
+                               int *missing_idxs, int destination_idx,
+                               int blocksize)
+{
+    int (*fptr)() = NULL;
+    const char *fn_name = NULL;
+    const char *stub = FN_NAME(RECONSTRUCT);
+    ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
+    if (instance == NULL)
+        return -ENOENT;
+
+    fn_name = lookup_fn_name(instance->common.fnmap, stub);
+
+    /* find the address of the RECONSTRUCT function */
+    *(void **)(&fptr) = dlsym(instance->backend_sohandle, fn_name);
+
+    /* call the backend encode function passing it fptr */
+    instance->common.ops->reconstruct(instance->backend_desc, fptr,
+                                      data, parity, missing_idxs,
+                                      destination_idx, blocksize);
+
+    return 0;
+}
+
+/**
+ * Return a list of lists with valid rebuild indexes given an EC algorithm
+ * and a list of missing indexes.
+ *
+ * @desc: liberasurecode instance descriptor (obtained with
+ *        liberasurecode_instance_create)
+ * @missing_idx_list: list of indexes of missing elements
+ *
+ * @return a list of lists of indexes to rebuild data from
+ *         (in 'fragments_needed')
+ */
+int liberasurecode_fragments_needed(int desc, int *missing_idxs,
+                                    int *fragments_needed)
+{
+    int (*fptr)() = NULL;
+    const char *fn_name = NULL;
+    const char *stub = FN_NAME(FRAGSNEEDED);
+    ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
+    if (instance == NULL)
+        return -ENOENT;
+
+    fn_name = lookup_fn_name(instance->common.fnmap, stub);
+
+    /* find the address of the FRAGSNEEDED function */
+    *(void **)(&fptr) = dlsym(instance->backend_sohandle, fn_name);
+
+    /* call the backend encode function passing it fptr */
+    instance->common.ops->fragments_needed(instance->backend_desc, fptr,
+                                           missing_idxs, fragments_needed);
+
+    return 0;
+}
+ 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=* misc *=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
 #if 0

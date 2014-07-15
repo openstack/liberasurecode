@@ -31,37 +31,34 @@
 struct ec_backend_op_stubs flat_xor_3_ops;
 struct ec_backend flat_xor_3;
 
-static int flat_xor_3_encode(void * desc, int (*fptr)())
+static int flat_xor_3_encode(void *desc, int (*fptr)(),
+                             char **data, char **parity, int blocksize)
 {
-    xor_code_t *xor_desc = desc;
-    // xor_desc->encode(xor_desc, data, parity, blocksize);
+    xor_code_t *xor_desc = (xor_code_t *) desc;
+    xor_desc->encode(xor_desc, data, parity, blocksize);
 }
 
-static int flat_xor_3_decode()
+static int flat_xor_3_decode(void *desc, int (*fptr)(),
+                             char **data, char **parity, int *missing_idxs,
+                             int blocksize)
 {
+    xor_code_t *xor_desc = (xor_code_t *) desc;
+    xor_desc->decode(xor_desc, data, parity, missing_idxs, blocksize, 1);
 }
 
-static int flat_xor_3_reconstruct()
+static int flat_xor_3_reconstruct(void *desc, int (*fptr)(),
+                                  char **data, char **parity, int *missing_idxs,
+                                  int destination_idx, int blocksize)
 {
+    xor_code_t *xor_desc = (xor_code_t *) desc;
+    (*fptr)(xor_desc, data, parity, missing_idxs, destination_idx, blocksize);
 }
 
-static int flat_xor_3_min_fragments()
+static int flat_xor_3_min_fragments(void *desc, int (*fptr)(),
+                                    int *missing_idxs, int *fragments_needed)
 {
-}
-
-static int flat_xor_3_fragment_metadata()
-{
-    return 0;
-}
-
-static int flat_xor_3_verify_frag_metadata()
-{
-    return 0;
-}
-
-static int flat_xor_3_verify_stripe_metadata()
-{
-    return 0;
+    xor_code_t *xor_desc = (xor_code_t *) desc;
+    xor_desc->fragments_needed(xor_desc, missing_idxs, fragments_needed);
 }
 
 static void * flat_xor_3_init(struct ec_backend_args args)

@@ -61,10 +61,15 @@ struct ec_backend_op_stubs {
     int (*EXIT)(void *);
 
     /* Do not define these as int (*f)(void) */
-    int (*ENCODE)(void *desc, int (*fptr)());
-    int (*DECODE)(void *desc);
-    int (*FRAGSNEEDED)(void *desc);
-    int (*RECONSTRUCT)(void *desc);
+    int (*ENCODE)(void *desc, int (*fptr)(),
+            char **data, char **parity, int blocksize);
+    int (*DECODE)(void *desc, int (*fptr)(),
+            char **data, char **parity, int *missing_idxs, int blocksize);
+    int (*FRAGSNEEDED)(void *desc, int (*fptr)(),
+            int *missing_idxs, int *fragments_needed);
+    int (*RECONSTRUCT)(void *desc, int (*fptr)(),
+            char **data, char **parity, int *missing_idxs, int destination_idx,
+            int blocksize);
 };
 
 /**

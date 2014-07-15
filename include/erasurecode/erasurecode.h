@@ -43,12 +43,21 @@ extern "C" {
 
 /* liberasurecode frontend API functions */
 void liberasurecode_supported_backends(char **backend_names);
+
 int liberasurecode_instance_create(const char *backend_name,
         int k, int m, int w, void *args);
 int liberasurecode_instance_destroy(int desc);
-int liberasurecode_encode(int desc, char **data, char **parity, int blocksize);
-int liberasurecode_decode(int desc);
-int liberasurecode_reconstruct(int desc);
+
+int liberasurecode_encode(int desc,
+        char **data, char **parity, int blocksize);
+int liberasurecode_decode(int desc,
+        char **data, char **parity, int *missing_idxs,
+        int blocksize);
+int liberasurecode_reconstruct(int desc,
+        char **data, char **parity, int *missing_idxs,
+        int destination_idx, int blocksize);
+int liberasurecode_fragments_needed(int desc,
+        int *missing_idxs, int *fragments_needed);
 
 /* Supported EC backends */
 typedef enum {
