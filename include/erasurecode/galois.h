@@ -41,11 +41,28 @@
 #ifndef _GALOIS_H
 #define _GALOIS_H
 
+#include <config.h>
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef HAVE_LIBGF_COMPLETE
 #include <gf_complete.h>
-
 extern void galois_change_technique(gf_t *gf, int w);
+gf_t* galois_init_field(int w,
+                             int mult_type,
+                             int region_type,
+                             int divide_type,
+                             uint64_t prim_poly,
+                             int arg1,
+                             int arg2);
+
+gf_t* galois_init_composite_field(int w,
+                                int region_type,
+                                int divide_type,
+                                int degree,
+                                gf_t* base_gf);
+
+gf_t * galois_get_field_ptr(int w);
+#endif
 
 extern int galois_single_multiply(int a, int b, int w);
 extern int galois_single_divide(int a, int b, int w);
@@ -79,21 +96,6 @@ void galois_w32_region_multiply(char *region,       /* Region to multiply */
                                                        Otherwise region is overwritten */
                                   int add);         /* If (r2 != NULL && add) the produce is XOR'd with r2 */
 
-gf_t* galois_init_field(int w,
-                             int mult_type,
-                             int region_type,
-                             int divide_type,
-                             uint64_t prim_poly,
-                             int arg1,
-                             int arg2);
-
-gf_t* galois_init_composite_field(int w,
-                                int region_type,
-                                int divide_type,
-                                int degree,
-                                gf_t* base_gf);
-
-gf_t * galois_get_field_ptr(int w);
 
 
 #endif

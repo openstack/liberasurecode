@@ -42,7 +42,7 @@
 /* Define to 1 if you have the <liberation.h> header file. */
 #undef HAVE_LIBERATION_H
 
-/* Define to 1 if you have the `gf_complete' library (-lgf_complete). */
+/* "Defined if gf-complete is installed" */
 #undef HAVE_LIBGF_COMPLETE
 
 /* Define to 1 if you have the <limits.h> header file. */
@@ -126,9 +126,6 @@
 /* Define to the sub-directory in which libtool stores uninstalled libraries.
    */
 #undef LT_OBJDIR
-
-/* Define to 1 if your C compiler doesn't accept -c and -o together. */
-#undef NO_MINUS_C_MINUS_O
 
 /* Name of package */
 #undef PACKAGE

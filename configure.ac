@@ -33,15 +33,21 @@ AC_CHECK_FUNCS(malloc calloc realloc free)
 
 # Check for jerasure/gf_complete headers
 AC_CHECK_HEADERS(jerasure.h cauchy.h galois.h liberation.h reed_sol.h gf_complete.h)
-
+    
 # Enable this check when gf_complete is external
-AC_CHECK_LIB([gf_complete], [gf_init_easy], [],
+AC_CHECK_LIB([gf_complete], [gf_init_easy], 
 [
-    echo "Error! gf_complete is required for algorithmic signature support."
+  AM_CONDITIONAL([GF_COMPLETE_INSTALLED], [true])
+  AC_DEFINE([HAVE_LIBGF_COMPLETE], [1], ["Defined if gf-complete is installed"])
+],
+[
+    echo "Warning gf_complete is required for *high performance* algorithmic signature support."
     echo "gf_complete is available from https://bitbucket.org/jimplank/gf-complete.git"
     echo "On Debian/Ubuntu systems, you can use \'apt-get install gf-complete\'"
-    exit -1
+    echo "This will install with a slower Galois field backend!"
+    AM_CONDITIONAL([GF_COMPLETE_INSTALLED], [false])
 ])
+
 
 AC_ARG_ENABLE(debug,
 AS_HELP_STRING([--enable-debug],
