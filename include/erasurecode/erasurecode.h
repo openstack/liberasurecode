@@ -63,6 +63,7 @@ const char *ec_backend_names[EC_BACKENDS_MAX] =
 struct ec_args {
     int k;                  /* number of data fragments */
     int m;                  /* number of parity fragments */
+
     union {
         struct {
             int hd;         /* hamming distance (typically 3 or 4) */
@@ -70,9 +71,13 @@ struct ec_args {
         struct {
             int w;          /* word size in bits */
         } jerasure_args;    /* Jerasure specific args */
-    }
+        struct {
+            uint64_t x, y;  /* reserved for future expansion */
+            uint64_t z, a;  /* reserved for future expansion */
+        } reserved;
+    } priv_args1;
 
-    void *priv_args;        /** flexible placeholder for
+    void *priv_args2;       /** flexible placeholder for
                               * future backend args */
 
     int inline_chksum;      /* embedded fragment checksums (yes/no), type */
@@ -107,10 +112,10 @@ void liberasurecode_supported_backends(char **backend_names);
  * @returns liberasurecode instance descriptor (int > 0)
  */
 int liberasurecode_instance_create(const char *backend_name,
-                                   sturct ec_args *args);
+                                   struct ec_args *args);
 
 /**
- * Closes a liberasurecode instance
+ * Close a liberasurecode instance
  *
  * @param liberasurecode descriptor to close
  */
@@ -174,7 +179,7 @@ int liberasurecode_fragments_needed(int desc,
  * client, but meaningful to the underlying library.  It is used to verify
  * stripes in verify_stripe_metadata().
  */
-int liberasurecode_get_fragment_metadata(char *fragments);
+int liberasurecode_get_fragment_metadata(char *fragment);
 
 
 /**

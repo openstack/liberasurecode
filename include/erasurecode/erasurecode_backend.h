@@ -27,6 +27,8 @@
 
 #include "erasurecode.h"
 
+/* ~=*=~===~=*=~==~=*=~==~=*=~=  backend infrastructure =~=*=~==~=*=~==~=*=~ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -37,13 +39,14 @@ extern "C" {
 #define dl_restrict
 #endif
 
-/* EC backend private data */
+/* Arguments passed to the backend */
+#define MAX_PRIV_ARGS 4
 struct ec_backend_args {
-    uint32_t    k;                                  /* Number of data fragments */
-    uint32_t    m;                                  /* Number of parity fragments */
-    uint32_t    w;                                  /* Word-size in bits */
-    void*       args;
+    struct ec_args *common_args;    /* common args passed in by the user */
+    void *priv_args[MAX_PRIV_ARGS]; /* used for private backend args */
 };
+
+/* =~===~=*=~==~=*=~==~=*=~=  backend stub definitions =~=*=~==~=*=~==~=*=~= */
 
 #define INIT            init
 #define EXIT            exit
@@ -61,12 +64,15 @@ struct ec_backend_op_stubs {
     /** Backend register/init, unregister/cleanup routines **/
 
     /* Private backend init routine */
-    void * (*INIT)(struct ec_backend_args args);
+    void * (*INIT)(struct ec_backend_args *args);
 
     /* Private backend cleanup routine */
     int (*EXIT)(void *);
 
-    /* Do not define these as int (*f)(void) */
+    /**
+     * Backend stub declarations - the stubs translate generic backend args
+     * to backend specific args and call (*fptr)()
+     */
     int (*ENCODE)(void *desc, int (*fptr)(),
             char **data, char **parity, int blocksize);
     int (*DECODE)(void *desc, int (*fptr)(),
@@ -78,6 +84,8 @@ struct ec_backend_op_stubs {
             int blocksize);
 };
 
+/* ==~=*=~==~=*= backend stub <-> backend function_name map =*=~==~=*=~==~== */
+
 /**
  * EC backend method names - actual function names from the library
  * 1:1 mapping from op_stubs above to function names in the .so
@@ -86,6 +94,8 @@ struct ec_backend_fnmap {
     const char *stub_name;  /* stub name in ec_backend_op_stubs */
     const char *fn_name;    /* corresponding library function name */
 };
+
+/* ==~=*=~==~=*=~==~=*=~= backend struct definitions =~=*=~==~=*=~==~=*==~== */
 
 #define MAX_LEN     64
 /* EC backend common attributes */
@@ -96,7 +106,7 @@ struct ec_backend_common {
     char                        soversion[MAX_LEN]; /* EC backend shared library version */
 
     struct ec_backend_op_stubs  *ops;               /* EC backend stubs */
-    struct ec_backend_fnmap     *fnmap;             /* EC backend ops/stubs to library fn name map */
+    struct ec_backend_fnmap     *fnmap;             /* EC backend stub -> library_fn_name map */
 
     uint8_t                     users;              /* EC backend number of active references */
 };
@@ -104,30 +114,56 @@ struct ec_backend_common {
 /* EC backend definition */
 typedef struct ec_backend {
     struct ec_backend_common    common;             /* EC backend common attributes */
-    struct ec_backend_args      args;               /* EC backend instance data (private) */
-    void *                      backend_desc;       /* EC backend instance handle */
-    void *                      backend_sohandle;   /* EC backend shared library handle */
+    struct ec_backend_args      *args;              /* EC backend instance data (private) */
+    void                        *backend_desc;      /* EC backend instance handle */
+    void                        *backend_sohandle;  /* EC backend shared library handle */
 
     int                         instance_desc;      /* liberasurecode instance handle */
 
     SLIST_ENTRY(ec_backend)     link;
 } *ec_backend_t;
 
-/* Init/exit routines */
-int liberasurecode_backend_init(ec_backend_t backend);
-int liberasurecode_backend_exit(ec_backend_t backend);
+/* ~=*=~==~=*=~==~=*=~==~=*= frontend <-> backend API =*=~==~=*=~==~=*=~==~= */
 
-/* Backend registration interface */
-int liberasurecode_backend_register(ec_backend_t backend);
-int liberasurecode_backend_unregister(ec_backend_t backend);
+/* Register a backend instance with liberasurecode */
+int liberasurecode_backend_instance_register(ec_backend_t instance);
+
+/* Unregister a backend instance */
+int liberasurecode_backend_instance_unregister(ec_backend_t instance);
+
+
+/* Generic dlopen/dlclose routines */
+int liberasurecode_backend_open(ec_backend_t instance);
+int liberasurecode_backend_close(ec_backend_t instance);
+
 
 /* Backend query interface */
-ec_backend_t liberasurecode_backend_get_by_name(const char *name);
-ec_backend_t liberasurecode_backend_get_by_soname(const char *soname);
-void liberasurecode_backend_put(ec_backend_t backend);
 
-/* Validate backend before calling init */
-int validate_backend(ec_backend_t backend);
+/* Name to ID mapping for EC backend */
+ec_backend_id_t liberasurecode_backend_lookup_id(const char *name)
+
+/* Get EC backend by name */
+ec_backend_t liberasurecode_backend_lookup_by_name(const char *name)
+
+/**
+ * Look up a backend instance by descriptor
+ *
+ * Returns pointer to a registered liberasurecode instance
+ * The caller must hold active_instances_rwlock
+ */
+ec_backend_t liberasurecode_backend_instance_get_by_desc(int desc)
+
+/**
+ * Lookup backend library function name given stub name
+ *
+ * @map - function stub name to library function name map
+ * @stub - backend stub name
+ *
+ * @returns pointer to a string representing backend library function name
+ */
+const char *lookup_fn_name(struct ec_backend_fnmap *map, const char *stub)
+
+/* =~=*=~==~=*=~==~=*=~==~=*=~===~=*=~==~=*=~===~=*=~==~=*=~===~=*=~==~=*=~= */
 
 #endif  // _ERASURECODE_INTERNAL_H_
 

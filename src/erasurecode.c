@@ -116,7 +116,9 @@ int liberasurecode_backend_alloc_desc(void)
 /**
  * Register a backend instance with liberasurecode
  *
- * Returns new backend descriptor
+ * @param instance - backend enum
+ *
+ * @returns new backend descriptor
  */
 int liberasurecode_backend_instance_register(ec_backend_t instance)
 {
@@ -190,19 +192,28 @@ int liberasurecode_backend_close(ec_backend_t instance)
 /* =~=*=~==~=*=~= liberasurecode frontend API implementation =~=*=~==~=*=~== */
 
 /**
- * Initialize and register a liberasurecode backend
+ * Create a liberasurecode instance and return a descriptor 
+ * for use with EC operations (encode, decode, reconstruct)
  *
- * Returns instance descriptor (int > 0)
+ * @param backend_name - one of the supported backends as
+ *        defined by ec_backend_names
+ * @param ec_args - arguments to the EC backend
+ *        arguments common to all backends
+ *          k - number of data fragments
+ *          m - number of parity fragments
+ *          inline_checksum - 
+ *          algsig_checksum -
+ *        backend-specific arguments
+ *          flat_xor_hd_args - arguments for the xor_hd backend
+ *          jerasure_args - arguments for the Jerasure backend
+ *      
+ * @returns liberasurecode instance descriptor (int > 0)
  */
 int liberasurecode_instance_create(const char *backend_name,
-        int k, int m, int w, void *args)
+                                   struct ec_args *args);
 {
     int err = 0;
     ec_backend_t instance = NULL;
-    struct ec_backend_args bargs = {
-        .k = k, .m = m, .w = w,
-        .args = args,
-    };
 
     ec_backend_id_t id = liberasurecode_backend_lookup_id(backend_name);
     if (-1 == id)
@@ -215,7 +226,7 @@ int liberasurecode_instance_create(const char *backend_name,
 
     /* Copy common backend, args struct */
     instance->common = ec_backends_supported[id]->common;
-    instance->args = bargs;
+    instance->args = args;
 
     /* Open backend .so if not already open */
     /* .so handle is returned in instance->backend_sohandle */
@@ -227,8 +238,7 @@ int liberasurecode_instance_create(const char *backend_name,
     }
 
     /* Call private init() for the backend */
-    instance->backend_desc = instance->common.ops->init(bargs);
-    printf ("instance->backend_desc = %p\n", instance->backend_desc);
+    instance->backend_desc = instance->common.ops->init(args);
 
     /* Register instance and return a descriptor/instance id */
     instance->instance_desc = liberasurecode_backend_instance_register(instance);
@@ -236,7 +246,11 @@ int liberasurecode_instance_create(const char *backend_name,
     return instance->instance_desc;
 }
 
-/* Deinitialize and close a backend */
+/**
+ * Close a liberasurecode instance
+ *
+ * @param liberasurecode descriptor to close
+ */
 int liberasurecode_instance_destroy(int desc)
 {
     ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
@@ -283,16 +297,17 @@ const char *lookup_fn_name(struct ec_backend_fnmap *map, const char *stub)
 /**
  * Erasure encode a data buffer
  *
- * @desc: liberasurecode instance descriptor (obtained with
- *        liberasurecode_instance_create)
- * @data: original data split into an array of k equal-sized data buffers
- * @parity: array of m parity buffers
- * @blocksize: length of each of the k data elements
- *
- * @returns: a list of buffers (first k entries are data and
- *           the last m are parity)
+ * @param desc - liberasurecode descriptor/handle
+ *        from liberasurecode_instance_create()
+ * @param orig_data - data to encode
+ * @param orig_data_size - length of data to encode
+ * @param encoded_data - to return k data fragments
+ * @param encoded_parity - to return m parity fragments
+ * @return 0 on success, -error code otherwise
  */
-int liberasurecode_encode(int desc, char **data, char **parity, int blocksize)
+int liberasurecode_encode(int desc,
+        const char *orig_data, uint64_t orig_data_size,
+        char **encoded_data, char **encoded_parity)
 {
     int (*fptr)() = NULL;
     const char *fn_name = NULL;
@@ -314,20 +329,18 @@ int liberasurecode_encode(int desc, char **data, char **parity, int blocksize)
 }
 
 /**
- * Reconstruct all of the missing fragments from a set of fragments
+ * Reconstruct original data from a set of k encoded fragments
  *
- * @desc: liberasurecode instance descriptor (obtained with
- *        liberasurecode_instance_create)
- * @data: array of k encoded data buffers
- * @parity: array of m parity buffers
- * @missing_idx_list: list of indexes of missing elements
- * @blocksize: length of each of the k data elements
- * @fragment_size: size in bytes of the fragments
- *
- * @return list of fragments
+ * @param desc - liberasurecode descriptor/handle
+ *        from liberasurecode_instance_create()
+ * @param fragment_size - size in bytes of the fragments
+ * @param fragments - erasure encoded fragments (> = k)
+ * @param out_data - output of decode
+ * @return 0 on success, -error code otherwise
  */
-int liberasurecode_decode(int desc, char **data, char **parity,
-                          int *missing_idxs, int blocksize)
+int liberasurecode_decode(int desc,
+        uint64_t fragment_size, char **available_fragments,
+        char *out_data)
 {
     int (*fptr)() = NULL;
     const char *fn_name = NULL;
@@ -349,22 +362,20 @@ int liberasurecode_decode(int desc, char **data, char **parity,
 }
 
 /**
- * Reconstruct a missing fragment from the the remaining fragments.
+ * Reconstruct a missing fragment from a subset of available fragments
  *
- * @desc: liberasurecode instance descriptor (obtained with
- *        liberasurecode_instance_create)
- * @data: array of k encoded data buffers
- * @parity: array of m parity buffers
- * @missing_idx_list: list of indexes of missing elements
- * @destination_idx: index of fragment to reconstruct
- * @blocksize: length of each of the k data elements
- * @fragment_size: size in bytes of the fragments
- *
- * @return reconstructed destination fragment or NULL on error
+ * @param desc - liberasurecode descriptor/handle
+ *        from liberasurecode_instance_create()
+ * @param fragment_size - size in bytes of the fragments
+ * @param available_fragments - erasure encoded fragments
+ * @param destination_idx - missing idx to reconstruct
+ * @param out_fragment - output of reconstruct
+ * @return 0 on success, -error code otherwise
  */
-int liberasurecode_reconstruct(int desc, char **data, char **parity,
-                               int *missing_idxs, int destination_idx,
-                               int blocksize)
+int liberasurecode_reconstruct_fragment(int desc,
+        uint64_t fragment_size,
+        char **available_fragments, char **encoded_parity,
+        int destination_idx, char* out_fragment)
 {
     int (*fptr)() = NULL;
     const char *fn_name = NULL;
@@ -387,8 +398,8 @@ int liberasurecode_reconstruct(int desc, char **data, char **parity,
 }
 
 /**
- * Return a list of lists with valid rebuild indexes given an EC algorithm
- * and a list of missing indexes.
+ * Return a list of lists with valid rebuild indexes given
+ * a list of missing indexes.
  *
  * @desc: liberasurecode instance descriptor (obtained with
  *        liberasurecode_instance_create)
@@ -398,7 +409,7 @@ int liberasurecode_reconstruct(int desc, char **data, char **parity,
  *         (in 'fragments_needed')
  */
 int liberasurecode_fragments_needed(int desc, int *missing_idxs,
-                                    int *fragments_needed)
+                                    int **fragments_needed)
 {
     int (*fptr)() = NULL;
     const char *fn_name = NULL;
