@@ -28,63 +28,61 @@
 #include "erasurecode_backend.h"
 
 /* Forward declarations */
-struct ec_backend_op_stubs flat_xor_3_ops;
-struct ec_backend flat_xor_3;
+struct ec_backend_op_stubs flat_xor_hd_ops;
+struct ec_backend flat_xor_hd;
 
-static int flat_xor_3_encode(void *desc, int (*fptr)(),
+static int flat_xor_hd_encode(void *desc, int (*fptr)(),
                              char **data, char **parity, int blocksize)
 {
     xor_code_t *xor_desc = (xor_code_t *) desc;
     xor_desc->encode(xor_desc, data, parity, blocksize);
 }
 
-static int flat_xor_3_decode(void *desc, int (*fptr)(),
-                             char **data, char **parity, int *missing_idxs,
-                             int blocksize)
+static int flat_xor_hd_decode(void *desc, int (*fptr)(),
+                              char **data, char **parity, int *missing_idxs,
+                              int blocksize)
 {
     xor_code_t *xor_desc = (xor_code_t *) desc;
     xor_desc->decode(xor_desc, data, parity, missing_idxs, blocksize, 1);
 }
 
-static int flat_xor_3_reconstruct(void *desc, int (*fptr)(),
-                                  char **data, char **parity, int *missing_idxs,
-                                  int destination_idx, int blocksize)
+static int flat_xor_hd_reconstruct(void *desc, int (*fptr)(),
+                                   char **data, char **parity, int *missing_idxs,
+                                   int destination_idx, int blocksize)
 {
     xor_code_t *xor_desc = (xor_code_t *) desc;
     (*fptr)(xor_desc, data, parity, missing_idxs, destination_idx, blocksize);
 }
 
-static int flat_xor_3_min_fragments(void *desc, int (*fptr)(),
-                                    int *missing_idxs, int *fragments_needed)
+static int flat_xor_hd_min_fragments(void *desc, int (*fptr)(),
+                                     int *missing_idxs, int *fragments_needed)
 {
     xor_code_t *xor_desc = (xor_code_t *) desc;
     xor_desc->fragments_needed(xor_desc, missing_idxs, fragments_needed);
 }
 
-static void * flat_xor_3_init(struct ec_backend_args args)
+static void * flat_xor_hd_init(struct ec_backend_args *args)
 {
-    /* hd = 3 for flat_xor_3 */
-    const int hd = 3;
-    void * desc = (void *) init_xor_hd_code(args.k, args.m, hd);
+    void *desc = (void *) init_xor_hd_code(args->k, args->m, args->hd);
 
     return desc;
 }
 
-static int flat_xor_3_exit(void *desc)
+static int flat_xor_hd_exit(void *desc)
 {
     free((xor_code_t *) desc);
 }
 
-struct ec_backend_op_stubs flat_xor_3_op_stubs = {
-    .INIT                       = flat_xor_3_init,
-    .EXIT                       = flat_xor_3_exit,
-    .ENCODE                     = flat_xor_3_encode,
-    .DECODE                     = flat_xor_3_decode,
-    .FRAGSNEEDED                = flat_xor_3_min_fragments,
-    .RECONSTRUCT                = flat_xor_3_reconstruct,
+struct ec_backend_op_stubs flat_xor_hd_op_stubs = {
+    .INIT                       = flat_xor_hd_init,
+    .EXIT                       = flat_xor_hd_exit,
+    .ENCODE                     = flat_xor_hd_encode,
+    .DECODE                     = flat_xor_hd_decode,
+    .FRAGSNEEDED                = flat_xor_hd_min_fragments,
+    .RECONSTRUCT                = flat_xor_hd_reconstruct,
 };
 
-struct ec_backend_fnmap flat_xor_3_fn_map[MAX_FNS] = {
+struct ec_backend_fnmap flat_xor_hd_fn_map[MAX_FNS] = {
     { FN_NAME(INIT),            "init_xor_hd_code" },
     { FN_NAME(EXIT),            NULL, },
     { FN_NAME(ENCODE),          "encode" },
@@ -93,13 +91,13 @@ struct ec_backend_fnmap flat_xor_3_fn_map[MAX_FNS] = {
     { FN_NAME(RECONSTRUCT),     "xor_reconstruct_one" },
 };
 
-struct ec_backend_common backend_flat_xor_3 = {
+struct ec_backend_common backend_flat_xor_hd = {
     .id                         = EC_BACKEND_FLAT_XOR_3,
-    .name                       = "flat_xor_3",
+    .name                       = "flat_xor_hd",
     .soname                     = "libXorcode.so",
     .soversion                  = "1.0",
-    .ops                        = &flat_xor_3_op_stubs,
-    .fnmap                      = flat_xor_3_fn_map,
+    .ops                        = &flat_xor_hd_op_stubs,
+    .fnmap                      = flat_xor_hd_fn_map,
     .users                      = 0,
 };
 

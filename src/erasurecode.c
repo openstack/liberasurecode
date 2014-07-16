@@ -34,14 +34,13 @@
 /* =~=*=~==~=*=~==~=*=~= Supported EC backends =~=*=~==~=*=~==~=*=~==~=*=~== */
 
 /* EC backend references */
-extern struct ec_backend_common backend_flat_xor_3;
+extern struct ec_backend_common backend_flat_xor_hd;
 
 ec_backend_t ec_backends_supported[EC_BACKENDS_MAX] = {
     /* backend_null */ NULL,
     /* backend_rs_vand */ NULL,
     /* backend_rs_cauchy_orig */ NULL,
-    (ec_backend_t) &backend_flat_xor_3,
-    /* backend_flat_xor_4 */ NULL,
+    (ec_backend_t) &backend_flat_xor_hd,
 };
 
 /* Get EC backend by name */
@@ -226,7 +225,7 @@ int liberasurecode_instance_create(const char *backend_name,
 
     /* Copy common backend, args struct */
     instance->common = ec_backends_supported[id]->common;
-    instance->args = args;
+    instance->args = (struct ec_backend_args *) args;
 
     /* Open backend .so if not already open */
     /* .so handle is returned in instance->backend_sohandle */
