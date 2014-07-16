@@ -61,18 +61,22 @@ const char *ec_backend_names[EC_BACKENDS_MAX] =
  * to be passed to liberasurecode_instance_create()
  */
 struct ec_args {
-    int k;
-    int m;
+    int k;                  /* number of data fragments */
+    int m;                  /* number of parity fragments */
     union {
         struct {
-            int hd;
-        } flat_xor_hd_args;
+            int hd;         /* hamming distance (typically 3 or 4) */
+        } flat_xor_hd_args; /* args specific to XOR codes */
         struct {
-            int w;
-        } jerasure_args;
+            int w;          /* word size in bits */
+        } jerasure_args;    /* Jerasure specific args */
     }
-    int inline_chksum;
-    int algsig_chksum;
+
+    void *priv_args;        /** flexible placeholder for
+                              * future backend args */
+
+    int inline_chksum;      /* embedded fragment checksums (yes/no), type */
+    int algsig_chksum;      /* use algorithmic signature checksums */
 }
 
 /* =~=*=~==~=*=~== liberasurecode frontend API functions =~=*=~==~=~=*=~==~= */
@@ -80,15 +84,35 @@ struct ec_args {
 /* liberasurecode frontend API functions */
 
 /**
+ * Returns a list of supported EC backend names
  */
 void liberasurecode_supported_backends(char **backend_names);
 
 /**
+ * Create a liberasurecode instance and return a descriptor 
+ * for use with EC operations (encode, decode, reconstruct)
+ *
+ * @param backend_name - one of the supported backends as
+ *        defined by ec_backend_names
+ * @param ec_args - arguments to the EC backend
+ *        arguments common to all backends
+ *          k - number of data fragments
+ *          m - number of parity fragments
+ *          inline_checksum - 
+ *          algsig_checksum -
+ *        backend-specific arguments
+ *          flat_xor_hd_args - arguments for the xor_hd backend
+ *          jerasure_args - arguments for the Jerasure backend
+ *      
+ * @returns liberasurecode instance descriptor (int > 0)
  */
 int liberasurecode_instance_create(const char *backend_name,
                                    sturct ec_args *args);
 
 /**
+ * Closes a liberasurecode instance
+ *
+ * @param liberasurecode descriptor to close
  */
 int liberasurecode_instance_destroy(int desc);
 
