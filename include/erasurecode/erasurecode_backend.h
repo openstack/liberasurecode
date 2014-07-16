@@ -45,7 +45,7 @@ extern "C" {
 /* Arguments passed to the backend */
 #define MAX_PRIV_ARGS 4
 struct ec_backend_args {
-    struct ec_args *uargs;          /* common args passed in by the user */
+    struct ec_args uargs;           /* common args passed in by the user */
     void *pargs[MAX_PRIV_ARGS];     /* used for private backend args */
 };
 
@@ -121,7 +121,7 @@ struct ec_backend_common {
 /* EC backend definition */
 typedef struct ec_backend {
     struct ec_backend_common    common;             /* EC backend common attributes */
-    struct ec_backend_args      *args;              /* EC backend instance data (private) */
+    struct ec_backend_args      args;              /* EC backend instance data (private) */
     void                        *backend_desc;      /* EC backend instance handle */
     void                        *backend_sohandle;  /* EC backend shared library handle */
 

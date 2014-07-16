@@ -213,6 +213,7 @@ int liberasurecode_instance_create(const char *backend_name,
 {
     int err = 0;
     ec_backend_t instance = NULL;
+    struct ec_backend_args bargs;
 
     ec_backend_id_t id = liberasurecode_backend_lookup_id(backend_name);
     if (-1 == id)
@@ -225,7 +226,8 @@ int liberasurecode_instance_create(const char *backend_name,
 
     /* Copy common backend, args struct */
     instance->common = ec_backends_supported[id]->common;
-    instance->args = (struct ec_backend_args *) args;
+    memcpy(&(bargs.uargs), args, sizeof (struct ec_args));
+    instance->args = bargs;
 
     /* Open backend .so if not already open */
     /* .so handle is returned in instance->backend_sohandle */
@@ -237,7 +239,7 @@ int liberasurecode_instance_create(const char *backend_name,
     }
 
     /* Call private init() for the backend */
-    instance->backend_desc = instance->common.ops->init(instance->args);
+    instance->backend_desc = instance->common.ops->init(&instance->args);
 
     /* Register instance and return a descriptor/instance id */
     instance->instance_desc = liberasurecode_backend_instance_register(instance);
@@ -356,7 +358,7 @@ int liberasurecode_encode(int desc,
 
     /* call the backend encode function passing it fptr */
     ret = instance->common.ops->encode(
-            instance->backend_desc, fptr, instance->args,
+            instance->backend_desc, fptr, &instance->args,
             encoded_data, encoded_parity, blocksize);
 
 out_error:
@@ -399,7 +401,7 @@ int liberasurecode_decode(int desc,
 
     /* call the backend encode function passing it fptr */
     ret = instance->common.ops->decode(
-            instance->backend_desc, fptr, instance->args,
+            instance->backend_desc, fptr, &instance->args,
             data, parity, missing_idxs, blocksize);
 
 out_error:
@@ -444,7 +446,7 @@ int liberasurecode_reconstruct_fragment(int desc,
 
     /* call the backend encode function passing it fptr */
     ret = instance->common.ops->reconstruct(
-            instance->backend_desc, fptr, instance->args,
+            instance->backend_desc, fptr, &instance->args,
             data, parity, missing_idxs, destination_idx, blocksize);
 
 out_error:
@@ -481,7 +483,7 @@ int liberasurecode_fragments_needed(int desc, int *missing_idxs,
 
     /* call the backend encode function passing it fptr */
     ret = instance->common.ops->fragments_needed(
-            instance->backend_desc, fptr, instance->args,
+            instance->backend_desc, fptr, &instance->args,
             missing_idxs, fragments_needed);
 
 out_error:

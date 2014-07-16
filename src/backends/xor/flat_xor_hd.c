@@ -69,9 +69,9 @@ static int flat_xor_hd_min_fragments(void *desc, int (*fptr)(),
 
 static void * flat_xor_hd_init(struct ec_backend_args *args)
 {
-    int k = args->uargs->k;
-    int m = args->uargs->m;
-    int hd = args->uargs->priv_args1.flat_xor_hd_args.hd;
+    int k = args->uargs.k;
+    int m = args->uargs.m;
+    int hd = args->uargs.priv_args1.flat_xor_hd_args.hd;
     void *desc = (void *) init_xor_hd_code(k, m, hd);
 
     return desc;
