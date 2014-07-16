@@ -25,11 +25,17 @@
 #ifndef _ERASURECODE_INTERNAL_H_
 #define _ERASURECODE_INTERNAL_H_
 
+#include "erasurecode.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "erasurecode.h"
+#if defined (__GNUC__) && __GNUC__ > 3
+#define dl_restrict __restrict
+#else
+#define dl_restrict
+#endif
 
 /* EC backend private data */
 struct ec_backend_args {

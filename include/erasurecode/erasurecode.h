@@ -37,12 +37,6 @@
 extern "C" {
 #endif
 
-#if defined (__GNUC__) && __GNUC__ > 3
-#define dl_restrict __restrict
-#else
-#define dl_restrict
-#endif
-
 /* =~=*=~==~=*=~==~=*=~= Supported EC backends =~=*=~==~=*=~==~=*=~==~=*=~== */
 
 /* Supported EC backends */
