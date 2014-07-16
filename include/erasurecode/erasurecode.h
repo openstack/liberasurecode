@@ -39,7 +39,6 @@ extern "C" {
 
 /* =~=*=~==~=*=~==~=*=~= Supported EC backends =~=*=~==~=*=~==~=*=~==~=*=~== */
 
-/* Supported EC backends */
 typedef enum {
     EC_BACKEND_NULL                     = 0,
     EC_BACKEND_JERASURE_RS_VAND         = 1,
@@ -48,11 +47,16 @@ typedef enum {
     EC_BACKENDS_MAX,
 } ec_backend_id_t;
 
-const char *ec_backend_names[EC_BACKENDS_MAX] =
+#ifdef  EC_BACKENDS_SUPPORTED
+#define EC_BACKENDS_SUPPORTED
+/* Supported EC backends */
+const char *ec_backend_names[EC_BACKENDS_MAX] = {
     "null",
     "jerasure_rs_vand",
     "jerasure_rs_cauchy",
-    "flat_xor_hd";
+    "flat_xor_hd",
+};
+#endif // EC_BACKENDS_SUPPORTED
 
 /* =~=*=~==~=*=~== EC Arguments - Common and backend-specific =~=*=~==~=*=~== */
 
@@ -82,7 +86,7 @@ struct ec_args {
 
     int inline_chksum;      /* embedded fragment checksums (yes/no), type */
     int algsig_chksum;      /* use algorithmic signature checksums */
-}
+};
 
 /* =~=*=~==~=*=~== liberasurecode frontend API functions =~=*=~==~=~=*=~==~= */
 
@@ -169,7 +173,8 @@ int liberasurecode_reconstruct_fragment(int desc,
 
 /**
  * Determine which fragments are needed to reconstruct some subset
- * of missing fragments.
+ * of missing fragments.  Returns a list of lists (as bitmaps)
+ * of fragments required to reconstruct missing indexes.
  */
 int liberasurecode_fragments_needed(int desc,
         int *missing_idxs, int *fragments_needed);

@@ -25,7 +25,8 @@
 #ifndef _ERASURECODE_INTERNAL_H_
 #define _ERASURECODE_INTERNAL_H_
 
-#include "erasurecode.h"
+#include "list.h"
+#include "erasurecode_stdinc.h"
 
 /* ~=*=~===~=*=~==~=*=~==~=*=~=  backend infrastructure =~=*=~==~=*=~==~=*=~ */
 
@@ -39,11 +40,13 @@ extern "C" {
 #define dl_restrict
 #endif
 
+/* ==~=*=~===~=*=~==~=*=~==~=*=~= EC backend args =~==~=*=~==~=*=~===~=*=~== */
+
 /* Arguments passed to the backend */
 #define MAX_PRIV_ARGS 4
 struct ec_backend_args {
-    struct ec_args *common_args;    /* common args passed in by the user */
-    void *priv_args[MAX_PRIV_ARGS]; /* used for private backend args */
+    struct ec_args *uargs;          /* common args passed in by the user */
+    void *pargs[MAX_PRIV_ARGS];     /* used for private backend args */
 };
 
 /* =~===~=*=~==~=*=~==~=*=~=  backend stub definitions =~=*=~==~=*=~==~=*=~= */
@@ -73,13 +76,17 @@ struct ec_backend_op_stubs {
      * Backend stub declarations - the stubs translate generic backend args
      * to backend specific args and call (*fptr)()
      */
-    int (*ENCODE)(void *desc, int (*fptr)(),
+
+    /** FIXME - not sure if we need both 'desc' and also 'ec_backend_args'
+     * if we can call directly into xor_codes without 'desc', we can do
+     * away with desc.  will try that in the next rev */
+    int (*ENCODE)(void *desc, int (*fptr)(), struct ec_backend_args *args,
             char **data, char **parity, int blocksize);
-    int (*DECODE)(void *desc, int (*fptr)(),
+    int (*DECODE)(void *desc, int (*fptr)(), struct ec_backend_args *args,
             char **data, char **parity, int *missing_idxs, int blocksize);
-    int (*FRAGSNEEDED)(void *desc, int (*fptr)(),
+    int (*FRAGSNEEDED)(void *desc, int (*fptr)(), struct ec_backend_args *args,
             int *missing_idxs, int *fragments_needed);
-    int (*RECONSTRUCT)(void *desc, int (*fptr)(),
+    int (*RECONSTRUCT)(void *desc, int (*fptr)(), struct ec_backend_args *args,
             char **data, char **parity, int *missing_idxs, int destination_idx,
             int blocksize);
 };
@@ -140,10 +147,10 @@ int liberasurecode_backend_close(ec_backend_t instance);
 /* Backend query interface */
 
 /* Name to ID mapping for EC backend */
-ec_backend_id_t liberasurecode_backend_lookup_id(const char *name)
+ec_backend_id_t liberasurecode_backend_lookup_id(const char *name);
 
 /* Get EC backend by name */
-ec_backend_t liberasurecode_backend_lookup_by_name(const char *name)
+ec_backend_t liberasurecode_backend_lookup_by_name(const char *name);
 
 /**
  * Look up a backend instance by descriptor
@@ -151,17 +158,7 @@ ec_backend_t liberasurecode_backend_lookup_by_name(const char *name)
  * Returns pointer to a registered liberasurecode instance
  * The caller must hold active_instances_rwlock
  */
-ec_backend_t liberasurecode_backend_instance_get_by_desc(int desc)
-
-/**
- * Lookup backend library function name given stub name
- *
- * @map - function stub name to library function name map
- * @stub - backend stub name
- *
- * @returns pointer to a string representing backend library function name
- */
-const char *lookup_fn_name(struct ec_backend_fnmap *map, const char *stub)
+ec_backend_t liberasurecode_backend_instance_get_by_desc(int desc);
 
 /* =~=*=~==~=*=~==~=*=~==~=*=~===~=*=~==~=*=~===~=*=~==~=*=~===~=*=~==~=*=~= */
 

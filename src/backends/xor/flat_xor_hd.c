@@ -25,6 +25,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <xor_code.h>
+
+#include "erasurecode.h"
 #include "erasurecode_backend.h"
 
 /* Forward declarations */
@@ -32,13 +34,15 @@ struct ec_backend_op_stubs flat_xor_hd_ops;
 struct ec_backend flat_xor_hd;
 
 static int flat_xor_hd_encode(void *desc, int (*fptr)(),
-                             char **data, char **parity, int blocksize)
+                              struct ec_backend_args *args,
+                              char **data, char **parity, int blocksize)
 {
     xor_code_t *xor_desc = (xor_code_t *) desc;
     xor_desc->encode(xor_desc, data, parity, blocksize);
 }
 
 static int flat_xor_hd_decode(void *desc, int (*fptr)(),
+                              struct ec_backend_args *args,
                               char **data, char **parity, int *missing_idxs,
                               int blocksize)
 {
@@ -47,6 +51,7 @@ static int flat_xor_hd_decode(void *desc, int (*fptr)(),
 }
 
 static int flat_xor_hd_reconstruct(void *desc, int (*fptr)(),
+                                   struct ec_backend_args *args,
                                    char **data, char **parity, int *missing_idxs,
                                    int destination_idx, int blocksize)
 {
@@ -55,6 +60,7 @@ static int flat_xor_hd_reconstruct(void *desc, int (*fptr)(),
 }
 
 static int flat_xor_hd_min_fragments(void *desc, int (*fptr)(),
+                                     struct ec_backend_args *args,
                                      int *missing_idxs, int *fragments_needed)
 {
     xor_code_t *xor_desc = (xor_code_t *) desc;
@@ -63,7 +69,10 @@ static int flat_xor_hd_min_fragments(void *desc, int (*fptr)(),
 
 static void * flat_xor_hd_init(struct ec_backend_args *args)
 {
-    void *desc = (void *) init_xor_hd_code(args->k, args->m, args->hd);
+    int k = args->uargs->k;
+    int m = args->uargs->m;
+    int hd = args->uargs->priv_args1.flat_xor_hd_args.hd;
+    void *desc = (void *) init_xor_hd_code(k, m, hd);
 
     return desc;
 }
@@ -92,7 +101,7 @@ struct ec_backend_fnmap flat_xor_hd_fn_map[MAX_FNS] = {
 };
 
 struct ec_backend_common backend_flat_xor_hd = {
-    .id                         = EC_BACKEND_FLAT_XOR_3,
+    .id                         = EC_BACKEND_FLAT_XOR_HD,
     .name                       = "flat_xor_hd",
     .soname                     = "libXorcode.so",
     .soversion                  = "1.0",
