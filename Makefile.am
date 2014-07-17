@@ -24,6 +24,7 @@ include_HEADERS = \
 	include/erasurecode/galois.h \
 	include/erasurecode/erasurecode.h \
 	include/erasurecode/erasurecode_backend.h \
+	include/erasurecode/erasurecode_helpers.h \
 	include/erasurecode/erasurecode_stdinc.h \
 	include/erasurecode/erasurecode_version.h \
 	include/erasurecode/list.h \
