@@ -28,6 +28,7 @@
 
 #include "list.h"
 #include "erasurecode.h"
+#include "erasurecode_helpers.h"
 #include "erasurecode_stdinc.h"
 #include "erasurecode_backend.h"
 

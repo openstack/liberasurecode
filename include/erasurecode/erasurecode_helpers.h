@@ -26,9 +26,10 @@
  * vi: set noai tw=79 ts=4 sw=4:
  */
 
-#ifndef _ERASURECODE_HELPERS_H
-#define _ERASURECODE_HELPERS_H
+#ifndef _ERASURECODE_HELPERS_H_
+#define _ERASURECODE_HELPERS_H_
 
+#include "erasurecode_backend.h"
 #include "erasurecode_stdinc.h"
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
@@ -57,7 +58,8 @@ typedef struct __attribute__((__packed__)) fragment_header_s
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
 /* Determine if an address is aligned to a particular boundary */
-inline int is_addr_aligned(unsigned long addr, int align)
+static inline
+int is_addr_aligned(unsigned long addr, int align)
 {
     return (addr & (align - 1)) == 0;
 }
@@ -66,7 +68,8 @@ inline int is_addr_aligned(unsigned long addr, int align)
  * Convert an int list into a bitmap
  * Assume the list is '-1' terminated.
  */
-inline unsigned long long convert_list_to_bitmap(int *list)
+static inline
+unsigned long long convert_list_to_bitmap(int *list)
 {
     int i = 0;
     unsigned long long bm = 0;
@@ -87,7 +90,8 @@ inline unsigned long long convert_list_to_bitmap(int *list)
  * is_idx_in_erasure[] needs to be allocated by the caller
  * @returns number of idxs in error
  */
-inline int convert_idx_list_to_bitvalues(
+static inline
+int convert_idx_list_to_bitvalues(
         int *list_idxs,         // input idx_list
         int *is_idx_in_erasure, // output idx list as boolean values (1/0)
         int num_idxs)           // total number of indexes
@@ -102,7 +106,8 @@ inline int convert_idx_list_to_bitvalues(
     return n;
 }
 
-inline void init_fragment_header(char *buf)
+static inline
+void init_fragment_header(char *buf)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
 
@@ -111,5 +116,22 @@ inline void init_fragment_header(char *buf)
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
-#endif  // _ERASURECODE_HELPERS_H
+char *alloc_fragment_buffer(int size);
+int free_fragment_buffer(char *buf);
+void *get_aligned_buffer16(int size);
+int get_aligned_data_size(ec_backend_t instance, int data_len);
+char *get_data_ptr_from_fragment(char *buf);
+char *get_fragment_ptr_from_data_novalidate(char *buf);
+char *get_fragment_ptr_from_data(char *buf);
+int set_fragment_idx(char *buf, int idx);
+int get_fragment_idx(char *buf);
+int set_fragment_size(char *buf, int size);
+int get_fragment_size(char *buf);
+int set_orig_data_size(char *buf, int orig_data_size);
+int get_orig_data_size(char *buf);
+int validate_fragment(char *buf);
+
+/* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
+
+#endif  // _ERASURECODE_HELPERS_H_
 

@@ -22,8 +22,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _ERASURECODE_INTERNAL_H_
-#define _ERASURECODE_INTERNAL_H_
+#ifndef _ERASURECODE_BACKEND_H_
+#define _ERASURECODE_BACKEND_H_
 
 #include "list.h"
 #include "erasurecode.h"
@@ -145,5 +145,5 @@ ec_backend_t liberasurecode_backend_instance_get_by_desc(int desc);
 
 /* =~=*=~==~=*=~==~=*=~==~=*=~===~=*=~==~=*=~===~=*=~==~=*=~===~=*=~==~=*=~= */
 
-#endif  // _ERASURECODE_INTERNAL_H_
+#endif  // _ERASURECODE_BACKEND_H_
 

@@ -22,8 +22,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _ERASURECODE_STDINC_H
-#define _ERASURECODE_STDINC_H
+#ifndef _ERASURECODE_STDINC_H_
+#define _ERASURECODE_STDINC_H_
 
 #include "config.h"
 
@@ -157,4 +157,4 @@ extern C_LINKAGE int EC_main(int argc, char *argv[]);
 
 #endif  // MACOSX
 
-#endif // _ERASURECODE_STDINC_H
+#endif // _ERASURECODE_STDINC_H_
