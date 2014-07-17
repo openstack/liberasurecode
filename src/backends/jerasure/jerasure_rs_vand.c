@@ -139,13 +139,30 @@ static int jerasure_rs_vand_min_fragments(void *desc, int *missing_idxs, int *fr
 
 static void * jerasure_rs_vand_init(struct ec_backend_args *args, void *backend_sohandle)
 {
-    struct jerasure_rs_vand_descriptor *desc = 
-        (struct jerasure_rs_vand_descriptor*)malloc(sizeof(struct jerasure_rs_vand_descriptor));
+    struct jerasure_rs_vand_descriptor *desc = (struct jerasure_rs_vand_descriptor *)
+        malloc(sizeof(struct jerasure_rs_vand_descriptor));
 
     if (NULL == desc) {
         return NULL;
     }
 
+    desc->k = args->uargs.k;
+    desc->m = args->uargs.m;
+    desc->w = args->uargs.priv_args1.jerasure_args.w;
+
+    /* validate EC arguments */
+    {
+        long long max_symbols;
+        if (desc->w != 8 && desc->w != 16 && desc->w != 32) {
+            goto error;
+        }
+        max_symbols = 1LL << desc->w;
+        if ((desc->k + desc->m) > max_symbols) {
+            goto error;
+        }
+     }
+
+    /* fill in function addresses */
     desc->jerasure_matrix_encode = dlsym(backend_sohandle, "jerasure_matrix_encode");
     if (NULL == desc->jerasure_matrix_encode) {
         goto error; 
@@ -170,11 +187,7 @@ static void * jerasure_rs_vand_init(struct ec_backend_args *args, void *backend_
     if (NULL == desc->reed_sol_vandermonde_coding_matrix) {
         goto error; 
     }
-
-    desc->k = args->uargs.k;
-    desc->m = args->uargs.m;
-    desc->w = args->uargs.priv_args1.jerasure_args.w;
-  
+ 
     desc->matrix = desc->reed_sol_vandermonde_coding_matrix(desc->k, desc->m, desc->w);
     if (NULL == desc->matrix) {
         goto error; 

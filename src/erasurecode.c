@@ -148,7 +148,7 @@ int liberasurecode_backend_instance_unregister(ec_backend_t instance)
     return 0;
 }
 
-/* =~=*=~==~=*=~== liberasurecode backend API implementation =~=*=~==~=*=~== */
+/* =~=*=~==~=*=~== liberasurecode backend API helpers =~=*=~==~=*=~== */
 
 static void print_dlerror(const char *caller)
 {
