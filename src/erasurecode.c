@@ -292,10 +292,12 @@ int liberasurecode_encode(int desc,
         const char *orig_data, uint64_t orig_data_size,
         char **encoded_data, char **encoded_parity)
 {
-    int i;                  /* a counter */
+    int i;
+    int k, m;
     int ret = 0;            /* return code */
 
     int blocksize = 0;      /* length of each of k data elements */
+    int data_len;           /* data len to write to fragment headers */
     int aligned_data_len;   /* EC algorithm compatible data length */
 
     ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
@@ -306,26 +308,82 @@ int liberasurecode_encode(int desc,
 
     /* FIXME preprocess orig_data, get blocksize */
 
-#if 0
+    k = instance->args.uargs.k;
+    m = instance->args.uargs.m;
+
     /* Calculate data sizes, aligned_data_len guaranteed to be divisible by k*/
-    orig_data_size = data_len;
-    aligned_data_len = get_aligned_data_size(pyeclib_handle, data_len);
-    blocksize = aligned_data_len / pyeclib_handle->k;
+    data_len = orig_data_size;
+    aligned_data_len = get_aligned_data_size(instance, orig_data_size);
+    blocksize = aligned_data_len / k;
 
     /* Allocate and initialize an array of zero'd out data buffers */
-    data_to_encode = (char**) alloc_zeroed_buffer(sizeof(char*) * pyeclib_handle->k);
-    if (NULL == data_to_encode) {
+    encoded_data = (char **) alloc_zeroed_buffer(sizeof(char *) * k);
+    if (NULL == encoded_data) {
         ret = -ENOMEM;
         goto out_error;
     }
-#endif
+
+    for (i = 0; i < k; i++) {
+        int payload_size = data_len > blocksize ? blocksize : data_len;
+        char *fragment = alloc_fragment_buffer(blocksize);    
+        if (NULL == fragment) {
+            ret = -ENOMEM;
+            goto out_error;
+        }
+      
+        /* Copy existing data into clean, zero'd out buffer */
+        encoded_data[i] = get_data_ptr_from_fragment(fragment);
+        if (data_len > 0) {
+            memcpy(encoded_data[i], orig_data, payload_size);
+        }
+
+        /* Fragment size will always be the same (may be able to get rid of this) */
+        set_fragment_size(fragment, blocksize);
+
+        orig_data += payload_size;
+        data_len -= payload_size;
+    }
+
+    /* Allocate and initialize an array of zero'd out parity buffers */
+    encoded_parity = (char **) alloc_zeroed_buffer(sizeof(char *) * m);
+    if (NULL == encoded_parity) {
+        ret = -ENOMEM;
+        goto out_error;
+    }
+
+    for (i = 0; i < m; i++) {
+        char *fragment = alloc_fragment_buffer(blocksize);
+        if (NULL == fragment) {
+            ret = -ENOMEM;
+            goto out_error;
+        }
+        encoded_parity[i] = get_data_ptr_from_fragment(fragment);
+        set_fragment_size(fragment, blocksize);
+    }
 
     /* call the backend encode function passing it desc instance */
     ret = instance->common.ops->encode(instance->desc.backend_desc,
                                        encoded_data, encoded_parity, blocksize);
 
-out_error:
+out:
     return ret;
+  
+out_error:
+    if (encoded_data) {
+        for (i = 0; i < k; i++) {
+            if (encoded_data[i]) free_fragment_buffer(encoded_data[i]);
+        }
+        check_and_free_buffer(encoded_data);
+    }
+
+    if (encoded_parity) {
+        for (i = 0; i < m; i++) {
+            if (encoded_parity[i]) free_fragment_buffer(encoded_parity[i]);
+        }
+        check_and_free_buffer(encoded_parity);
+    }
+
+    goto out;
 }
 
 /**

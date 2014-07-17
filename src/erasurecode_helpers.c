@@ -32,7 +32,20 @@
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
-void *get_aligned_buffer16(int size)
+/**
+ * Memory Management Methods
+ * 
+ * The following methods provide wrappers for allocating and deallocating
+ * memory.  
+ * 
+ * Future discussions may want to consider moving closer to the recommended
+ * guidelines in the Python\C API reference manual.  One potential issue,
+ * however, may be how we enforce memory alignment in the Python heap.
+ *
+ * 2.7: https://docs.python.org/2.7/c-api/memory.html
+ * 3.4: https://docs.python.org/3.4/c-api/memory.html
+ */
+ void *get_aligned_buffer16(int size)
 {
     void *buf;
 
@@ -47,6 +60,41 @@ void *get_aligned_buffer16(int size)
     bzero(buf, size);
 
     return buf;
+}
+
+/**
+ * Allocate a zero-ed buffer of a specific size.  This method allocates from
+ * the Python stack in order to comply with the recommendations of the
+ * Python\C API.  On error, return NULL and call PyErr_NoMemory.
+ *
+ * @param size integer size in bytes of buffer to allocate
+ * @return pointer to start of allocated buffer or NULL on error
+ */
+void * alloc_zeroed_buffer(int size)
+{
+    void * buf = NULL;  /* buffer to allocate and return */
+  
+    /* Allocate and zero the buffer, or set the appropriate error */
+    buf = malloc((size_t) size);
+    if (buf) {
+        buf = memset(buf, 0, (size_t) size);
+    }
+    return buf;
+}
+
+/**
+ * Deallocate memory buffer if it's not NULL.  This methods returns NULL so 
+ * that you can free and reset a buffer using a single line as follows:
+ *
+ * my_ptr = check_and_free_buffer(my_ptr);
+ *
+ * @return NULL
+ */
+void * check_and_free_buffer(void * buf)
+{
+    if (buf)
+        free(buf);
+    return NULL;
 }
 
 char *alloc_fragment_buffer(int size)
