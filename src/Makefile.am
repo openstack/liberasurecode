@@ -9,6 +9,7 @@ INCLUDES = \
 # liberasurecode params
 liberasurecode_la_SOURCES = \
 		erasurecode.c \
+		erasurecode_helpers.c \
 		utils/chksum/crc32.c \
 		utils/chksum/alg_sig.c \
 		utils/chksum/galois.c \
