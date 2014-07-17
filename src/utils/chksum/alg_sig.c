@@ -22,7 +22,7 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "alg_sig.h"
+#include <alg_sig.h>
 #include <stdlib.h>
 #include <string.h>
 

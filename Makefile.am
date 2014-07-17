@@ -20,14 +20,15 @@ AM_CPPFLAGS += -Werror
 AM_CFLAGS += -fPIC $(AM_CPPFLAGS) -L/usr/local/lib
 
 include_HEADERS = \
-	include/erasurecode/list.h \
-	include/erasurecode/erasurecode_stdinc.h \
-	include/erasurecode/erasurecode_backend.h \
+	include/erasurecode/alg_sig.h \
+	include/erasurecode/galois.h \
 	include/erasurecode/erasurecode.h \
+	include/erasurecode/erasurecode_backend.h \
+	include/erasurecode/erasurecode_stdinc.h \
 	include/erasurecode/erasurecode_version.h \
+	include/erasurecode/list.h \
 	include/xor_codes/xor_hd_code_defs.h \
 	include/xor_codes/xor_code.h
-
 
 test: check
 	@./test/alg_sig_test
