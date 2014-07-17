@@ -137,6 +137,7 @@ static int jerasure_rs_vand_min_fragments(void *desc, int *missing_idxs, int *fr
     // can implement this.
 }
 
+#define DEFAULT_W 16
 static void * jerasure_rs_vand_init(struct ec_backend_args *args, void *backend_sohandle)
 {
     struct jerasure_rs_vand_descriptor *desc = (struct jerasure_rs_vand_descriptor *)
@@ -148,7 +149,12 @@ static void * jerasure_rs_vand_init(struct ec_backend_args *args, void *backend_
 
     desc->k = args->uargs.k;
     desc->m = args->uargs.m;
-    desc->w = args->uargs.priv_args1.jerasure_args.w;
+
+    if (args->uargs.w <= 0)
+        args->uargs.w = DEFAULT_W;
+
+    /* store w back in args so upper layer can get to it */
+    desc->w = args->uargs.w;
 
     /* validate EC arguments */
     {

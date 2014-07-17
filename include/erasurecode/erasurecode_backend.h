@@ -26,6 +26,7 @@
 #define _ERASURECODE_INTERNAL_H_
 
 #include "list.h"
+#include "erasurecode.h"
 #include "erasurecode_stdinc.h"
 
 /* ~=*=~===~=*=~==~=*=~==~=*=~=  backend infrastructure =~=*=~==~=*=~==~=*=~ */

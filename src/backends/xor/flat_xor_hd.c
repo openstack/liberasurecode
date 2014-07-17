@@ -79,11 +79,15 @@ static int flat_xor_hd_min_fragments(void *desc,
     xor_desc->fragments_needed(xor_desc, missing_idxs, fragments_needed);
 }
 
+#define DEFAULT_W 32
 static void * flat_xor_hd_init(struct ec_backend_args *args, void *sohandle)
 {
     int k = args->uargs.k;
     int m = args->uargs.m;
     int hd = args->uargs.priv_args1.flat_xor_hd_args.hd;
+
+    /* store w back in args so upper layer can get to it */
+    args->uargs.w = DEFAULT_W;
 
     struct flat_xor_hd_descriptor *bdesc = (struct flat_xor_hd_descriptor *)
         malloc(sizeof(struct flat_xor_hd_descriptor));
