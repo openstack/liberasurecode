@@ -37,16 +37,26 @@
 struct ec_backend_op_stubs flat_xor_hd_ops;
 struct ec_backend flat_xor_hd;
 
-static int flat_xor_hd_encode(void *desc, int (*fptr)(),
-                              struct ec_backend_args *args,
+struct flat_xor_hd_descriptor {
+    xor_code_t *xor_desc;
+
+    xor_code_t* (*init_xor_hd_code)(int k, int m, int hd); 
+    void (*xor_code_encode)(xor_code_t *code_desc, char **data, char **parity,
+            int blocksize); 
+    int (*xor_hd_decode)(xor_code_t *code_desc, char **data, char **parity,
+            int *missing_idxs, int blocksize, int decode_parity);
+    int (*xor_hd_fragments_needed)(xor_code_t *code_desc, int *missing_idxs,
+            int *fragments_needed);
+};
+
+static int flat_xor_hd_encode(void *desc,
                               char **data, char **parity, int blocksize)
 {
     xor_code_t *xor_desc = (xor_code_t *) desc;
     xor_desc->encode(xor_desc, data, parity, blocksize);
 }
 
-static int flat_xor_hd_decode(void *desc, int (*fptr)(),
-                              struct ec_backend_args *args,
+static int flat_xor_hd_decode(void *desc,
                               char **data, char **parity, int *missing_idxs,
                               int blocksize)
 {
@@ -54,17 +64,15 @@ static int flat_xor_hd_decode(void *desc, int (*fptr)(),
     xor_desc->decode(xor_desc, data, parity, missing_idxs, blocksize, 1);
 }
 
-static int flat_xor_hd_reconstruct(void *desc, int (*fptr)(),
-                                   struct ec_backend_args *args,
+static int flat_xor_hd_reconstruct(void *desc,
                                    char **data, char **parity, int *missing_idxs,
                                    int destination_idx, int blocksize)
 {
     xor_code_t *xor_desc = (xor_code_t *) desc;
-    (*fptr)(xor_desc, data, parity, missing_idxs, destination_idx, blocksize);
+    // (*fptr)(xor_desc, data, parity, missing_idxs, destination_idx, blocksize);
 }
 
-static int flat_xor_hd_min_fragments(void *desc, int (*fptr)(),
-                                     struct ec_backend_args *args,
+static int flat_xor_hd_min_fragments(void *desc,
                                      int *missing_idxs, int *fragments_needed)
 {
     xor_code_t *xor_desc = (xor_code_t *) desc;
@@ -76,9 +84,17 @@ static void * flat_xor_hd_init(struct ec_backend_args *args)
     int k = args->uargs.k;
     int m = args->uargs.m;
     int hd = args->uargs.priv_args1.flat_xor_hd_args.hd;
-    void *desc = (void *) init_xor_hd_code(k, m, hd);
 
-    return desc;
+    struct flat_xor_hd_descriptor *bdesc = (struct flat_xor_hd_descriptor *)
+        malloc(sizeof(struct flat_xor_hd_descriptor));
+
+    if (NULL == bdesc)
+        return NULL;
+
+    xor_code_t *xor_desc = init_xor_hd_code(k, m, hd);
+    bdesc->xor_desc = xor_desc;
+
+    return (void *) bdesc;
 }
 
 static int flat_xor_hd_exit(void *desc)
@@ -95,22 +111,11 @@ struct ec_backend_op_stubs flat_xor_hd_op_stubs = {
     .RECONSTRUCT                = flat_xor_hd_reconstruct,
 };
 
-struct ec_backend_fnmap flat_xor_hd_fn_map[MAX_FNS] = {
-    { FN_NAME(INIT),            "init_xor_hd_code" },
-    { FN_NAME(EXIT),            NULL, },
-    { FN_NAME(ENCODE),          "encode" },
-    { FN_NAME(DECODE),          "decode" },
-    { FN_NAME(FRAGSNEEDED),     "fragments_needed", },
-    { FN_NAME(RECONSTRUCT),     "xor_reconstruct_one" },
-};
-
 struct ec_backend_common backend_flat_xor_hd = {
     .id                         = EC_BACKEND_FLAT_XOR_HD,
     .name                       = "flat_xor_hd",
     .soname                     = "libXorcode.so",
     .soversion                  = "1.0",
     .ops                        = &flat_xor_hd_op_stubs,
-    .fnmap                      = flat_xor_hd_fn_map,
-    .users                      = 0,
 };
 

@@ -90,7 +90,7 @@ ec_backend_t liberasurecode_backend_instance_get_by_desc(int desc)
 {
     struct ec_backend *b = NULL;
     SLIST_FOREACH(b, &active_instances, link) {
-        if (b->instance_desc == desc)
+        if (b->idesc == desc)
             break;
     }
     return b;
@@ -128,7 +128,7 @@ int liberasurecode_backend_instance_register(ec_backend_t instance)
     desc = liberasurecode_backend_alloc_desc();
     if (desc <= 0)
         goto register_out;
-    instance->instance_desc = desc;
+    instance->idesc = desc;
 
 register_out:
     rwlock_unlock(&active_instances_rwlock);
@@ -162,12 +162,12 @@ static void print_dlerror(const char *caller)
 int liberasurecode_backend_open(ec_backend_t instance)
 {
 	void *handle = NULL;
-    if (instance && NULL != instance->backend_sohandle)
+    if (instance && NULL != instance->desc.backend_sohandle)
         return 0;
 
     /* Use RTLD_LOCAL to avoid symbol collisions */
-    instance->backend_sohandle = dlopen(instance->common.soname, RTLD_LAZY | RTLD_LOCAL);
-    if (NULL == instance->backend_sohandle) {
+    instance->desc.backend_sohandle = dlopen(instance->common.soname, RTLD_LAZY | RTLD_LOCAL);
+    if (NULL == instance->desc.backend_sohandle) {
         print_dlerror(__func__);
         return -EBACKENDNOTAVAIL;
     }
@@ -178,13 +178,13 @@ int liberasurecode_backend_open(ec_backend_t instance)
 
 int liberasurecode_backend_close(ec_backend_t instance)
 {
-    if (NULL == instance || NULL == instance->backend_sohandle)
+    if (NULL == instance || NULL == instance->desc.backend_sohandle)
         return 0;
 
-    dlclose(instance->backend_sohandle);
+    dlclose(instance->desc.backend_sohandle);
     dlerror();    /* Clear any existing errors */
 
-    instance->backend_sohandle = NULL;
+    instance->desc.backend_sohandle = NULL;
     return 0;
 }
 
@@ -230,7 +230,7 @@ int liberasurecode_instance_create(const char *backend_name,
     instance->args = bargs;
 
     /* Open backend .so if not already open */
-    /* .so handle is returned in instance->backend_sohandle */
+    /* .so handle is returned in instance->desc.backend_sohandle */
     err = liberasurecode_backend_open(instance);
     if (err < 0) {
         /* ignore during init, return the same handle */
@@ -239,12 +239,12 @@ int liberasurecode_instance_create(const char *backend_name,
     }
 
     /* Call private init() for the backend */
-    instance->backend_desc = instance->common.ops->init(&instance->args);
+    instance->desc.backend_desc = instance->common.ops->init(&instance->args);
 
     /* Register instance and return a descriptor/instance id */
-    instance->instance_desc = liberasurecode_backend_instance_register(instance);
+    instance->idesc = liberasurecode_backend_instance_register(instance);
 
-    return instance->instance_desc;
+    return instance->idesc;
 }
 
 /**
@@ -260,7 +260,7 @@ int liberasurecode_instance_destroy(int desc)
         return 0;
 
     /* Call private exit() for the backend */
-    instance->common.ops->exit(instance->backend_desc);
+    instance->common.ops->exit(instance->desc.backend_desc);
 
     /* dlclose() backend library */
     liberasurecode_backend_close(instance);
@@ -270,58 +270,6 @@ int liberasurecode_instance_destroy(int desc)
 
     /* Cleanup */
     free(instance);
-}
-
-/**
- * Lookup backend library function name given stub name
- *
- * @map - function stub name to library function name map
- * @stub - backend stub name
- *
- * @returns pointer to a string representing backend library function name
- */
-static inline
-const char *lookup_fn_name(struct ec_backend_fnmap *map, const char *stub)
-{
-    int i = 0;
-    const char* fn_name = NULL;
-
-    for (i = 0; i < MAX_FNS; i++) {
-        if (!strcmp(map[i].stub_name, stub)) {
-            fn_name = strdup(map[i].fn_name);
-            break;
-        }
-    }
-
-    return fn_name;
-}
-
-/**
- * Look up backend instance by descriptor (int) passed by user and
- * find corresponding backend function reference for a given stub
- * name ("encode", "decode" etc)
- */
-static inline 
-int liberasurecode_backend_lookup_instance_and_method(
-        int desc, ec_backend_t *instance,
-        const char *stub, int (*fptr)())
-{
-    ec_backend_t x = NULL;
-    const char *fn_name = NULL;
-
-    x = liberasurecode_backend_instance_get_by_desc(desc);
-    if (x == NULL)
-        return -ENOENT;
-
-    fn_name = lookup_fn_name(x->common.fnmap, stub);
-
-    /* find the address of the DECODE function */
-    *(void **)(&fptr) = dlsym(x->backend_sohandle, fn_name);
-    if (NULL == fptr)
-        return -EOPNOTSUPP;
-
-    *instance = x;
-    return 0;
 }
 
 /**
@@ -340,26 +288,19 @@ int liberasurecode_encode(int desc,
         char **encoded_data, char **encoded_parity)
 {
     int ret = 0;
-
-    int (*fptr)() = NULL;
-    const char *fn_name = NULL;
-    const char *stub = FN_NAME(ENCODE);
-
     int blocksize = 0;
 
-    ec_backend_t instance = NULL;
-
-    ret = liberasurecode_backend_lookup_instance_and_method(
-            desc, &instance, stub, fptr);
-    if (ret < 0)
+    ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
+    if (instance == NULL) {
+        ret = -EBACKENDNOTAVAIL;
         goto out_error;
+    }
 
     /* FIXME preprocess orig_data, get blocksize */
 
-    /* call the backend encode function passing it fptr */
-    ret = instance->common.ops->encode(
-            instance->backend_desc, fptr, &instance->args,
-            encoded_data, encoded_parity, blocksize);
+    /* call the backend encode function passing it desc instance */
+    ret = instance->common.ops->encode(instance->desc.backend_desc,
+                                       encoded_data, encoded_parity, blocksize);
 
 out_error:
     return ret;
@@ -380,29 +321,23 @@ int liberasurecode_decode(int desc,
         char *out_data)
 {
     int ret = 0;
-
-    int (*fptr)() = NULL;
-    const char *stub = FN_NAME(DECODE);
-
     int blocksize = 0;
     char **data = NULL;
     char **parity = NULL;
     int *missing_idxs;
 
-    ec_backend_t instance = NULL;
-
-    ret = liberasurecode_backend_lookup_instance_and_method(
-            desc, &instance, stub, fptr);
-    if (ret < 0)
+    ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
+    if (instance == NULL) {
+        ret = -EBACKENDNOTAVAIL;
         goto out_error;
+    }
 
     /* FIXME preprocess available_fragments, split into data and parity,
      * determine missing_idxs and calculate blocksize */
 
-    /* call the backend encode function passing it fptr */
-    ret = instance->common.ops->decode(
-            instance->backend_desc, fptr, &instance->args,
-            data, parity, missing_idxs, blocksize);
+    /* call the backend decode function passing it desc instance */
+    ret = instance->common.ops->decode(instance->desc.backend_desc,
+                                       data, parity, missing_idxs, blocksize);
 
 out_error:
     return ret;
@@ -425,29 +360,24 @@ int liberasurecode_reconstruct_fragment(int desc,
         int destination_idx, char* out_fragment)
 {
     int ret = 0;
-
-    int (*fptr)() = NULL;
-    const char *stub = FN_NAME(RECONSTRUCT);
-
     int blocksize = 0;
     char **data = NULL;
     char **parity = NULL;
     int *missing_idxs;
 
-    ec_backend_t instance = NULL;
-
-    ret = liberasurecode_backend_lookup_instance_and_method(
-            desc, &instance, stub, fptr);
-    if (ret < 0)
+    ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
+    if (instance == NULL) {
+        ret = -EBACKENDNOTAVAIL;
         goto out_error;
+    }
 
     /* FIXME preprocess available_fragments, split into data and parity,
      * determine missing_idxs and calculate blocksize */
 
-    /* call the backend encode function passing it fptr */
-    ret = instance->common.ops->reconstruct(
-            instance->backend_desc, fptr, &instance->args,
-            data, parity, missing_idxs, destination_idx, blocksize);
+    /* call the backend reconstruct function passing it desc instance */
+    ret = instance->common.ops->reconstruct(instance->desc.backend_desc,
+                                            data, parity, missing_idxs,
+                                            destination_idx, blocksize);
 
 out_error:
     return ret;
@@ -469,21 +399,17 @@ int liberasurecode_fragments_needed(int desc, int *missing_idxs,
 {
     int ret = 0;
 
-    int (*fptr)() = NULL;
-    const char *stub = FN_NAME(FRAGSNEEDED);
-
-    ec_backend_t instance = NULL;
-
-    ret = liberasurecode_backend_lookup_instance_and_method(
-            desc, &instance, stub, fptr);
-    if (ret < 0)
+    ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
+    if (instance == NULL) {
+        ret = -EBACKENDNOTAVAIL;
         goto out_error;
+    }
 
     /* FIXME preprocessing */
 
-    /* call the backend encode function passing it fptr */
+    /* call the backend fragments_needed function passing it desc instance */
     ret = instance->common.ops->fragments_needed(
-            instance->backend_desc, fptr, &instance->args,
+            instance->desc.backend_desc,
             missing_idxs, fragments_needed);
 
 out_error:

@@ -57,7 +57,6 @@ struct ec_backend_args {
 #define DECODE          decode
 #define FRAGSNEEDED     fragments_needed
 #define RECONSTRUCT     reconstruct
-#define MAX_FNS         6
 
 #define FN_NAME(s)      str(s)
 #define str(s)          #s
@@ -80,29 +79,23 @@ struct ec_backend_op_stubs {
     /** FIXME - not sure if we need both 'desc' and also 'ec_backend_args'
      * if we can call directly into xor_codes without 'desc', we can do
      * away with desc.  will try that in the next rev */
-    int (*ENCODE)(void *desc, int (*fptr)(), struct ec_backend_args *args,
+    int (*ENCODE)(void *desc,
             char **data, char **parity, int blocksize);
-    int (*DECODE)(void *desc, int (*fptr)(), struct ec_backend_args *args,
+    int (*DECODE)(void *desc,
             char **data, char **parity, int *missing_idxs, int blocksize);
-    int (*FRAGSNEEDED)(void *desc, int (*fptr)(), struct ec_backend_args *args,
+    int (*FRAGSNEEDED)(void *desc,
             int *missing_idxs, int *fragments_needed);
-    int (*RECONSTRUCT)(void *desc, int (*fptr)(), struct ec_backend_args *args,
+    int (*RECONSTRUCT)(void *desc,
             char **data, char **parity, int *missing_idxs, int destination_idx,
             int blocksize);
 };
 
-/* ==~=*=~==~=*= backend stub <-> backend function_name map =*=~==~=*=~==~== */
-
-/**
- * EC backend method names - actual function names from the library
- * 1:1 mapping from op_stubs above to function names in the .so
- * */
-struct ec_backend_fnmap {
-    const char *stub_name;  /* stub name in ec_backend_op_stubs */
-    const char *fn_name;    /* corresponding library function name */
-};
-
 /* ==~=*=~==~=*=~==~=*=~= backend struct definitions =~=*=~==~=*=~==~=*==~== */
+
+struct ec_backend_desc {
+    void *backend_desc;                             /* EC backend private descriptor */
+    void *backend_sohandle;                         /* EC backend shared lib handle */
+};
 
 #define MAX_LEN     64
 /* EC backend common attributes */
@@ -113,19 +106,15 @@ struct ec_backend_common {
     char                        soversion[MAX_LEN]; /* EC backend shared library version */
 
     struct ec_backend_op_stubs  *ops;               /* EC backend stubs */
-    struct ec_backend_fnmap     *fnmap;             /* EC backend stub -> library_fn_name map */
-
-    uint8_t                     users;              /* EC backend number of active references */
 };
 
 /* EC backend definition */
 typedef struct ec_backend {
     struct ec_backend_common    common;             /* EC backend common attributes */
-    struct ec_backend_args      args;              /* EC backend instance data (private) */
-    void                        *backend_desc;      /* EC backend instance handle */
-    void                        *backend_sohandle;  /* EC backend shared library handle */
+    struct ec_backend_args      args;               /* EC backend instance data (private) */
 
-    int                         instance_desc;      /* liberasurecode instance handle */
+    int                         idesc;              /* liberasurecode instance handle */
+    struct ec_backend_desc      desc;               /* EC backend instance handle */
 
     SLIST_ENTRY(ec_backend)     link;
 } *ec_backend_t;
