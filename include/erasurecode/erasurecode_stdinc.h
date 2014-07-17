@@ -94,6 +94,9 @@
 #ifdef HAVE_ERRNO_H
 # include <errno.h>
 #endif
+#ifdef HAVE_MATH_H
+# include <math.h>
+#endif
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 # define DECLSPEC	__attribute__ ((visibility("default")))

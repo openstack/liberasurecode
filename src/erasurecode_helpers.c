@@ -26,7 +26,9 @@
  * vi: set noai tw=79 ts=4 sw=4:
  */
 
+#include "erasurecode_backend.h"
 #include "erasurecode_helpers.h"
+#include "erasurecode_stdinc.h"
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
@@ -80,6 +82,41 @@ int free_fragment_buffer(char *buf)
 
     free(buf);
     return 0;
+}
+
+/* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
+
+/**
+ * Compute a size aligned to the number of data and the underlying wordsize 
+ * of the EC algorithm.
+ * 
+ * @param instance, ec_backend_t instance (to extract args)
+ * @param data_len, integer length of data in bytes
+ * @return integer data length aligned with wordsize of EC algorithm
+ */
+int get_aligned_data_size(ec_backend_t instance, int data_len)
+{
+    int k = instance->args.uargs.k;
+    int m = instance->args.uargs.m;
+    int w = instance->args.uargs.w;
+    int word_size = w / 8;
+    int alignment_multiple;
+    int aligned_size = 0;
+
+    /*
+     * For Cauchy reed-solomon align to k*word_size*packet_size
+     * For Vandermonde reed-solomon and flat-XOR, align to k*word_size
+     */
+    if (instance->common.id == EC_BACKEND_JERASURE_RS_CAUCHY) {
+        alignment_multiple = k * w * (sizeof(long) * 128);
+    } else {
+        alignment_multiple = k * word_size;
+    }
+
+    aligned_size = (int) 
+        ceill((double) data_len / alignment_multiple) * alignment_multiple;
+
+    return aligned_size;
 }
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */

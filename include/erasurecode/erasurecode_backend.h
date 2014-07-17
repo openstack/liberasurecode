@@ -72,14 +72,7 @@ struct ec_backend_op_stubs {
     /* Private backend cleanup routine */
     int (*EXIT)(void *);
 
-    /**
-     * Backend stub declarations - the stubs translate generic backend args
-     * to backend specific args and call (*fptr)()
-     */
-
-    /** FIXME - not sure if we need both 'desc' and also 'ec_backend_args'
-     * if we can call directly into xor_codes without 'desc', we can do
-     * away with desc.  will try that in the next rev */
+    /* Backend stub declarations */
     int (*ENCODE)(void *desc,
             char **data, char **parity, int blocksize);
     int (*DECODE)(void *desc,

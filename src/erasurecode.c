@@ -291,8 +291,11 @@ int liberasurecode_encode(int desc,
         const char *orig_data, uint64_t orig_data_size,
         char **encoded_data, char **encoded_parity)
 {
-    int ret = 0;
-    int blocksize = 0;
+    int i;                  /* a counter */
+    int ret = 0;            /* return code */
+
+    int blocksize = 0;      /* length of each of k data elements */
+    int aligned_data_len;   /* EC algorithm compatible data length */
 
     ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
     if (instance == NULL) {
@@ -301,6 +304,20 @@ int liberasurecode_encode(int desc,
     }
 
     /* FIXME preprocess orig_data, get blocksize */
+
+#if 0
+    /* Calculate data sizes, aligned_data_len guaranteed to be divisible by k*/
+    orig_data_size = data_len;
+    aligned_data_len = get_aligned_data_size(pyeclib_handle, data_len);
+    blocksize = aligned_data_len / pyeclib_handle->k;
+
+    /* Allocate and initialize an array of zero'd out data buffers */
+    data_to_encode = (char**) alloc_zeroed_buffer(sizeof(char*) * pyeclib_handle->k);
+    if (NULL == data_to_encode) {
+        ret = -ENOMEM;
+        goto out_error;
+    }
+#endif
 
     /* call the backend encode function passing it desc instance */
     ret = instance->common.ops->encode(instance->desc.backend_desc,

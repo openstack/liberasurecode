@@ -18,7 +18,7 @@ liberasurecode_la_SOURCES = \
 
 liberasurecode_la_CPPFLAGS = -Werror
 liberasurecode_la_LIBADD = \
-		builtin/xor_codes/libXorcode.la -lpthread
+		builtin/xor_codes/libXorcode.la -lpthread -lm
 
 if GF_COMPLETE_INSTALLED
   liberasurecode_la_LIBADD += -lgf_complete
