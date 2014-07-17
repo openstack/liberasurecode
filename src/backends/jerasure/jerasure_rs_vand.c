@@ -29,8 +29,8 @@
 #include "erasurecode_backend.h"
 
 /* Forward declarations */
-struct ec_backend_op_stubs jerasure_ops;
-struct ec_backend jerasure_hd;
+struct ec_backend_op_stubs jerasure_rs_vand_ops;
+struct ec_backend jerasure_rs_vand;
 
 struct jerasure_rs_vand_descriptor {
     /* calls required for init */
@@ -71,7 +71,7 @@ void * alloc_zeroed_buffer(int size)
     return buf;
 }
 
-static int jerasure_encode(void *desc, char **data, char **parity, int blocksize)
+static int jerasure_rs_vand_encode(void *desc, char **data, char **parity, int blocksize)
 {
     struct jerasure_rs_vand_descriptor *jerasure_desc = 
         (struct jerasure_rs_vand_descriptor*)desc;
@@ -79,7 +79,7 @@ static int jerasure_encode(void *desc, char **data, char **parity, int blocksize
     jerasure_desc->jerasure_matrix_encode(jerasure_desc->k, jerasure_desc->m, jerasure_desc->w, jerasure_desc->matrix, data, parity, blocksize);
 }
 
-static int jerasure_decode(void *desc, char **data, char **parity, int *missing_idxs, int blocksize)
+static int jerasure_rs_vand_decode(void *desc, char **data, char **parity, int *missing_idxs, int blocksize)
 {
     struct jerasure_rs_vand_descriptor *jerasure_desc = 
         (struct jerasure_rs_vand_descriptor*)desc;
@@ -87,7 +87,7 @@ static int jerasure_decode(void *desc, char **data, char **parity, int *missing_
     jerasure_desc->jerasure_matrix_decode(jerasure_desc->k, jerasure_desc->m, jerasure_desc->w, jerasure_desc->matrix, 1, missing_idxs, data, parity, blocksize);
 }
 
-static int jerasure_reconstruct(void *desc, char **data, char **parity, int *missing_idxs, int destination_idx, int blocksize)
+static int jerasure_rs_vand_reconstruct(void *desc, char **data, char **parity, int *missing_idxs, int destination_idx, int blocksize)
 {
     struct jerasure_rs_vand_descriptor *jerasure_desc = 
         (struct jerasure_rs_vand_descriptor*)desc;
@@ -129,7 +129,7 @@ out:
 
 }
 
-static int jerasure_min_fragments(void *desc, int *missing_idxs, int *fragments_needed)
+static int jerasure_rs_vand_min_fragments(void *desc, int *missing_idxs, int *fragments_needed)
 {
     struct jerasure_rs_vand_descriptor *jerasure_desc = 
         (struct jerasure_rs_vand_descriptor*)desc;
@@ -137,7 +137,7 @@ static int jerasure_min_fragments(void *desc, int *missing_idxs, int *fragments_
     // can implement this.
 }
 
-static void * jerasure_init(struct ec_backend_args *args, void *backend_sohandle)
+static void * jerasure_rs_vand_init(struct ec_backend_args *args, void *backend_sohandle)
 {
     struct jerasure_rs_vand_descriptor *desc = 
         (struct jerasure_rs_vand_descriptor*)malloc(sizeof(struct jerasure_rs_vand_descriptor));
@@ -189,7 +189,7 @@ error:
     return NULL;
 }
 
-static int jerasure_exit(void *desc)
+static int jerasure_rs_vand_exit(void *desc)
 {
     struct jerasure_rs_vand_descriptor *jerasure_desc = 
         (struct jerasure_rs_vand_descriptor*)desc;
@@ -199,19 +199,19 @@ static int jerasure_exit(void *desc)
     }
 }
 
-struct ec_backend_op_stubs jerasure_op_stubs = {
-    .INIT                       = jerasure_init,
-    .EXIT                       = jerasure_exit,
-    .ENCODE                     = jerasure_encode,
-    .DECODE                     = jerasure_decode,
-    .FRAGSNEEDED                = jerasure_min_fragments,
-    .RECONSTRUCT                = jerasure_reconstruct,
+struct ec_backend_op_stubs jerasure_rs_vand_op_stubs = {
+    .INIT                       = jerasure_rs_vand_init,
+    .EXIT                       = jerasure_rs_vand_exit,
+    .ENCODE                     = jerasure_rs_vand_encode,
+    .DECODE                     = jerasure_rs_vand_decode,
+    .FRAGSNEEDED                = jerasure_rs_vand_min_fragments,
+    .RECONSTRUCT                = jerasure_rs_vand_reconstruct,
 };
 
-struct ec_backend_common backend_jerasure = {
+struct ec_backend_common backend_jerasure_rs_vand = {
     .id                         = EC_BACKEND_JERASURE_RS_VAND,
-    .name                       = "jerasure",
+    .name                       = "jerasure_rs_vand",
     .soname                     = "libjerasure.so",
     .soversion                  = "2.0",
-    .ops                        = &jerasure_op_stubs,
+    .ops                        = &jerasure_rs_vand_op_stubs,
 };
