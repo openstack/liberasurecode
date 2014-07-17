@@ -79,7 +79,7 @@ static int flat_xor_hd_min_fragments(void *desc,
     xor_desc->fragments_needed(xor_desc, missing_idxs, fragments_needed);
 }
 
-static void * flat_xor_hd_init(struct ec_backend_args *args)
+static void * flat_xor_hd_init(struct ec_backend_args *args, void *sohandle)
 {
     int k = args->uargs.k;
     int m = args->uargs.m;
@@ -99,7 +99,10 @@ static void * flat_xor_hd_init(struct ec_backend_args *args)
 
 static int flat_xor_hd_exit(void *desc)
 {
-    free((xor_code_t *) desc);
+    struct flat_xor_hd_descriptor *bdesc = (struct flat_xor_hd_descriptor *) desc;
+
+    free (bdesc->xor_desc);
+    free (bdesc);
 }
 
 struct ec_backend_op_stubs flat_xor_hd_op_stubs = {

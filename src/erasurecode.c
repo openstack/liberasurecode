@@ -239,7 +239,8 @@ int liberasurecode_instance_create(const char *backend_name,
     }
 
     /* Call private init() for the backend */
-    instance->desc.backend_desc = instance->common.ops->init(&instance->args);
+    instance->desc.backend_desc = instance->common.ops->init(&instance->args,
+            instance->desc.backend_sohandle);
 
     /* Register instance and return a descriptor/instance id */
     instance->idesc = liberasurecode_backend_instance_register(instance);

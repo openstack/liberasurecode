@@ -66,7 +66,7 @@ struct ec_backend_op_stubs {
     /** Backend register/init, unregister/cleanup routines **/
 
     /* Private backend init routine */
-    void * (*INIT)(struct ec_backend_args *args);
+    void * (*INIT)(struct ec_backend_args *args, void *sohandle);
 
     /* Private backend cleanup routine */
     int (*EXIT)(void *);
