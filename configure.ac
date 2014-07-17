@@ -3,7 +3,7 @@ AC_GNU_SOURCE
 
 AC_PREREQ([2.61])
 
-AM_INIT_AUTOMAKE([subdir-objects no-dependencies])
+AM_INIT_AUTOMAKE([subdir-objects])
 LT_INIT # libtool
 
 AC_CONFIG_HEADER(include/config.h)

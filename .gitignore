@@ -40,4 +40,6 @@ config.status
 config.sub
 Makefile
 config.h.in
-
+.deps
+config.h
+stamp-h1
