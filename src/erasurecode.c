@@ -28,10 +28,23 @@
 
 #include "list.h"
 #include "erasurecode.h"
+#include "erasurecode_backend.h"
 #include "erasurecode_helpers.h"
 #include "erasurecode_preprocessing.h"
 #include "erasurecode_stdinc.h"
-#include "erasurecode_backend.h"
+
+/* =*=~==~=*=~==~=*=~= liberasurecode init/exit routines =~=*=~==~=*=~==~=*= */
+
+void __attribute__ ((constructor))
+liberasurecode_init(void) {
+    fprintf(stderr, "liberasurecode_init called\n");
+    openlog("liberasurecode", LOG_PID | LOG_CONS, LOG_USER);
+}
+
+void __attribute__ ((destructor))
+liberasurecode_exit(void) {
+    closelog();
+}
 
 /* =~=*=~==~=*=~==~=*=~= Supported EC backends =~=*=~==~=*=~==~=*=~==~=*=~== */
 
