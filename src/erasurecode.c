@@ -310,7 +310,21 @@ int liberasurecode_encode(int desc,
     k = instance->args.uargs.k;
     m = instance->args.uargs.m;
 
-    /* FIXME preprocess orig_data, get blocksize */
+    /*
+     * Allocate arrays for data, parity and missing_idxs
+     */
+    encoded_data = alloc_zeroed_buffer(sizeof(char*) * k);
+    if (NULL == encoded_data) {
+        log_error("Could not allocate data buffer!");
+        goto out;
+    }
+    
+    encoded_parity = alloc_zeroed_buffer(sizeof(char*) * m);
+    if (NULL == encoded_parity) {
+        log_error("Could not allocate parity buffer!");
+        goto out;
+    }
+
     ret = prepare_fragments_for_encode(instance, k, m, orig_data, orig_data_size,
                                        encoded_data, encoded_parity, &blocksize);
     if (ret < 0) {

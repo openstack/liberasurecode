@@ -46,13 +46,6 @@ int prepare_fragments_for_encode(ec_backend_t instance,
     aligned_data_len = get_aligned_data_size(instance, orig_data_size);
     *blocksize = aligned_data_len / k;
 
-    /* Allocate and initialize an array of zero'd out data buffers */
-    encoded_data = (char **) alloc_zeroed_buffer(sizeof(char *) * k);
-    if (NULL == encoded_data) {
-        ret = -ENOMEM;
-        goto out_error;
-    }
-
     for (i = 0; i < k; i++) {
         int payload_size = data_len > *blocksize ? *blocksize : data_len;
         char *fragment = alloc_fragment_buffer(*blocksize);    
@@ -75,13 +68,6 @@ int prepare_fragments_for_encode(ec_backend_t instance,
         data_len -= payload_size;
     }
 
-    /* Allocate and initialize an array of zero'd out parity buffers */
-    encoded_parity = (char **) alloc_zeroed_buffer(sizeof(char *) * m);
-    if (NULL == encoded_parity) {
-        ret = -ENOMEM;
-        goto out_error;
-    }
-
     for (i = 0; i < m; i++) {
         char *fragment = alloc_fragment_buffer(*blocksize);
         if (NULL == fragment) {
@@ -98,14 +84,16 @@ out:
 out_error:
     if (encoded_data) {
         for (i = 0; i < k; i++) {
-            if (encoded_data[i]) free_fragment_buffer(encoded_data[i]);
+            if (encoded_data[i])
+                free_fragment_buffer(encoded_data[i]);
         }
         check_and_free_buffer(encoded_data);
     }
 
     if (encoded_parity) {
         for (i = 0; i < m; i++) {
-            if (encoded_parity[i]) free_fragment_buffer(encoded_parity[i]);
+            if (encoded_parity[i])
+                free_fragment_buffer(encoded_parity[i]);
         }
         check_and_free_buffer(encoded_parity);
     }
