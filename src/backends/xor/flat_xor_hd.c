@@ -86,16 +86,26 @@ static void * flat_xor_hd_init(struct ec_backend_args *args, void *sohandle)
     int m = args->uargs.m;
     int hd = args->uargs.priv_args1.flat_xor_hd_args.hd;
 
+    xor_code_t *xor_desc = NULL;
+    struct flat_xor_hd_descriptor *bdesc = NULL;
+
     /* store w back in args so upper layer can get to it */
     args->uargs.w = DEFAULT_W;
 
-    struct flat_xor_hd_descriptor *bdesc = (struct flat_xor_hd_descriptor *)
-        malloc(sizeof(struct flat_xor_hd_descriptor));
-
-    if (NULL == bdesc)
+    /* init xor_code_t descriptor */
+    xor_desc = init_xor_hd_code(k, m, hd);
+    if (NULL == xor_desc) {
         return NULL;
+    }
 
-    xor_code_t *xor_desc = init_xor_hd_code(k, m, hd);
+    /* fill in flat_xor_hd_descriptor */
+    bdesc = (struct flat_xor_hd_descriptor *)
+        malloc(sizeof(struct flat_xor_hd_descriptor));
+    if (NULL == bdesc) {
+        free (xor_desc);
+        return NULL;
+    }
+
     bdesc->xor_desc = xor_desc;
 
     return (void *) bdesc;

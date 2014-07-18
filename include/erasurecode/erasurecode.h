@@ -204,6 +204,7 @@ int liberasurecode_verify_stripe_metadata(char **fragments);
 typedef enum {
     EBACKENDNOTSUPP  = 200,
     EECMETHODNOTIMPL = 201,
+    EBACKENDINITERR  = 202,
     EBACKENDINUSE    = 203,
     EBACKENDNOTAVAIL = 204,
 } LIBERASURECODE_ERROR_CODES;
