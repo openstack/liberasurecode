@@ -115,7 +115,7 @@ int free_fragment_buffer(char *buf)
 {
     fragment_header_t *header;
 
-    if (buf == NULL) {
+    if (NULL == buf) {
         return -1;
     }
 
@@ -155,7 +155,7 @@ int get_aligned_data_size(ec_backend_t instance, int data_len)
      * For Cauchy reed-solomon align to k*word_size*packet_size
      * For Vandermonde reed-solomon and flat-XOR, align to k*word_size
      */
-    if (instance->common.id == EC_BACKEND_JERASURE_RS_CAUCHY) {
+    if (EC_BACKEND_JERASURE_RS_CAUCHY == instance->common.id) {
         alignment_multiple = k * w * (sizeof(long) * 128);
     } else {
         alignment_multiple = k * word_size;

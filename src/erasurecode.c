@@ -259,7 +259,7 @@ int liberasurecode_instance_destroy(int desc)
 {
     ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
 
-    if (instance == NULL)
+    if (NULL == instance)
         return 0;
 
     /* Call private exit() for the backend */
@@ -301,7 +301,7 @@ int liberasurecode_encode(int desc,
     int aligned_data_len;   /* EC algorithm compatible data length */
 
     ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
-    if (instance == NULL) {
+    if (NULL == instance) {
         ret = -EBACKENDNOTAVAIL;
         goto out_error;
     }
@@ -407,7 +407,7 @@ int liberasurecode_decode(int desc,
     int *missing_idxs;
 
     ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
-    if (instance == NULL) {
+    if (NULL == instance) {
         ret = -EBACKENDNOTAVAIL;
         goto out_error;
     }
@@ -446,7 +446,7 @@ int liberasurecode_reconstruct_fragment(int desc,
     int *missing_idxs;
 
     ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
-    if (instance == NULL) {
+    if (NULL == instance) {
         ret = -EBACKENDNOTAVAIL;
         goto out_error;
     }
@@ -480,7 +480,7 @@ int liberasurecode_fragments_needed(int desc, int *missing_idxs,
     int ret = 0;
 
     ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
-    if (instance == NULL) {
+    if (NULL == instance) {
         ret = -EBACKENDNOTAVAIL;
         goto out_error;
     }
