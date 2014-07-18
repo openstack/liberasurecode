@@ -30,7 +30,7 @@
 #include <stdbool.h>
 #include "erasurecode.h"
 
-typedef void (*TEST_FUNC)(void);
+typedef int (*TEST_FUNC)(void);
 struct testcase {
     const char *description;
     TEST_FUNC function;
@@ -41,49 +41,94 @@ struct testcase {
 char *create_buffer(int size)
 {
     char *buf = malloc(size);
-    memset(buf, 2, size);
+    memset(buf, 'x', size);
     return buf;
 }
 
-static void test_liberasurecode_supported_backends(void)
+static int test_liberasurecode_supported_backends(void)
 {
     //EDL skipping for now since this function is not implemented.
 }
 
-static void test_create_and_destroy_backend(void)
+static int test_create_and_destroy_backend(void)
 {
     struct ec_args args = {
         .k = 10,
         .m = 4,
-        .priv_args1.flat_xor_hd_args.hd = 3,
     };
-    int desc = liberasurecode_instance_create("flat_xor_hd", &args);
+    int desc = liberasurecode_instance_create("jerasure_rs_vand", &args);
     assert(desc >= 0);
     assert(liberasurecode_instance_destroy(desc) == 0);
 }
 
-static void test_simple_encode(void)
+static int test_simple_encode_flat_xor_hd(void)
 {
     struct ec_args args = {
         .k = 10,
         .m = 4,
         .priv_args1.flat_xor_hd_args.hd = 3,
     };
-    int desc = liberasurecode_instance_create("flat_xor_hd", &args);
-    char *encoded_data;
-    char *parity;
-    char *data = create_buffer(4096);
-    int rc = liberasurecode_encode(desc, data, 4096, &encoded_data, &parity);
+
+    int rc = 0;
+    int desc = -1;
+    int size = 1024 * 1024;
+    char **encoded_data = NULL, **parity = NULL;
+    char *data = NULL;
+        
+    data = create_buffer(size);
+    if (NULL == data) {
+        rc = -ENOMEM;
+        goto out;
+    }
+
+    desc = liberasurecode_instance_create("flat_xor_hd", &args);
+    rc = liberasurecode_encode(desc, data, size, encoded_data, parity);
     assert(rc == 0);
     assert(liberasurecode_instance_destroy(desc) == 0);
     free(data);
+
+out:
+    return rc;
+}
+
+static int test_simple_encode_jerasure_rs_vand(void)
+{
+    struct ec_args args = {
+        .k = 10,
+        .m = 4,
+    };
+
+    int rc = 0;
+    int desc = -1;
+    int size = 1024 * 1024;
+    char **encoded_data = NULL, **parity = NULL;
+    char *data = NULL;
+        
+    data = create_buffer(size);
+    if (NULL == data) {
+        rc = -ENOMEM;
+        goto out;
+    }
+
+    desc = liberasurecode_instance_create("jerasure_rs_vand", &args);
+    rc = liberasurecode_encode(desc, data, size, encoded_data, parity);
+    assert(rc == 0);
+    assert(liberasurecode_instance_destroy(desc) == 0);
+    free(data);
+
+out:
+    return rc;
 }
 
 struct testcase testcases[] = {
     {"liberasurecode_supported_backends",
-     test_liberasurecode_supported_backends, true},
-    {"create_and_destroy_backend", test_create_and_destroy_backend, false},
-    {"simple_encode", test_simple_encode, true}, //EDL: Seg faulting at the moment so skip
+        test_liberasurecode_supported_backends, true},
+    {"create_and_destroy_backend",
+        test_create_and_destroy_backend, false},
+    {"simple_encode_flat_xor_hd",
+        test_simple_encode_flat_xor_hd, true},
+    {"simple_encode_jerasure_rs_vand",
+        test_simple_encode_jerasure_rs_vand, false},
     { NULL, NULL, false }
 };
 
