@@ -61,9 +61,8 @@ static int test_create_and_destroy_backend(
         struct ec_args *args)
 {
     int desc = liberasurecode_instance_create(backend, args);
-    fprintf (stderr, "desc = %d\n", desc);    
-    assert(0 == desc || EBACKENDNOTAVAIL == desc);
-    if (0 == desc)
+    assert(desc > 0 || EBACKENDNOTAVAIL == desc);
+    if (desc)
         liberasurecode_instance_destroy(desc);
     return 0;
 }
@@ -79,7 +78,7 @@ static int test_simple_encode(
     char *data = NULL;
         
     desc = liberasurecode_instance_create(backend, args);
-    assert(0 == desc || EBACKENDNOTAVAIL == desc);
+    assert(desc > 0 || EBACKENDNOTAVAIL == desc);
 
     data = create_buffer(size);
     if (NULL == data) {
@@ -90,7 +89,7 @@ static int test_simple_encode(
     rc = liberasurecode_encode(desc, data, size, encoded_data, parity);
     assert(0 == rc);
 
-    if (0 == rc)
+    if (desc)
         liberasurecode_instance_destroy(desc);
 
     free(data);
