@@ -43,5 +43,6 @@ CLEANFILES = cscope.in.out cscope.out cscope.po.out
 
 .PHONY: cscope
 cscope:
-	cscope -b -q -R -Iinclude -ssrc;
+	find src include -name "*.[ch]" > cscope.files
+	cscope -q -b
 
