@@ -108,7 +108,7 @@ char *alloc_fragment_buffer(int size)
 
     if (buf) {
         header = (fragment_header_t *) buf;
-        header->magic = PYECC_HEADER_MAGIC;
+        header->magic = LIBERASURECODE_FRAG_HEADER_MAGIC;
     }
 
     return buf;
@@ -125,7 +125,7 @@ int free_fragment_buffer(char *buf)
     buf -= sizeof(fragment_header_t);
 
     header = (fragment_header_t *) buf;
-    if (header->magic != PYECC_HEADER_MAGIC) {
+    if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
         fprintf(stderr,
             "Invalid fragment header (free fragment)!");
         return -1;
@@ -194,7 +194,7 @@ char *get_fragment_ptr_from_data(char *buf)
 
     header = (fragment_header_t *) buf;
 
-    if (header->magic != PYECC_HEADER_MAGIC) {
+    if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
         fprintf(stderr, "Invalid fragment header (get header ptr)!\n");
         return NULL;
     }
@@ -208,7 +208,7 @@ int set_fragment_idx(char *buf, int idx)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
 
-    if (header->magic != PYECC_HEADER_MAGIC) {
+    if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
         fprintf(stderr, "Invalid fragment header (idx check)!\n");
         return -1;
     }
@@ -222,7 +222,7 @@ int get_fragment_idx(char *buf)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
 
-    if (header->magic != PYECC_HEADER_MAGIC) {
+    if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
         fprintf(stderr, "Invalid fragment header (get idx)!");
         return -1;
     }
@@ -234,7 +234,7 @@ int set_fragment_size(char *buf, int size)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
 
-    if (header->magic != PYECC_HEADER_MAGIC) {
+    if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
         fprintf(stderr, "Invalid fragment header (size check)!");
         return -1;
     }
@@ -248,7 +248,7 @@ int get_fragment_size(char *buf)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
 
-    if (header->magic != PYECC_HEADER_MAGIC) {
+    if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
         fprintf(stderr, "Invalid fragment header (get size)!");
         return -1;
     }
@@ -260,7 +260,7 @@ int set_orig_data_size(char *buf, int orig_data_size)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
 
-    if (header->magic != PYECC_HEADER_MAGIC) {
+    if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
         fprintf(stderr, "Invalid fragment header (set orig data check)!");
         return -1;
     }
@@ -274,7 +274,7 @@ int get_orig_data_size(char *buf)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
 
-    if (header->magic != PYECC_HEADER_MAGIC) {
+    if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
         fprintf(stderr, "Invalid fragment header (get orig data check)!");
         return -1;
     }
@@ -288,7 +288,7 @@ int validate_fragment(char *buf)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
 
-    if (header->magic != PYECC_HEADER_MAGIC) {
+    if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
         return -1;
     }
 

@@ -34,10 +34,6 @@
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
-#define PYECC_HEADER_MAGIC  0xb0c5ecc
-
-#define talloc(type, num)   (type *) malloc(sizeof(type) * (num))
-
 #if __STDC_VERSION__ < 199901L
     #if __GNUC__ >= 2
         #define __func__ __FUNCTION__
@@ -49,9 +45,12 @@
 #define log_error(str) \
     fprintf(stderr, "%s:%d (%s): %s\n", __FILE__, __LINE__, __func__, str)
 
-/*
- * Prevent the compiler from padding
- * this by using the __packed__ keyword
+/* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
+
+/**
+ * liberasurecode fragment header definition
+ *
+ * Prevent the compiler from padding this by using the __packed__ keyword
  */
 typedef struct __attribute__((__packed__)) fragment_header_s
 {
@@ -66,7 +65,11 @@ typedef struct __attribute__((__packed__)) fragment_header_s
     uint32_t aligned_padding[3];
 } fragment_header_t;
 
+#define LIBERASURECODE_FRAG_HEADER_MAGIC  0xb0c5ecc
+
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
+
+#define talloc(type, num)   (type *) malloc(sizeof(type) * (num))
 
 /* Determine if an address is aligned to a particular boundary */
 static inline
@@ -122,7 +125,7 @@ void init_fragment_header(char *buf)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
 
-    header->magic = PYECC_HEADER_MAGIC;
+    header->magic = LIBERASURECODE_FRAG_HEADER_MAGIC;
 }
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
