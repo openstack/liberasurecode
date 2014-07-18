@@ -21,7 +21,7 @@
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * liberasurecode API helpers implementation
+ * liberasurecode proprocssing helpers implementation
  *
  * vi: set noai tw=79 ts=4 sw=4:
  */
@@ -31,21 +31,101 @@
 #include "erasurecode_preprocessing.h"
 #include "erasurecode_stdinc.h"
 
+int prepare_fragments_for_encode(ec_backend_t instance,
+        int k, int m,
+        const char *orig_data, uint64_t orig_data_size, /* input */
+        char **encoded_data, char **encoded_parity,     /* output */
+        int *blocksize)
+{
+    int i, ret = 0;
+    int data_len;           /* data len to write to fragment headers */
+    int aligned_data_len;   /* EC algorithm compatible data length */
+
+    /* Calculate data sizes, aligned_data_len guaranteed to be divisible by k*/
+    data_len = orig_data_size;
+    aligned_data_len = get_aligned_data_size(instance, orig_data_size);
+    *blocksize = aligned_data_len / k;
+
+    /* Allocate and initialize an array of zero'd out data buffers */
+    encoded_data = (char **) alloc_zeroed_buffer(sizeof(char *) * k);
+    if (NULL == encoded_data) {
+        ret = -ENOMEM;
+        goto out_error;
+    }
+
+    for (i = 0; i < k; i++) {
+        int payload_size = data_len > *blocksize ? *blocksize : data_len;
+        char *fragment = alloc_fragment_buffer(*blocksize);    
+        if (NULL == fragment) {
+            ret = -ENOMEM;
+            goto out_error;
+        }
+      
+        /* Copy existing data into clean, zero'd out buffer */
+        encoded_data[i] = get_data_ptr_from_fragment(fragment);
+        if (data_len > 0) {
+            memcpy(encoded_data[i], orig_data, payload_size);
+        }
+
+        /* Fragment size will always be the same
+         * (may be able to get rid of this) */
+        set_fragment_size(fragment, *blocksize);
+
+        orig_data += payload_size;
+        data_len -= payload_size;
+    }
+
+    /* Allocate and initialize an array of zero'd out parity buffers */
+    encoded_parity = (char **) alloc_zeroed_buffer(sizeof(char *) * m);
+    if (NULL == encoded_parity) {
+        ret = -ENOMEM;
+        goto out_error;
+    }
+
+    for (i = 0; i < m; i++) {
+        char *fragment = alloc_fragment_buffer(*blocksize);
+        if (NULL == fragment) {
+            ret = -ENOMEM;
+            goto out_error;
+        }
+        encoded_parity[i] = get_data_ptr_from_fragment(fragment);
+        set_fragment_size(fragment, *blocksize);
+    }
+
+out:
+    return ret;
+
+out_error:
+    if (encoded_data) {
+        for (i = 0; i < k; i++) {
+            if (encoded_data[i]) free_fragment_buffer(encoded_data[i]);
+        }
+        check_and_free_buffer(encoded_data);
+    }
+
+    if (encoded_parity) {
+        for (i = 0; i < m; i++) {
+            if (encoded_parity[i]) free_fragment_buffer(encoded_parity[i]);
+        }
+        check_and_free_buffer(encoded_parity);
+    }
+
+    goto out;
+}
+
 /* 
- * Note that the caller should always check realloc_bm during success or failure to free 
- * buffers allocated here.  We could free up in this function, but it is internal to 
- * this library and only used in a few places.  In any case, the caller has to free up
- * in the success case, so it may as well do so in the failure case.
+ * Note that the caller should always check realloc_bm during success or
+ * failure to free buffers allocated here.  We could free up in this function,
+ * but it is internal to this library and only used in a few places.  In any
+ * case, the caller has to free up in the success case, so it may as well do
+ * so in the failure case.
  */
-int prepare_fragments_for_decode(int k,
-                                 int m,
-                                 char **data,
-                                 char **parity,
-                                 int  *missing_idxs,
-                                 int *orig_size,
-                                 int *fragment_payload_size,
-                                 int  fragment_size,
-                                 uint64_t *realloc_bm)
+int prepare_fragments_for_decode(
+        int k, int m,
+        char **data, char **parity,
+        int  *missing_idxs,
+        int *orig_size, int *fragment_payload_size, int fragment_size,
+        uint64_t *realloc_bm)
 {
     int i;                          /* a counter */
     unsigned long long missing_bm;  /* bitmap form of missing indexes list */
@@ -62,7 +142,8 @@ int prepare_fragments_for_decode(int k,
      */
     for (i = 0; i < k; i++) {
         /*
-         * Allocate or replace with aligned buffer if the buffer was not aligned.
+         * Allocate or replace with aligned buffer if the buffer was not
+         * aligned.
          * DO NOT FREE: the python GC should free the original when cleaning up
          * 'data_list'
          */
@@ -136,7 +217,10 @@ int prepare_fragments_for_decode(int k,
     return 0;
 }
 
-int get_fragment_partition(int k, int m, char **fragments, int num_fragments, char **data, char **parity, int *missing)
+int get_fragment_partition(
+        int k, int m,
+        char **fragments, int num_fragments,
+        char **data, char **parity, int *missing)
 {
     int i = 0;
     int num_missing = 0;

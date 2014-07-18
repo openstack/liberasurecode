@@ -21,7 +21,7 @@
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * liberasurecode API helpers header
+ * liberasurecode proprocssing helpers header
  *
  * vi: set noai tw=79 ts=4 sw=4:
  */
@@ -46,7 +46,8 @@
     #endif
 #endif
 
-#define log_error(str) fprintf(stderr, "%s:%d (%s): %s\n", __FILE__, __LINE__, __func__, str)
+#define log_error(str) \
+    fprintf(stderr, "%s:%d (%s): %s\n", __FILE__, __LINE__, __func__, str)
 
 /*
  * Prevent the compiler from padding
@@ -54,15 +55,15 @@
  */
 typedef struct __attribute__((__packed__)) fragment_header_s
 {
-  uint32_t magic;
-  uint32_t idx;
-  uint32_t size;
-  uint32_t orig_data_size;
-  // FIXME - reserve 16-bytes for md5
-  uint32_t chksum;
-  // We must be aligned to 16-byte boundaries
-  // So, size this array accordingly
-  uint32_t aligned_padding[3];
+    uint32_t magic;
+    uint32_t idx;
+    uint32_t size;
+    uint32_t orig_data_size;
+    // FIXME - reserve 16-bytes for md5
+    uint32_t chksum;
+    // We must be aligned to 16-byte boundaries
+    // So, size this array accordingly
+    uint32_t aligned_padding[3];
 } fragment_header_t;
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */

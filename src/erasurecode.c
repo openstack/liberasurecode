@@ -290,8 +290,8 @@ int liberasurecode_instance_destroy(int desc)
  * @return 0 on success, -error code otherwise
  */
 int liberasurecode_encode(int desc,
-        const char *orig_data, uint64_t orig_data_size,
-        char **encoded_data, char **encoded_parity)
+        const char *orig_data, uint64_t orig_data_size, /* input */
+        char **encoded_data, char **encoded_parity)     /* output */
 {
     int i;
     int k, m;
@@ -304,62 +304,17 @@ int liberasurecode_encode(int desc,
     ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
     if (NULL == instance) {
         ret = -EBACKENDNOTAVAIL;
-        goto out_error;
+        goto out;
     }
-
-    /* FIXME preprocess orig_data, get blocksize */
 
     k = instance->args.uargs.k;
     m = instance->args.uargs.m;
 
-    /* Calculate data sizes, aligned_data_len guaranteed to be divisible by k*/
-    data_len = orig_data_size;
-    aligned_data_len = get_aligned_data_size(instance, orig_data_size);
-    blocksize = aligned_data_len / k;
-
-    /* Allocate and initialize an array of zero'd out data buffers */
-    encoded_data = (char **) alloc_zeroed_buffer(sizeof(char *) * k);
-    if (NULL == encoded_data) {
-        ret = -ENOMEM;
-        goto out_error;
-    }
-
-    for (i = 0; i < k; i++) {
-        int payload_size = data_len > blocksize ? blocksize : data_len;
-        char *fragment = alloc_fragment_buffer(blocksize);    
-        if (NULL == fragment) {
-            ret = -ENOMEM;
-            goto out_error;
-        }
-      
-        /* Copy existing data into clean, zero'd out buffer */
-        encoded_data[i] = get_data_ptr_from_fragment(fragment);
-        if (data_len > 0) {
-            memcpy(encoded_data[i], orig_data, payload_size);
-        }
-
-        /* Fragment size will always be the same (may be able to get rid of this) */
-        set_fragment_size(fragment, blocksize);
-
-        orig_data += payload_size;
-        data_len -= payload_size;
-    }
-
-    /* Allocate and initialize an array of zero'd out parity buffers */
-    encoded_parity = (char **) alloc_zeroed_buffer(sizeof(char *) * m);
-    if (NULL == encoded_parity) {
-        ret = -ENOMEM;
-        goto out_error;
-    }
-
-    for (i = 0; i < m; i++) {
-        char *fragment = alloc_fragment_buffer(blocksize);
-        if (NULL == fragment) {
-            ret = -ENOMEM;
-            goto out_error;
-        }
-        encoded_parity[i] = get_data_ptr_from_fragment(fragment);
-        set_fragment_size(fragment, blocksize);
+    /* FIXME preprocess orig_data, get blocksize */
+    ret = prepare_fragments_for_encode(instance, k, m, orig_data, orig_data_size,
+                                       encoded_data, encoded_parity, &blocksize);
+    if (ret < 0) {
+        goto out;
     }
 
     /* call the backend encode function passing it desc instance */
@@ -369,22 +324,6 @@ int liberasurecode_encode(int desc,
 out:
     return ret;
   
-out_error:
-    if (encoded_data) {
-        for (i = 0; i < k; i++) {
-            if (encoded_data[i]) free_fragment_buffer(encoded_data[i]);
-        }
-        check_and_free_buffer(encoded_data);
-    }
-
-    if (encoded_parity) {
-        for (i = 0; i < m; i++) {
-            if (encoded_parity[i]) free_fragment_buffer(encoded_parity[i]);
-        }
-        check_and_free_buffer(encoded_parity);
-    }
-
-    goto out;
 }
 
 /**
@@ -400,11 +339,9 @@ out_error:
  * @return 0 on success, -error code otherwise
  */
 int liberasurecode_decode(int desc,
-        char **available_fragments,
-        int32_t num_fragments,
-        uint64_t fragment_len,
-        char *out_data,
-        int32_t *out_data_len)
+        char **available_fragments,                     /* input */
+        int32_t num_fragments, uint64_t fragment_len,
+        char *out_data, int32_t *out_data_len)          /* output */
 {
     int ret = 0;
     int blocksize = 0;
@@ -430,7 +367,9 @@ int liberasurecode_decode(int desc,
     /*
      * Try to re-assebmle the original data before attempting a decode
      */
-    ret = fragments_to_string(k, m, available_fragments, num_fragments, &out_data, out_data_len);
+    ret = fragments_to_string(k, m,
+                              available_fragments, num_fragments,
+                              &out_data, out_data_len);
 
     if (ret == 0) {
         /* We were able to get the original data without decoding! */
@@ -462,7 +401,8 @@ int liberasurecode_decode(int desc,
      * Separate the fragments into data and parity.  Also determine which
      * pieces are missing.
      */
-    ret = get_fragment_partition(k, m, available_fragments, num_fragments, data, parity, missing_idxs);
+    ret = get_fragment_partition(k, m, available_fragments, num_fragments,
+            data, parity, missing_idxs);
 
     if (ret < 0) {
         log_error("Could not properly partition the fragments!");
@@ -470,14 +410,19 @@ int liberasurecode_decode(int desc,
     }
 
     /*
-     * Preparing the fragments for decode.  This will alloc aligned buffers when unaligned buffers
-     * were passed in available_fragments.  It passes back a bitmap telling us which buffers need to
-     * be freed by us (realloc_bm).
+     * Preparing the fragments for decode.  This will alloc aligned buffers
+     * when unaligned buffers were passed in available_fragments.  It passes
+     * back a bitmap telling us which buffers need to be freed by us
+     * (realloc_bm).
      *
-     * This also returns data/parity as fragment payloads (the header is not included).  The pointers
-     * need to be asjusted after decode to include the headers.
+     * This also returns data/parity as fragment payloads (the header is not
+     * included).  The pointers need to be asjusted after decode to include
+     * the headers.
      */
-    ret = prepare_fragments_for_decode(k, m, data, parity, missing_idxs, &orig_data_size, &blocksize, fragment_len, &realloc_bm);
+    ret = prepare_fragments_for_decode(k, m,
+                                       data, parity, missing_idxs, 
+                                       &orig_data_size, &blocksize,
+                                       fragment_len, &realloc_bm);
     if (ret < 0) {
         log_error("Could not prepare fragments for decode!");
         goto out;
@@ -501,7 +446,9 @@ int liberasurecode_decode(int desc,
         int missing_idx = missing_idxs[j]; 
         if (missing_idx < k) {
             /* Generate headers */
-            char *fragment_ptr = get_fragment_ptr_from_data_novalidate(data[missing_idx]);
+            char *fragment_ptr = 
+                get_fragment_ptr_from_data_novalidate(data[missing_idx]);
+
             init_fragment_header(fragment_ptr);
             set_fragment_idx(fragment_ptr, missing_idx);
             set_orig_data_size(fragment_ptr, orig_data_size);
