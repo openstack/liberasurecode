@@ -28,12 +28,16 @@
 
 #include <assert.h>
 #include <stdbool.h>
+
 #include "erasurecode.h"
 
-typedef int (*TEST_FUNC)(void);
+typedef int (*TEST_FUNC)(const char *, struct ec_args *);
+
 struct testcase {
     const char *description;
     TEST_FUNC function;
+    void *arg1;
+    void *arg2;
     bool skip;
 };
 
@@ -45,91 +49,90 @@ char *create_buffer(int size)
     return buf;
 }
 
-static int test_liberasurecode_supported_backends(void)
+static int test_liberasurecode_supported_backends(
+        const char *backend,
+        struct ec_args *args)
 {
     //EDL skipping for now since this function is not implemented.
 }
 
-static int test_create_and_destroy_backend(void)
+static int test_create_and_destroy_backend(
+        const char *backend,
+        struct ec_args *args)
 {
-    struct ec_args args = {
-        .k = 10,
-        .m = 4,
-    };
-    int desc = liberasurecode_instance_create("jerasure_rs_vand", &args);
-    assert(desc >= 0);
-    assert(liberasurecode_instance_destroy(desc) == 0);
+    int desc = liberasurecode_instance_create(backend, args);
+    fprintf (stderr, "desc = %d\n", desc);    
+    assert(0 == desc || EBACKENDNOTAVAIL == desc);
+    if (0 == desc)
+        liberasurecode_instance_destroy(desc);
+    return 0;
 }
 
-static int test_simple_encode_flat_xor_hd(void)
+static int test_simple_encode(
+        const char *backend,
+        struct ec_args *args)
 {
-    struct ec_args args = {
-        .k = 10,
-        .m = 4,
-        .priv_args1.flat_xor_hd_args.hd = 3,
-    };
-
     int rc = 0;
     int desc = -1;
     int size = 1024 * 1024;
     char **encoded_data = NULL, **parity = NULL;
     char *data = NULL;
         
+    desc = liberasurecode_instance_create(backend, args);
+    assert(0 == desc || EBACKENDNOTAVAIL == desc);
+
     data = create_buffer(size);
     if (NULL == data) {
         rc = -ENOMEM;
         goto out;
     }
 
-    desc = liberasurecode_instance_create("flat_xor_hd", &args);
     rc = liberasurecode_encode(desc, data, size, encoded_data, parity);
-    assert(rc == 0);
-    assert(liberasurecode_instance_destroy(desc) == 0);
+    assert(0 == rc);
+
+    if (0 == rc)
+        liberasurecode_instance_destroy(desc);
+
     free(data);
 
 out:
     return rc;
 }
 
-static int test_simple_encode_jerasure_rs_vand(void)
-{
-    struct ec_args args = {
-        .k = 10,
-        .m = 4,
-    };
+struct ec_args flat_xor_hd_args = {
+    .k = 10,
+    .m = 4,
+    .priv_args1.flat_xor_hd_args.hd = 3,
+};
 
-    int rc = 0;
-    int desc = -1;
-    int size = 1024 * 1024;
-    char **encoded_data = NULL, **parity = NULL;
-    char *data = NULL;
-        
-    data = create_buffer(size);
-    if (NULL == data) {
-        rc = -ENOMEM;
-        goto out;
-    }
-
-    desc = liberasurecode_instance_create("jerasure_rs_vand", &args);
-    rc = liberasurecode_encode(desc, data, size, encoded_data, parity);
-    assert(rc == 0);
-    assert(liberasurecode_instance_destroy(desc) == 0);
-    free(data);
-
-out:
-    return rc;
-}
+struct ec_args jerasure_rs_vand_args = {
+    .k = 10,
+    .m = 4,
+    .w = 16,
+};
 
 struct testcase testcases[] = {
     {"liberasurecode_supported_backends",
-        test_liberasurecode_supported_backends, true},
+        test_liberasurecode_supported_backends,
+        NULL, NULL,
+        .skip = true},
     {"create_and_destroy_backend",
-        test_create_and_destroy_backend, false},
+        test_create_and_destroy_backend,
+        "flat_xor_hd", &flat_xor_hd_args,
+        .skip = true},
+    {"create_and_destroy_backend",
+        test_create_and_destroy_backend,
+        "jerasure_rs_vand", &jerasure_rs_vand_args,
+        .skip = false},
     {"simple_encode_flat_xor_hd",
-        test_simple_encode_flat_xor_hd, true},
+        test_simple_encode,
+        "flat_xor_hd", &flat_xor_hd_args,
+        .skip = true},
     {"simple_encode_jerasure_rs_vand",
-        test_simple_encode_jerasure_rs_vand, false},
-    { NULL, NULL, false }
+        test_simple_encode,
+        "jerasure_rs_vand", &jerasure_rs_vand_args,
+        .skip = false},
+    { NULL, NULL, NULL, NULL, false },
 };
 
 int main(int argc, char **argv)
@@ -149,7 +152,7 @@ int main(int argc, char **argv)
                     testcases[ii].description);
             continue;
         }
-        testcases[ii].function();
+        testcases[ii].function(testcases[ii].arg1, testcases[ii].arg2);
         fprintf(stdout, "ok %d - %s\n", ii + 1, testcases[ii].description);
         fflush(stdout);
     }
