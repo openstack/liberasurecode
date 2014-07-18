@@ -49,17 +49,22 @@ AC_CHECK_LIB([gf_complete], [gf_init_easy],
     AM_CONDITIONAL([GF_COMPLETE_INSTALLED], [false])
 ])
 
-
-AC_ARG_ENABLE(debug,
-AS_HELP_STRING([--enable-debug],
-               [enable debugging, default: no]),
+AC_ARG_ENABLE([debug],
+[  --enable-debug    Turn on debugging],
 [case "${enableval}" in
-               yes) debug=true ;;
-               no)  debug=false ;;
-               *)   AC_MSG_ERROR([bad value ${enableval} for --enable-debug]) ;;
-esac],
-[debug=false])
-AM_CONDITIONAL(DEBUG, test x"$debug" = x"true")
+    yes) debug=true ;;
+    no)  debug=false ;;
+    *) AC_MSG_ERROR([bad value ${enableval} for --enable-debug]) ;;
+esac],[debug=false])
+if test x$debug = xtrue ; then
+    DEBUG=1
+    CXXFLAGS=""
+    CFLAGS="-O0 -ggdb -g3 -Werror -D_GNU_SOURCE=1"
+else
+    DEBUG=0
+    CXXFLAGS=""
+    CFLAGS="-O2 -g -Werror -D_GNU_SOURCE=1"
+fi
 
 dnl Expand the sources and objects needed to build the library
 AC_SUBST(ac_aux_dir)

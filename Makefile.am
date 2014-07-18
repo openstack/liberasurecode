@@ -4,12 +4,6 @@ ACLOCAL_AMFLAGS = -I m4
 SUBDIRS = src test
 EXTRA_DIST = autogen.sh
 
-if DEBUG
-AM_CFLAGS = -g3 -O0 -D_GNU_SOURCE=1 -Werror
-else
-AM_CFLAGS = -O2 -D_GNU_SOURCE=1 -Werror
-endif
-
 INCLUDE = -I$(abs_top_builddir)/include \
 		  -I$(abs_top_builddir)/include/erasurecode \
 		  -I$(abs_top_builddir)/include/xor_codes
@@ -17,7 +11,7 @@ INCLUDE = -I$(abs_top_builddir)/include \
 AM_CPPFLAGS = $(CPPFLAGS) $(INCLUDE)
 AM_CPPFLAGS += -Werror
 
-AM_CFLAGS += -fPIC $(AM_CPPFLAGS) -L/usr/local/lib
+AM_CFLAGS = -fPIC $(AM_CPPFLAGS) -L/usr/local/lib
 
 include_HEADERS = \
 	include/erasurecode/alg_sig.h \
