@@ -33,6 +33,7 @@ include_HEADERS = \
 test: check
 	@./test/alg_sig_test
 	@./test/test_xor_hd_code
+	@./test/liberasurecode_test
 
 VALGRIND_EXEC_COMMAND = $(LIBTOOL_COMMAND) valgrind --tool=memcheck \
 	--error-exitcode=1 --leak-check=yes --track-fds=yes \
