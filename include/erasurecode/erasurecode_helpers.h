@@ -48,10 +48,10 @@
 #define _LOG2(level, ...) \
     syslog (level, "%s:%d:%s\n", __FILE__, __LINE__, __VA_ARGS__)
 
-#define log_info(str, ...)  _LOG1(LOG_INFO, str)
-#define log_warn(str, ...)  _LOG1(LOG_WARNING, str)
-#define log_error(str, ...) _LOG1(LOG_ERR, str)
-#define log_debug(str, ...) _LOG2(LOG_DEBUG, str)
+#define log_info(...)  _LOG1(LOG_INFO, __VA_ARGS__)
+#define log_warn(...)  _LOG1(LOG_WARNING, __VA_ARGS__)
+#define log_error(...) _LOG1(LOG_ERR, __VA_ARGS__)
+#define log_debug(...) _LOG2(LOG_DEBUG, __VA_ARGS__)
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 

@@ -37,7 +37,6 @@
 
 void __attribute__ ((constructor))
 liberasurecode_init(void) {
-    fprintf(stderr, "liberasurecode_init called\n");
     openlog("liberasurecode", LOG_PID | LOG_CONS, LOG_USER);
 }
 
@@ -169,9 +168,9 @@ static void print_dlerror(const char *caller)
 {
     char *msg = dlerror();
     if (NULL == msg)
-        fprintf (stderr, "%s: unknown dynamic linking error\n", caller);
+        log_error("%s: unknown dynamic linking error\n", caller);
     else
-        fprintf (stderr, "%s: dynamic linking error %s\n", caller, msg);
+        log_error("%s: dynamic linking error %s\n", caller, msg);
 }
 
 /* Generic dlopen/dlclose routines */

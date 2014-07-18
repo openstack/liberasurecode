@@ -126,8 +126,7 @@ int free_fragment_buffer(char *buf)
 
     header = (fragment_header_t *) buf;
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
-        fprintf(stderr,
-            "Invalid fragment header (free fragment)!");
+        log_error("Invalid fragment header (free fragment)!");
         return -1;
     }
 
@@ -195,7 +194,7 @@ char *get_fragment_ptr_from_data(char *buf)
     header = (fragment_header_t *) buf;
 
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
-        fprintf(stderr, "Invalid fragment header (get header ptr)!\n");
+        log_error("Invalid fragment header (get header ptr)!\n");
         return NULL;
     }
 
@@ -209,7 +208,7 @@ int set_fragment_idx(char *buf, int idx)
     fragment_header_t *header = (fragment_header_t *) buf;
 
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
-        fprintf(stderr, "Invalid fragment header (idx check)!\n");
+        log_error("Invalid fragment header (idx check)!\n");
         return -1;
     }
 
@@ -223,7 +222,7 @@ int get_fragment_idx(char *buf)
     fragment_header_t *header = (fragment_header_t *) buf;
 
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
-        fprintf(stderr, "Invalid fragment header (get idx)!");
+        log_error("Invalid fragment header (get idx)!");
         return -1;
     }
 
@@ -235,7 +234,7 @@ int set_fragment_size(char *buf, int size)
     fragment_header_t *header = (fragment_header_t *) buf;
 
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
-        fprintf(stderr, "Invalid fragment header (size check)!");
+        log_error("Invalid fragment header (size check)!");
         return -1;
     }
 
@@ -249,7 +248,7 @@ int get_fragment_size(char *buf)
     fragment_header_t *header = (fragment_header_t *) buf;
 
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
-        fprintf(stderr, "Invalid fragment header (get size)!");
+        log_error("Invalid fragment header (get size)!");
         return -1;
     }
 
@@ -261,7 +260,7 @@ int set_orig_data_size(char *buf, int orig_data_size)
     fragment_header_t *header = (fragment_header_t *) buf;
 
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
-        fprintf(stderr, "Invalid fragment header (set orig data check)!");
+        log_error("Invalid fragment header (set orig data check)!");
         return -1;
     }
 
@@ -275,7 +274,7 @@ int get_orig_data_size(char *buf)
     fragment_header_t *header = (fragment_header_t *) buf;
 
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
-        fprintf(stderr, "Invalid fragment header (get orig data check)!");
+        log_error("Invalid fragment header (get orig data check)!");
         return -1;
     }
 
