@@ -370,8 +370,8 @@ out:
  */
 int liberasurecode_decode(int desc,
         char **available_fragments,                     /* input */
-        int32_t num_fragments, uint64_t fragment_len,
-        char *out_data, int32_t *out_data_len)          /* output */
+        int num_fragments, uint64_t fragment_len,       /* input */
+        char *out_data, uint64_t *out_data_len)         /* output */
 {
     int ret = 0;
     int blocksize = 0;
@@ -539,10 +539,10 @@ out:
  * @return 0 on success, -error code otherwise
  */
 int liberasurecode_reconstruct_fragment(int desc,
-        uint64_t fragment_len,
-        char **available_fragments,
-        int num_fragments,
-        int destination_idx, char* out_fragment)
+        char **available_fragments,                     /* input */
+        int num_fragments, uint64_t fragment_len,       /* input */
+        int destination_idx,                            /* input */
+        char* out_fragment)                             /* output */
 {
     int ret = 0;
     int blocksize = 0;

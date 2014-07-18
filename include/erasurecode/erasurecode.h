@@ -109,7 +109,6 @@ void liberasurecode_supported_backends(char **backend_names);
  *          algsig_checksum -
  *        backend-specific arguments
  *          flat_xor_hd_args - arguments for the xor_hd backend
- *          jerasure_args - arguments for the Jerasure backend
  *      
  * @returns liberasurecode instance descriptor (int > 0)
  */
@@ -136,8 +135,8 @@ int liberasurecode_instance_destroy(int desc);
  * @return 0 on success, -error code otherwise
  */
 int liberasurecode_encode(int desc,
-        const char *orig_data, uint64_t orig_data_size,
-        char **encoded_data, char **encoded_parity);
+        const char *orig_data, uint64_t orig_data_size, /* input */
+        char **encoded_data, char **encoded_parity);    /* output */
 
 /**
  * Reconstruct original data from a set of k encoded fragments
@@ -152,11 +151,9 @@ int liberasurecode_encode(int desc,
  * @return 0 on success, -error code otherwise
  */
 int liberasurecode_decode(int desc,
-        char **available_fragments,
-        int32_t num_fragments,
-        uint64_t fragment_len,
-        char *out_data,
-        int32_t *out_data_len);
+        char **available_fragments,                     /* input */
+        int num_fragments, uint64_t fragment_len,       /* input */
+        char *out_data, uint64_t *out_data_len);        /* output */
 
 /**
  * Reconstruct a missing fragment from a subset of available fragments
@@ -171,10 +168,10 @@ int liberasurecode_decode(int desc,
  * @return 0 on success, -error code otherwise
  */
 int liberasurecode_reconstruct_fragment(int desc,
-        uint64_t fragment_len,
-        char **available_fragments,
-        int num_fragments,
-        int destination_idx, char* out_fragment);
+        char **available_fragments,                     /* input */
+        int num_fragments, uint64_t fragment_len,       /* input */
+        int destination_idx,                            /* input */
+        char* out_fragment);                            /* output */
 
 /**
  * Determine which fragments are needed to reconstruct some subset

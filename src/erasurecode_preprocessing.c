@@ -255,7 +255,9 @@ int get_fragment_partition(
     return (num_missing > m) ? 1 : 0;
 }
 
-int fragments_to_string(int k, int m, char **fragments, int num_fragments, char **orig_payload, int *payload_len)
+int fragments_to_string(int k, int m,
+        char **fragments, int num_fragments,
+        char **orig_payload, uint64_t *payload_len)
 {
     char *internal_payload = NULL;
     char **data = NULL;

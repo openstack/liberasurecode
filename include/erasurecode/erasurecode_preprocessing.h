@@ -52,6 +52,6 @@ int get_fragment_partition(
 int fragments_to_string(
         int k, int m,
         char **fragments, int num_fragments,
-        char **orig_payload, int *payload_len);
+        char **orig_payload, uint64_t *payload_len);
 
 #endif
