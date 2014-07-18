@@ -104,10 +104,12 @@ char *alloc_fragment_buffer(int size)
     fragment_header_t *header = NULL;
 
     size += sizeof(fragment_header_t);
-    get_aligned_buffer16(size);
+    buf = get_aligned_buffer16(size);
 
-    header = (fragment_header_t *) buf;
-    header->magic = PYECC_HEADER_MAGIC;
+    if (buf) {
+        header = (fragment_header_t *) buf;
+        header->magic = PYECC_HEADER_MAGIC;
+    }
 
     return buf;
 }
