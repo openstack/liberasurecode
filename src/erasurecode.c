@@ -272,6 +272,8 @@ int liberasurecode_instance_destroy(int desc)
 
     /* Cleanup */
     free(instance);
+
+    return 0;
 }
 
 /**
