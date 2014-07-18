@@ -20,6 +20,10 @@
  * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * jerasure_rs_vand backend implementation
+ *
+ * vi: set noai tw=79 ts=4 sw=4:
  */
 
 #include <stdio.h>
@@ -47,7 +51,7 @@ struct jerasure_rs_vand_descriptor {
     int * (*jerasure_erasures_to_erased)(int, int, int *);
     void (*jerasure_matrix_dotprod)(int, int, int *,int *, int,char **, char **, int);
 
-    /* Fields needed to hold state */
+    /* fields needed to hold state */
     int *matrix;
     int k;
     int m;
@@ -71,52 +75,70 @@ void * alloc_zeroed_buffer(int size)
     return buf;
 }
 
-static int jerasure_rs_vand_encode(void *desc, char **data, char **parity, int blocksize)
+static int jerasure_rs_vand_encode(void *desc, char **data, char **parity,
+        int blocksize)
 {
     struct jerasure_rs_vand_descriptor *jerasure_desc = 
         (struct jerasure_rs_vand_descriptor*)desc;
 
-    jerasure_desc->jerasure_matrix_encode(jerasure_desc->k, jerasure_desc->m, jerasure_desc->w, jerasure_desc->matrix, data, parity, blocksize);
+    /* FIXME - make jerasure_matrix_encode return a value */
+    jerasure_desc->jerasure_matrix_encode(jerasure_desc->k, jerasure_desc->m,
+            jerasure_desc->w, jerasure_desc->matrix, data, parity, blocksize);
+
+    return 0;
 }
 
-static int jerasure_rs_vand_decode(void *desc, char **data, char **parity, int *missing_idxs, int blocksize)
+static int jerasure_rs_vand_decode(void *desc, char **data, char **parity,
+        int *missing_idxs, int blocksize)
 {
     struct jerasure_rs_vand_descriptor *jerasure_desc = 
         (struct jerasure_rs_vand_descriptor*)desc;
 
-    jerasure_desc->jerasure_matrix_decode(jerasure_desc->k, jerasure_desc->m, jerasure_desc->w, jerasure_desc->matrix, 1, missing_idxs, data, parity, blocksize);
+    /* FIXME - make jerasure_matrix_decode return a value */
+    jerasure_desc->jerasure_matrix_decode(jerasure_desc->k,
+            jerasure_desc->m, jerasure_desc->w,
+            jerasure_desc->matrix, 1, missing_idxs, data, parity, blocksize);
 }
 
-static int jerasure_rs_vand_reconstruct(void *desc, char **data, char **parity, int *missing_idxs, int destination_idx, int blocksize)
+static int jerasure_rs_vand_reconstruct(void *desc, char **data, char **parity,
+        int *missing_idxs, int destination_idx, int blocksize)
 {
-    struct jerasure_rs_vand_descriptor *jerasure_desc = 
-        (struct jerasure_rs_vand_descriptor*)desc;
     int ret = 1;
     int *decoding_row;
     int *erased;
-    int *dm_ids = (int *) alloc_zeroed_buffer(sizeof(int) * jerasure_desc->k);
-    int *decoding_matrix = (int *) alloc_zeroed_buffer(sizeof(int*) * jerasure_desc->k * jerasure_desc->k);
+
+    struct jerasure_rs_vand_descriptor *jerasure_desc = 
+        (struct jerasure_rs_vand_descriptor*) desc;
+    int *dm_ids = (int *)
+        alloc_zeroed_buffer(sizeof(int) * jerasure_desc->k);
+    int *decoding_matrix = (int *)
+        alloc_zeroed_buffer(sizeof(int*) * jerasure_desc->k * jerasure_desc->k);
 
     if (NULL == decoding_matrix || NULL == dm_ids) {
-      goto out;
+        goto out;
     }
 
     if (destination_idx < jerasure_desc->k) {
 
-        erased = jerasure_desc->jerasure_erasures_to_erased(jerasure_desc->k, jerasure_desc->m, missing_idxs);
+        erased = jerasure_desc->jerasure_erasures_to_erased(jerasure_desc->k,
+                jerasure_desc->m, missing_idxs);
 
-        ret = jerasure_desc->jerasure_make_decoding_matrix(jerasure_desc->k, jerasure_desc->m, jerasure_desc->w, jerasure_desc->matrix, 
-                                          erased, decoding_matrix, dm_ids);
+        ret = jerasure_desc->jerasure_make_decoding_matrix(jerasure_desc->k,
+                jerasure_desc->m, jerasure_desc->w, jerasure_desc->matrix,
+                erased, decoding_matrix, dm_ids);
 
         decoding_row = decoding_matrix + (destination_idx * jerasure_desc->k);
+
     } else {
         ret = 0;
-        decoding_row = jerasure_desc->matrix + ((destination_idx - jerasure_desc->k) * jerasure_desc->k);
+        decoding_row = jerasure_desc->matrix +
+            ((destination_idx - jerasure_desc->k) * jerasure_desc->k);
     }
       
     if (ret == 0) {
-        jerasure_desc->jerasure_matrix_dotprod(jerasure_desc->k, jerasure_desc->w, decoding_row, dm_ids, destination_idx, 
-                              data, parity, blocksize);
+        jerasure_desc->jerasure_matrix_dotprod(jerasure_desc->k,
+                jerasure_desc->w, decoding_row, dm_ids, destination_idx,
+                data, parity, blocksize);
     }
 
 out:
@@ -129,7 +151,8 @@ out:
 
 }
 
-static int jerasure_rs_vand_min_fragments(void *desc, int *missing_idxs, int *fragments_needed)
+static int jerasure_rs_vand_min_fragments(void *desc, int *missing_idxs,
+        int *fragments_needed)
 {
     struct jerasure_rs_vand_descriptor *jerasure_desc = 
         (struct jerasure_rs_vand_descriptor*)desc;
@@ -138,10 +161,12 @@ static int jerasure_rs_vand_min_fragments(void *desc, int *missing_idxs, int *fr
 }
 
 #define DEFAULT_W 16
-static void * jerasure_rs_vand_init(struct ec_backend_args *args, void *backend_sohandle)
+static void * jerasure_rs_vand_init(struct ec_backend_args *args,
+        void *backend_sohandle)
 {
-    struct jerasure_rs_vand_descriptor *desc = (struct jerasure_rs_vand_descriptor *)
-        malloc(sizeof(struct jerasure_rs_vand_descriptor));
+    struct jerasure_rs_vand_descriptor *desc =
+        (struct jerasure_rs_vand_descriptor *) malloc(
+                sizeof(struct jerasure_rs_vand_descriptor));
 
     if (NULL == desc) {
         return NULL;
@@ -169,32 +194,44 @@ static void * jerasure_rs_vand_init(struct ec_backend_args *args, void *backend_
      }
 
     /* fill in function addresses */
-    desc->jerasure_matrix_encode = dlsym(backend_sohandle, "jerasure_matrix_encode");
+    desc->jerasure_matrix_encode = dlsym(
+            backend_sohandle, "jerasure_matrix_encode");
     if (NULL == desc->jerasure_matrix_encode) {
         goto error; 
     }
   
-    desc->jerasure_matrix_decode = dlsym(backend_sohandle, "jerasure_matrix_decode");
+    desc->jerasure_matrix_decode = dlsym(
+            backend_sohandle, "jerasure_matrix_decode");
     if (NULL == desc->jerasure_matrix_decode) {
         goto error; 
     }
   
-    desc->jerasure_make_decoding_matrix = dlsym(backend_sohandle, "jerasure_make_decoding_matrix");
+    desc->jerasure_make_decoding_matrix = dlsym(
+            backend_sohandle, "jerasure_make_decoding_matrix");
     if (NULL == desc->jerasure_make_decoding_matrix) {
         goto error; 
     }
   
-    desc->jerasure_matrix_dotprod = dlsym(backend_sohandle, "jerasure_matrix_dotprod");
+    desc->jerasure_matrix_dotprod = dlsym(
+            backend_sohandle, "jerasure_matrix_dotprod");
     if (NULL == desc->jerasure_matrix_dotprod) {
         goto error; 
     }
   
-    desc->reed_sol_vandermonde_coding_matrix = dlsym(backend_sohandle, "reed_sol_vandermonde_coding_matrix");
-    if (NULL == desc->reed_sol_vandermonde_coding_matrix) {
+    desc->jerasure_erasures_to_erased = dlsym(
+            backend_sohandle, "jerasure_erasures_to_erased");
+    if (NULL == desc->jerasure_erasures_to_erased) {
         goto error; 
     }
  
-    desc->matrix = desc->reed_sol_vandermonde_coding_matrix(desc->k, desc->m, desc->w);
+    desc->reed_sol_vandermonde_coding_matrix = dlsym(
+            backend_sohandle, "reed_sol_vandermonde_coding_matrix");
+    if (NULL == desc->reed_sol_vandermonde_coding_matrix) {
+        goto error; 
+    }
+
+    desc->matrix = desc->reed_sol_vandermonde_coding_matrix(
+            desc->k, desc->m, desc->w);
     if (NULL == desc->matrix) {
         goto error; 
     }
