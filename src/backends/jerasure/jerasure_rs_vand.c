@@ -230,7 +230,7 @@ struct ec_backend_op_stubs jerasure_rs_vand_op_stubs = {
 struct ec_backend_common backend_jerasure_rs_vand = {
     .id                         = EC_BACKEND_JERASURE_RS_VAND,
     .name                       = "jerasure_rs_vand",
-    .soname                     = "libjerasure.so",
+    .soname                     = "libJerasure.so",
     .soversion                  = "2.0",
     .ops                        = &jerasure_rs_vand_op_stubs,
 };
