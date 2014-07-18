@@ -39,4 +39,5 @@ config.log
 config.status
 config.sub
 Makefile
+config.h.in
 
