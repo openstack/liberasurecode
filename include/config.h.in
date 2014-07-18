@@ -9,9 +9,6 @@
 /* Define to 1 if you have the `calloc' function. */
 #undef HAVE_CALLOC
 
-/* Define to 1 if you have the <cauchy.h> header file. */
-#undef HAVE_CAUCHY_H
-
 /* Define to 1 if you have the <ctype.h> header file. */
 #undef HAVE_CTYPE_H
 
@@ -36,12 +33,6 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define to 1 if you have the <jerasure.h> header file. */
-#undef HAVE_JERASURE_H
-
-/* Define to 1 if you have the <liberation.h> header file. */
-#undef HAVE_LIBERATION_H
-
 /* "Defined if gf-complete is installed" */
 #undef HAVE_LIBGF_COMPLETE
 
@@ -63,14 +54,14 @@
 /* Support mmx instructions */
 #undef HAVE_MMX
 
+/* Define to 1 if you have the `openlog' function. */
+#undef HAVE_OPENLOG
+
 /* Define to 1 if you have the <pthread.h> header file. */
 #undef HAVE_PTHREAD_H
 
 /* Define to 1 if you have the `realloc' function. */
 #undef HAVE_REALLOC
-
-/* Define to 1 if you have the <reed_sol.h> header file. */
-#undef HAVE_REED_SOL_H
 
 /* Define to 1 if you have the <signal.h> header file. */
 #undef HAVE_SIGNAL_H
@@ -113,6 +104,9 @@
 
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
+
+/* Define to 1 if you have the <syslog.h> header file. */
+#undef HAVE_SYSLOG_H
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #undef HAVE_SYS_STAT_H

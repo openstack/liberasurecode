@@ -29,11 +29,11 @@ dnl Check for C library headers
 AC_HEADER_STDC
 AC_CHECK_HEADERS(sys/types.h stdio.h stdlib.h stddef.h stdarg.h malloc.h memory.h \
                  string.h strings.h inttypes.h stdint.h ctype.h math.h iconv.h \
-                 signal.h dlfcn.h pthread.h unistd.h limits.h errno.h)
-AC_CHECK_FUNCS(malloc calloc realloc free)
+                 signal.h dlfcn.h pthread.h unistd.h limits.h errno.h syslog.h)
+AC_CHECK_FUNCS(malloc calloc realloc free openlog)
 
-# Check for jerasure/gf_complete headers
-AC_CHECK_HEADERS(jerasure.h cauchy.h galois.h liberation.h reed_sol.h gf_complete.h)
+# Check for gf_complete headers
+AC_CHECK_HEADERS(galois.h gf_complete.h)
     
 # Enable this check when gf_complete is external
 AC_CHECK_LIB([gf_complete], [gf_init_easy], 

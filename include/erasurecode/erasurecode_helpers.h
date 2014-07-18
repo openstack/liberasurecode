@@ -32,7 +32,7 @@
 #include "erasurecode_backend.h"
 #include "erasurecode_stdinc.h"
 
-/* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
+/* ==~=*=~==~=*=~==~=*=~==~=*=~==~= Logging =~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
 #if __STDC_VERSION__ < 199901L
     #if __GNUC__ >= 2
@@ -42,8 +42,16 @@
     #endif
 #endif
 
-#define log_error(str) \
-    fprintf(stderr, "%s:%d (%s): %s\n", __FILE__, __LINE__, __func__, str)
+#define _LOG1(level, ...) \
+    syslog (level, __VA_ARGS__)
+
+#define _LOG2(level, ...) \
+    syslog (level, "%s:%d:%s\n", __FILE__, __LINE__, __VA_ARGS__)
+
+#define log_info(str, ...)  _LOG1(LOG_INFO, str)
+#define log_warn(str, ...)  _LOG1(LOG_WARNING, str)
+#define log_error(str, ...) _LOG1(LOG_ERR, str)
+#define log_debug(str, ...) _LOG2(LOG_DEBUG, str)
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
