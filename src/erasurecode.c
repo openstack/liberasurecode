@@ -589,7 +589,7 @@ int liberasurecode_reconstruct_fragment(int desc,
 
     /*
      * Update the header to reflect the newly constructed fragment
-     *
+     */
     if (destination_idx < k) {
         fragment_ptr = get_fragment_ptr_from_data_novalidate(data[destination_idx]);
     } else {
