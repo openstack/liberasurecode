@@ -37,7 +37,7 @@ int prepare_fragments_for_decode(int k,
                                  int *orig_size,
                                  int *fragment_payload_size,
                                  int  fragment_size,
-                                 unsigned long long *realloc_bm);
+                                 uint64_t *realloc_bm);
 
 int get_fragment_partition(int k, int m, char **fragments, int num_fragments, char **data, char **parity, int *missing);
 int fragments_to_string(int k, int m, char **fragments, int num_fragments, char **orig_payload, int *payload_len);

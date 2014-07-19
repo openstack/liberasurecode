@@ -45,7 +45,7 @@ int prepare_fragments_for_decode(int k,
                                  int *orig_size,
                                  int *fragment_payload_size,
                                  int  fragment_size,
-                                 unsigned long long *realloc_bm)
+                                 uint64_t *realloc_bm)
 {
     int i;                          /* a counter */
     unsigned long long missing_bm;  /* bitmap form of missing indexes list */
