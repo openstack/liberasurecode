@@ -29,6 +29,7 @@
 #include "list.h"
 #include "erasurecode.h"
 #include "erasurecode_helpers.h"
+#include "erasurecode_preprocessing.h"
 #include "erasurecode_stdinc.h"
 #include "erasurecode_backend.h"
 
@@ -391,35 +392,160 @@ out_error:
  *
  * @param desc - liberasurecode descriptor/handle
  *        from liberasurecode_instance_create()
- * @param fragment_size - size in bytes of the fragments
  * @param fragments - erasure encoded fragments (> = k)
+ * @param num_fragments - number of fragments being passed in
+ * @param fragment_len - length of each fragment (assume they are the same)
  * @param out_data - output of decode
+ * @param out_data_len - length of decoded output
  * @return 0 on success, -error code otherwise
  */
 int liberasurecode_decode(int desc,
-        uint64_t fragment_size, char **available_fragments,
-        char *out_data)
+        char **available_fragments,
+        int32_t num_fragments,
+        uint64_t fragment_len,
+        char *out_data,
+        int32_t *out_data_len)
 {
     int ret = 0;
     int blocksize = 0;
+    int orig_data_size = 0;
     char **data = NULL;
     char **parity = NULL;
     int *missing_idxs;
+    int k;
+    int m;
+    int i;
+    int j;
+    uint64_t realloc_bm = 0;
 
     ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
     if (NULL == instance) {
         ret = -EBACKENDNOTAVAIL;
-        goto out_error;
+        goto out;
     }
 
-    /* FIXME preprocess available_fragments, split into data and parity,
-     * determine missing_idxs and calculate blocksize */
+    k = instance->args.uargs.k;
+    m = instance->args.uargs.m;
+
+    /*
+     * Try to re-assebmle the original data before attempting a decode
+     */
+    ret = fragments_to_string(k, m, available_fragments, num_fragments, &out_data, out_data_len);
+
+    if (ret == 0) {
+        /* We were able to get the original data without decoding! */
+        goto out;
+    }
+
+    /*
+     * Allocate arrays for data, parity and missing_idxs
+     */
+    data = alloc_zeroed_buffer(sizeof(char*) * k);
+    if (NULL == data) {
+        log_error("Could not allocate data buffer!");
+        goto out;
+    }
+    
+    parity = alloc_zeroed_buffer(sizeof(char*) * m);
+    if (NULL == parity) {
+        log_error("Could not allocate parity buffer!");
+        goto out;
+    }
+    
+    missing_idxs = alloc_zeroed_buffer(sizeof(char*) * k);
+    if (NULL == missing_idxs) {
+        log_error("Could not allocate missing_idxs buffer!");
+        goto out;
+    }
+    
+    /*
+     * Separate the fragments into data and parity.  Also determine which
+     * pieces are missing.
+     */
+    ret = get_fragment_partition(k, m, available_fragments, num_fragments, data, parity, missing_idxs);
+
+    if (ret < 0) {
+        log_error("Could not properly partition the fragments!");
+        goto out;
+    }
+
+    /*
+     * Preparing the fragments for decode.  This will alloc aligned buffers when unaligned buffers
+     * were passed in available_fragments.  It passes back a bitmap telling us which buffers need to
+     * be freed by us (realloc_bm).
+     *
+     * This also returns data/parity as fragment payloads (the header is not included).  The pointers
+     * need to be asjusted after decode to include the headers.
+     */
+    ret = prepare_fragments_for_decode(k, m, data, parity, missing_idxs, &orig_data_size, &blocksize, fragment_len, &realloc_bm);
+    if (ret < 0) {
+        log_error("Could not prepare fragments for decode!");
+        goto out;
+    }
 
     /* call the backend decode function passing it desc instance */
     ret = instance->common.ops->decode(instance->desc.backend_desc,
                                        data, parity, missing_idxs, blocksize);
+    
+    if (ret < 0) {
+        log_error("Encountered error in backend decode function!");
+        goto out;
+    }
 
-out_error:
+    /*
+     * Need to fill in the missing data headers so we can generate 
+     * the original string.
+     */
+    j = 0;
+    while (missing_idxs[j] >= 0) { 
+        int missing_idx = missing_idxs[j]; 
+        if (missing_idx < k) {
+            /* Generate headers */
+            char *fragment_ptr = get_fragment_ptr_from_data_novalidate(data[missing_idx]);
+            init_fragment_header(fragment_ptr);
+            set_fragment_idx(fragment_ptr, missing_idx);
+            set_orig_data_size(fragment_ptr, orig_data_size);
+            set_fragment_size(fragment_ptr, blocksize);
+
+            /* Swap it! */
+            data[missing_idx] = fragment_ptr;
+        }
+        j++;
+    }
+    
+    /* Try to generate the original string */
+    ret = fragments_to_string(k, m, data, k, &out_data, out_data_len);
+
+    if (ret < 0) {
+        log_error("Could not prepare convert decoded fragments to a string!");
+    }
+
+out:
+    /* Free the buffers allocated in prepare_fragments_for_decode */
+    if (realloc_bm != 0) {
+        for (i = 0; i < k; i++) {
+            if (realloc_bm & (1 << i)) {
+                free(get_fragment_ptr_from_data_novalidate(data[i]));
+            }
+        }
+
+        for (i = 0; i < m; i++) {
+            if (realloc_bm & (1 << (i + k))) {
+                free(get_fragment_ptr_from_data_novalidate(parity[i]));
+            }
+        }
+    }
+
+    if (NULL != data) {
+        free(data);
+    }
+    if (NULL != parity) {
+        free(parity);
+    }
+    if (NULL != missing_idxs) {
+        free(missing_idxs);
+    }
+
     return ret;
 }
 

@@ -31,18 +31,26 @@
 #include "erasurecode_preprocessing.h"
 #include "erasurecode_stdinc.h"
 
-int get_decoding_info(int k, 
-                      int m, 
-                      char **data,
-                      char **parity,
-                      int  *missing_idxs,
-                      int  *orig_size,
-                      int  fragment_size,
-                      unsigned long long *realloc_bm)
+/* 
+ * Note that the caller should always check realloc_bm during success or failure to free 
+ * buffers allocated here.  We could free up in this function, but it is internal to 
+ * this library and only used in a few places.  In any case, the caller has to free up
+ * in the success case, so it may as well do so in the failure case.
+ */
+int prepare_fragments_for_decode(int k,
+                                 int m,
+                                 char **data,
+                                 char **parity,
+                                 int  *missing_idxs,
+                                 int *orig_size,
+                                 int *fragment_payload_size,
+                                 int  fragment_size,
+                                 unsigned long long *realloc_bm)
 {
     int i;                          /* a counter */
-    int orig_data_size = -1;        /* data size (B) from fragment header */
     unsigned long long missing_bm;  /* bitmap form of missing indexes list */
+    int orig_data_size = -1;
+    int payload_size = -1;
  
     missing_bm = convert_list_to_bitmap(missing_idxs);
 
@@ -73,13 +81,18 @@ int get_decoding_info(int k,
         }
 
         /* Need to determine the size of the original data */
-        if (((missing_bm & (1 << i)) == 0) && orig_data_size < 0) {
+       if (((missing_bm & (1 << i)) == 0) && orig_data_size < 0) {
             orig_data_size = get_orig_data_size(data[i]);
             if (orig_data_size < 0) {
                 log_error("Invalid orig_data_size in fragment header!");
                 return -1;
             }
-        }
+            payload_size = get_fragment_size(data[i]);
+            if (orig_data_size < 0) {
+                log_error("Invalid fragment_size in fragment header!");
+                return -1;
+            }
+       }
 
         /* Set the data element to the fragment payload */
         data[i] = get_data_ptr_from_fragment(data[i]);
@@ -118,6 +131,8 @@ int get_decoding_info(int k,
     }
 
     *orig_size = orig_data_size;
+    *fragment_payload_size = payload_size;
+
     return 0;
 }
 

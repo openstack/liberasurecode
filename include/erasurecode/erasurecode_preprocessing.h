@@ -29,14 +29,15 @@
 #ifndef _ERASURECODE_PREPROCESSING_H_
 #define _ERASURECODE_PREPROCESSING_H_
 
-int get_decoding_info(int k,
-                      int m,
-                      char **data,
-                      char **parity,
-                      int  *missing_idxs,
-                      int  *orig_size,
-                      int  fragment_size,
-                      unsigned long long *realloc_bm);
+int prepare_fragments_for_decode(int k,
+                                 int m,
+                                 char **data,
+                                 char **parity,
+                                 int  *missing_idxs,
+                                 int *orig_size,
+                                 int *fragment_payload_size,
+                                 int  fragment_size,
+                                 unsigned long long *realloc_bm);
 
 int get_fragment_partition(int k, int m, char **fragments, int num_fragments, char **data, char **parity, int *missing);
 int fragments_to_string(int k, int m, char **fragments, int num_fragments, char **orig_payload, int *payload_len);
