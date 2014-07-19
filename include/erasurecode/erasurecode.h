@@ -163,15 +163,17 @@ int liberasurecode_decode(int desc,
  *
  * @param desc - liberasurecode descriptor/handle
  *        from liberasurecode_instance_create()
- * @param fragment_size - size in bytes of the fragments
+ * @param fragment_len - size in bytes of the fragments
  * @param available_fragments - erasure encoded fragments
+ * @param num_fragments - number of fragments being passed in
  * @param destination_idx - missing idx to reconstruct
  * @param out_fragment - output of reconstruct
  * @return 0 on success, -error code otherwise
  */
 int liberasurecode_reconstruct_fragment(int desc,
-        uint64_t fragment_size,
-        char **available_fragments, char **encoded_parity,
+        uint64_t fragment_len,
+        char **available_fragments,
+        int num_fragments,
         int destination_idx, char* out_fragment);
 
 /**

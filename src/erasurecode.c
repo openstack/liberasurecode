@@ -501,38 +501,138 @@ out:
  *
  * @param desc - liberasurecode descriptor/handle
  *        from liberasurecode_instance_create()
- * @param fragment_size - size in bytes of the fragments
+ * @param fragment_len - size in bytes of the fragments
  * @param available_fragments - erasure encoded fragments
+ * @param num_fragments - number of fragments being passed in
  * @param destination_idx - missing idx to reconstruct
  * @param out_fragment - output of reconstruct
  * @return 0 on success, -error code otherwise
  */
 int liberasurecode_reconstruct_fragment(int desc,
-        uint64_t fragment_size,
-        char **available_fragments, char **encoded_parity,
+        uint64_t fragment_len,
+        char **available_fragments,
+        int num_fragments,
         int destination_idx, char* out_fragment)
 {
     int ret = 0;
     int blocksize = 0;
+    int orig_data_size = 0;
     char **data = NULL;
     char **parity = NULL;
-    int *missing_idxs;
+    int *missing_idxs = NULL;
+    char *fragment_ptr = NULL;
+    int k;
+    int m;
+    int i;
+    int j;
+    uint64_t realloc_bm = 0;
 
     ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
     if (NULL == instance) {
         ret = -EBACKENDNOTAVAIL;
-        goto out_error;
+        goto out;
+    }
+    
+    k = instance->args.uargs.k;
+    m = instance->args.uargs.m;
+    
+    /*
+     * Allocate arrays for data, parity and missing_idxs
+     */
+    data = alloc_zeroed_buffer(sizeof(char*) * k);
+    if (NULL == data) {
+        log_error("Could not allocate data buffer!");
+        goto out;
+    }
+    
+    parity = alloc_zeroed_buffer(sizeof(char*) * m);
+    if (NULL == parity) {
+        log_error("Could not allocate parity buffer!");
+        goto out;
+    }
+    
+    missing_idxs = alloc_zeroed_buffer(sizeof(char*) * k);
+    if (NULL == missing_idxs) {
+        log_error("Could not allocate missing_idxs buffer!");
+        goto out;
+    }
+    
+    /*
+     * Separate the fragments into data and parity.  Also determine which
+     * pieces are missing.
+     */
+    ret = get_fragment_partition(k, m, available_fragments, num_fragments, data, parity, missing_idxs);
+
+    if (ret < 0) {
+        log_error("Could not properly partition the fragments!");
+        goto out;
     }
 
-    /* FIXME preprocess available_fragments, split into data and parity,
-     * determine missing_idxs and calculate blocksize */
+    /*
+     * Preparing the fragments for reconstruction.  This will alloc aligned buffers when unaligned buffers
+     * were passed in available_fragments.  It passes back a bitmap telling us which buffers need to
+     * be freed by us (realloc_bm).
+     *
+     * This also returns data/parity as fragment payloads (the header is not included).  The pointers
+     * need to be asjusted after reconstruction to include the headers.
+     */
+    ret = prepare_fragments_for_decode(k, m, data, parity, missing_idxs, &orig_data_size, &blocksize, fragment_len, &realloc_bm);
+    if (ret < 0) {
+        log_error("Could not prepare fragments for reconstruction!");
+        goto out;
+    }
 
     /* call the backend reconstruct function passing it desc instance */
     ret = instance->common.ops->reconstruct(instance->desc.backend_desc,
                                             data, parity, missing_idxs,
                                             destination_idx, blocksize);
 
-out_error:
+    /*
+     * Update the header to reflect the newly constructed fragment
+     *
+    if (destination_idx < k) {
+        fragment_ptr = get_fragment_ptr_from_data_novalidate(data[destination_idx]);
+    } else {
+        fragment_ptr = get_fragment_ptr_from_data_novalidate(parity[destination_idx - k]);
+    }
+    init_fragment_header(fragment_ptr);
+    set_fragment_idx(fragment_ptr, destination_idx);
+    set_orig_data_size(fragment_ptr, orig_data_size);
+    set_fragment_size(fragment_ptr, blocksize);
+
+    /*
+     * Copy the reconstructed fragment to the output buffer
+     *
+     * Note: the address stored in fragment_ptr will be freed below
+     */
+    memcpy(out_fragment, fragment_ptr, fragment_len);
+
+out:
+    /* Free the buffers allocated in prepare_fragments_for_decode */
+    if (realloc_bm != 0) {
+        for (i = 0; i < k; i++) {
+            if (realloc_bm & (1 << i)) {
+                free(get_fragment_ptr_from_data_novalidate(data[i]));
+            }
+        }
+
+        for (i = 0; i < m; i++) {
+            if (realloc_bm & (1 << (i + k))) {
+                free(get_fragment_ptr_from_data_novalidate(parity[i]));
+            }
+        }
+    }
+
+    if (NULL != data) {
+        free(data);
+    }
+    if (NULL != parity) {
+        free(parity);
+    }
+    if (NULL != missing_idxs) {
+        free(missing_idxs);
+    }
+
     return ret;
 }
 
