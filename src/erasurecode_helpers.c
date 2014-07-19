@@ -25,7 +25,8 @@
  *
  * vi: set noai tw=79 ts=4 sw=4:
  */
-
+#include <stdio.h>
+#include <stdarg.h>
 #include "erasurecode_backend.h"
 #include "erasurecode_helpers.h"
 #include "erasurecode_stdinc.h"

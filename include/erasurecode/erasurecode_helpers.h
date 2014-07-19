@@ -38,6 +38,16 @@
 
 #define talloc(type, num)   (type *) malloc(sizeof(type) * (num))
 
+#if __STDC_VERSION__ < 199901L
+    #if __GNUC__ >= 2
+        #define __func__ __FUNCTION__
+    #else
+        #define __func__ "<unknown>"
+    #endif
+#endif
+
+#define log_error(str) fprintf(stderr, "%s:%d (%s): %s\n", __FILE__, __LINE__, __func__, str)
+
 /*
  * Prevent the compiler from padding
  * this by using the __packed__ keyword
