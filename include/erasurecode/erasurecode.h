@@ -130,13 +130,19 @@ int liberasurecode_instance_destroy(int desc);
  *        from liberasurecode_instance_create()
  * @param orig_data - data to encode
  * @param orig_data_size - length of data to encode
- * @param encoded_data - to return k data fragments
- * @param encoded_parity - to return m parity fragments
+ * @param encoded_data - pointer to _output_ array (char **) of k data
+ *        fragments (char *), allocated by the callee
+ * @param encoded_parity - pointer to _output_ array (char **) of m parity
+ *        fragments (char *), allocated by the callee
+ * @param fragment_len - pointer to _output_ length of each fragment, assuming
+ *        all fragments are the same length
+ *
  * @return 0 on success, -error code otherwise
  */
 int liberasurecode_encode(int desc,
         const char *orig_data, uint64_t orig_data_size, /* input */
-        char **encoded_data, char **encoded_parity);    /* output */
+        char ***encoded_data, char ***encoded_parity,   /* output */
+        uint64_t *fragment_len);                        /* output */
 
 /**
  * Reconstruct original data from a set of k encoded fragments
@@ -146,8 +152,8 @@ int liberasurecode_encode(int desc,
  * @param fragments - erasure encoded fragments (> = k)
  * @param num_fragments - number of fragments being passed in
  * @param fragment_len - length of each fragment (assume they are the same)
- * @param out_data - output of decode
- * @param out_data_len - length of decoded output
+ * @param out_data - _output_ pointer to decoded data
+ * @param out_data_len - _output_ length of decoded output
  * @return 0 on success, -error code otherwise
  */
 int liberasurecode_decode(int desc,

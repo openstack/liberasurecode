@@ -301,13 +301,19 @@ int liberasurecode_instance_destroy(int desc)
  *        from liberasurecode_instance_create()
  * @param orig_data - data to encode
  * @param orig_data_size - length of data to encode
- * @param encoded_data - to return k data fragments
- * @param encoded_parity - to return m parity fragments
+ * @param encoded_data - pointer to _output_ array (char **) of k data
+ *        fragments (char *), allocated by the callee
+ * @param encoded_parity - pointer to _output_ array (char **) of m parity
+ *        fragments (char *), allocated by the callee
+ * @param fragment_len - pointer to _output_ length of each fragment, assuming
+ *        all fragments are the same length
+ *
  * @return 0 on success, -error code otherwise
  */
 int liberasurecode_encode(int desc,
         const char *orig_data, uint64_t orig_data_size, /* input */
-        char **encoded_data, char **encoded_parity)     /* output */
+        char ***encoded_data, char ***encoded_parity,   /* output */
+        uint64_t *fragment_len)                         /* output */
 {
     int i;
     int k, m;
@@ -329,31 +335,31 @@ int liberasurecode_encode(int desc,
     /*
      * Allocate arrays for data, parity and missing_idxs
      */
-    encoded_data = alloc_zeroed_buffer(sizeof(char*) * k);
-    if (NULL == encoded_data) {
+    *encoded_data = (char **) alloc_zeroed_buffer(sizeof(char *) * k);
+    if (NULL == *encoded_data) {
         log_error("Could not allocate data buffer!");
         goto out;
     }
-    
-    encoded_parity = alloc_zeroed_buffer(sizeof(char*) * m);
-    if (NULL == encoded_parity) {
+
+    *encoded_parity = (char **) alloc_zeroed_buffer(sizeof(char *) * m);
+    if (NULL == *encoded_parity) {
         log_error("Could not allocate parity buffer!");
         goto out;
     }
 
     ret = prepare_fragments_for_encode(instance, k, m, orig_data, orig_data_size,
-                                       encoded_data, encoded_parity, &blocksize);
+                                       *encoded_data, *encoded_parity, &blocksize);
     if (ret < 0) {
         goto out;
     }
 
     /* call the backend encode function passing it desc instance */
     ret = instance->common.ops->encode(instance->desc.backend_desc,
-                                       encoded_data, encoded_parity, blocksize);
+                                       *encoded_data, *encoded_parity, blocksize);
 
+    *fragment_len = get_fragment_size((*encoded_data)[0]);
 out:
     return ret;
-  
 }
 
 /**
@@ -364,8 +370,8 @@ out:
  * @param fragments - erasure encoded fragments (> = k)
  * @param num_fragments - number of fragments being passed in
  * @param fragment_len - length of each fragment (assume they are the same)
- * @param out_data - output of decode
- * @param out_data_len - length of decoded output
+ * @param out_data - _output_ pointer to decoded data
+ * @param out_data_len - _output_ length of decoded output
  * @return 0 on success, -error code otherwise
  */
 int liberasurecode_decode(int desc,
@@ -373,16 +379,17 @@ int liberasurecode_decode(int desc,
         int num_fragments, uint64_t fragment_len,       /* input */
         char *out_data, uint64_t *out_data_len)         /* output */
 {
+    int i, j;
     int ret = 0;
-    int blocksize = 0;
+
+    int k, m;
     int orig_data_size = 0;
+
+    int blocksize = 0;
     char **data = NULL;
     char **parity = NULL;
     int *missing_idxs;
-    int k;
-    int m;
-    int i;
-    int j;
+
     uint64_t realloc_bm = 0;
 
     ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
@@ -482,7 +489,7 @@ int liberasurecode_decode(int desc,
             init_fragment_header(fragment_ptr);
             set_fragment_idx(fragment_ptr, missing_idx);
             set_orig_data_size(fragment_ptr, orig_data_size);
-            set_fragment_size(fragment_ptr, blocksize);
+            set_fragment_payload_size(fragment_ptr, blocksize);
 
             /* Swap it! */
             data[missing_idx] = fragment_ptr;
@@ -628,7 +635,7 @@ int liberasurecode_reconstruct_fragment(int desc,
     init_fragment_header(fragment_ptr);
     set_fragment_idx(fragment_ptr, destination_idx);
     set_orig_data_size(fragment_ptr, orig_data_size);
-    set_fragment_size(fragment_ptr, blocksize);
+    set_fragment_payload_size(fragment_ptr, blocksize);
 
     /*
      * Copy the reconstructed fragment to the output buffer
