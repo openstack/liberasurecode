@@ -79,7 +79,7 @@ static int jerasure_rs_vand_encode(void *desc, char **data, char **parity,
         int blocksize)
 {
     struct jerasure_rs_vand_descriptor *jerasure_desc = 
-        (struct jerasure_rs_vand_descriptor*)desc;
+        (struct jerasure_rs_vand_descriptor*) desc;
 
     /* FIXME - make jerasure_matrix_encode return a value */
     jerasure_desc->jerasure_matrix_encode(jerasure_desc->k, jerasure_desc->m,

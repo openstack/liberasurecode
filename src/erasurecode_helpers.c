@@ -38,15 +38,8 @@
  * 
  * The following methods provide wrappers for allocating and deallocating
  * memory.  
- * 
- * Future discussions may want to consider moving closer to the recommended
- * guidelines in the Python\C API reference manual.  One potential issue,
- * however, may be how we enforce memory alignment in the Python heap.
- *
- * 2.7: https://docs.python.org/2.7/c-api/memory.html
- * 3.4: https://docs.python.org/3.4/c-api/memory.html
  */
- void *get_aligned_buffer16(int size)
+void *get_aligned_buffer16(int size)
 {
     void *buf;
 
@@ -135,6 +128,24 @@ int free_fragment_buffer(char *buf)
 }
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
+
+/**
+ * Return total fragment length (on-disk, on-wire)
+ *
+ * @param buf - pointer to fragment buffer
+ *
+ * @return fragment size on disk
+ */
+uint64_t get_fragment_size(char *buf)
+{
+    fragment_header_t *header = NULL;
+
+    if (NULL == buf)
+        return -1;
+
+    header = (fragment_header_t *) buf;
+    return (header->size + sizeof(fragment_header_t));
+ }
 
 /**
  * Compute a size aligned to the number of data and the underlying wordsize 
@@ -229,7 +240,7 @@ int get_fragment_idx(char *buf)
     return header->idx;
 }
 
-int set_fragment_size(char *buf, int size)
+int set_fragment_payload_size(char *buf, int size)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
 
@@ -243,7 +254,7 @@ int set_fragment_size(char *buf, int size)
     return 0;
 }
 
-int get_fragment_size(char *buf)
+int get_fragment_payload_size(char *buf)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
 

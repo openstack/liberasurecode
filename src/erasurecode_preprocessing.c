@@ -48,7 +48,7 @@ int prepare_fragments_for_encode(ec_backend_t instance,
 
     for (i = 0; i < k; i++) {
         int payload_size = data_len > *blocksize ? *blocksize : data_len;
-        char *fragment = alloc_fragment_buffer(*blocksize);    
+        char *fragment = alloc_fragment_buffer(*blocksize);
         if (NULL == fragment) {
             ret = -ENOMEM;
             goto out_error;
@@ -62,7 +62,7 @@ int prepare_fragments_for_encode(ec_backend_t instance,
 
         /* Fragment size will always be the same
          * (may be able to get rid of this) */
-        set_fragment_size(fragment, *blocksize);
+        set_fragment_payload_size(fragment, *blocksize);
 
         orig_data += payload_size;
         data_len -= payload_size;
@@ -75,7 +75,7 @@ int prepare_fragments_for_encode(ec_backend_t instance,
             goto out_error;
         }
         encoded_parity[i] = get_data_ptr_from_fragment(fragment);
-        set_fragment_size(fragment, *blocksize);
+        set_fragment_payload_size(fragment, *blocksize);
     }
 
 out:
@@ -156,7 +156,7 @@ int prepare_fragments_for_decode(
                 log_error("Invalid orig_data_size in fragment header!");
                 return -1;
             }
-            payload_size = get_fragment_size(data[i]);
+            payload_size = get_fragment_payload_size(data[i]);
             if (orig_data_size < 0) {
                 log_error("Invalid fragment_size in fragment header!");
                 return -1;
@@ -172,7 +172,7 @@ int prepare_fragments_for_decode(
     }
 
     /* Perform the same allocation, alignment checks on the parity fragments */
-    for (i=0; i < m; i++) {
+    for (i = 0; i < m; i++) {
         /*
          * Allocate or replace with aligned buffer, if the buffer was not aligned.
          * DO NOT FREE: the python GC should free the original when cleaning up 'data_list'
@@ -286,7 +286,7 @@ int fragments_to_string(int k, int m,
     
     for (i = 0; i < num_fragments; i++) {
         index = get_fragment_idx(fragments[i]);
-        data_size = get_fragment_size(fragments[i]);
+        data_size = get_fragment_payload_size(fragments[i]);
         if ((index < 0) || (data_size < 0)) {
             log_error("Invalid fragment header information!");
             goto out;
@@ -336,7 +336,7 @@ int fragments_to_string(int k, int m,
     /* Copy fragment data into cstring (fragments should be in index order) */
     for (i = 0; i < num_data && orig_data_size > 0; i++) {
         char* fragment_data = get_data_ptr_from_fragment(data[i]);
-        int fragment_size = get_fragment_size(data[i]);
+        int fragment_size = get_fragment_payload_size(data[i]);
         int payload_size = orig_data_size > fragment_size ? fragment_size : orig_data_size;
 
         memcpy(internal_payload + string_off, fragment_data, payload_size);
