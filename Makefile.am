@@ -19,6 +19,8 @@ include_HEADERS = \
 	include/erasurecode/erasurecode.h \
 	include/erasurecode/erasurecode_backend.h \
 	include/erasurecode/erasurecode_helpers.h \
+	include/erasurecode/erasurecode_preprocessing.h \
+	include/erasurecode/erasurecode_postprocessing.h \
 	include/erasurecode/erasurecode_stdinc.h \
 	include/erasurecode/erasurecode_version.h \
 	include/erasurecode/list.h \

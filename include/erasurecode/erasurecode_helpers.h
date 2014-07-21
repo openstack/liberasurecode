@@ -155,6 +155,8 @@ int get_fragment_payload_size(char *buf);
 int set_orig_data_size(char *buf, int orig_data_size);
 int get_orig_data_size(char *buf);
 int validate_fragment(char *buf);
+int set_checksum(char *buf, int chksum);
+int get_checksum(char *buf);
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 

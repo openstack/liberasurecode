@@ -10,7 +10,8 @@ INCLUDES = \
 liberasurecode_la_SOURCES = \
 		erasurecode.c \
 		erasurecode_helpers.c \
-        erasurecode_preprocessing.c \
+		erasurecode_preprocessing.c \
+		erasurecode_postprocessing.c \
 		utils/chksum/crc32.c \
 		utils/chksum/alg_sig.c \
 		utils/chksum/galois.c \

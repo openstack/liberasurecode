@@ -57,9 +57,7 @@ void *get_aligned_buffer16(int size)
 }
 
 /**
- * Allocate a zero-ed buffer of a specific size.  This method allocates from
- * the Python stack in order to comply with the recommendations of the
- * Python\C API.  On error, return NULL and call PyErr_NoMemory.
+ * Allocate a zero-ed buffer of a specific size.
  *
  * @param size integer size in bytes of buffer to allocate
  * @return pointer to start of allocated buffer or NULL on error
@@ -303,6 +301,34 @@ int validate_fragment(char *buf)
     }
 
     return 0;
+}
+
+/* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
+
+inline int set_chksum(char *buf, int chksum)
+{
+    fragment_header_t* header = (fragment_header_t*) buf;
+
+    if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
+        log_error("Invalid fragment header (set chksum)!\n");
+        return -1; 
+    }
+
+    header->chksum = chksum;
+    
+    return 0;
+}
+
+inline int get_chksum(char *buf)
+{
+    fragment_header_t* header = (fragment_header_t*) buf;
+
+    if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
+        log_error("Invalid fragment header (get chksum)!");
+        return -1;
+    }
+
+    return header->chksum;
 }
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */

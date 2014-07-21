@@ -31,6 +31,7 @@
 
 #include "erasurecode.h"
 #include "erasurecode_backend.h"
+#include "erasurecode_helpers.h"
 
 /* Forward declarations */
 struct ec_backend_op_stubs jerasure_rs_vand_ops;
@@ -57,23 +58,6 @@ struct jerasure_rs_vand_descriptor {
     int m;
     int w;
 };
-
-/**
- * ToDo (KMG): Move this to a util package, or replace with calloc
- */
-static
-void * alloc_zeroed_buffer(int size)
-{
-    void * buf = NULL;  /* buffer to allocate and return */
-  
-    /* Allocate and zero the buffer, or set the appropriate error */
-    buf = malloc((size_t) size);
-    if (buf) {
-      buf = memset(buf, 0, (size_t) size);
-    } 
-
-    return buf;
-}
 
 static int jerasure_rs_vand_encode(void *desc, char **data, char **parity,
         int blocksize)

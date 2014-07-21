@@ -42,10 +42,10 @@ struct testcase {
 };
 
 //TODO Make this a but more useful
-char *create_buffer(int size)
+char *create_buffer(int size, int fill)
 {
     char *buf = malloc(size);
-    memset(buf, 'x', size);
+    memset(buf, fill, size);
     return buf;
 }
 
@@ -67,32 +67,42 @@ static int test_create_and_destroy_backend(
     return 0;
 }
 
-static int test_simple_encode(
+static int test_simple_encode_decode(
         const char *backend,
         struct ec_args *args)
 {
     int rc = 0;
     int desc = -1;
-    int size = 1024 * 1024;
-    char **encoded_data = NULL, **parity = NULL;
-    char *data = NULL;
+
+    int orig_data_size = 1024 * 1024;
+    char *orig_data = NULL;
+    char **encoded_data = NULL, **encoded_parity = NULL;
+    uint64_t encoded_fragment_len = 0;
+
+    uint64_t decoded_data_len = 0;
+    char *decoded_data = NULL;
         
     desc = liberasurecode_instance_create(backend, args);
     assert(desc > 0 || EBACKENDNOTAVAIL == desc);
 
-    data = create_buffer(size);
-    if (NULL == data) {
+    orig_data = create_buffer(orig_data_size, 'x');
+    if (NULL == orig_data) {
         rc = -ENOMEM;
         goto out;
     }
 
-    rc = liberasurecode_encode(desc, data, size, encoded_data, parity);
+    rc = liberasurecode_encode(desc, orig_data, orig_data_size,
+            &encoded_data, &encoded_parity, &encoded_fragment_len);
+    assert(0 == rc);
+
+    rc = liberasurecode_decode(desc, encoded_data,
+            10, -1, decoded_data, &decoded_data_len);
     assert(0 == rc);
 
     if (desc)
         liberasurecode_instance_destroy(desc);
 
-    free(data);
+    free(orig_data);
 
 out:
     return rc;
@@ -100,7 +110,7 @@ out:
 
 struct ec_args flat_xor_hd_args = {
     .k = 10,
-    .m = 4,
+    .m = 6,
     .priv_args1.flat_xor_hd_args.hd = 3,
 };
 
@@ -118,19 +128,19 @@ struct testcase testcases[] = {
     {"create_and_destroy_backend",
         test_create_and_destroy_backend,
         "flat_xor_hd", &flat_xor_hd_args,
-        .skip = true},
+        .skip = false},
     {"create_and_destroy_backend",
         test_create_and_destroy_backend,
         "jerasure_rs_vand", &jerasure_rs_vand_args,
         .skip = false},
     {"simple_encode_flat_xor_hd",
-        test_simple_encode,
+        test_simple_encode_decode,
         "flat_xor_hd", &flat_xor_hd_args,
         .skip = true},
     {"simple_encode_jerasure_rs_vand",
-        test_simple_encode,
+        test_simple_encode_decode,
         "jerasure_rs_vand", &jerasure_rs_vand_args,
-        .skip = false},
+        .skip = true},
     { NULL, NULL, NULL, NULL, false },
 };
 

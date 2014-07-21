@@ -356,9 +356,18 @@ int liberasurecode_encode(int desc,
     /* call the backend encode function passing it desc instance */
     ret = instance->common.ops->encode(instance->desc.backend_desc,
                                        *encoded_data, *encoded_parity, blocksize);
+    if (ret < 0) {
+        goto out;
+    }
+
+    ret = finalize_fragments_after_encode(instance, k, m, blocksize,
+                                          *encoded_data, *encoded_parity);
 
     *fragment_len = get_fragment_size((*encoded_data)[0]);
 out:
+    /* FIXME add cleanup API to call when encode() has an error */
+    if (ret)
+        log_error("Error in liberasurecode_encode %d", ret);
     return ret;
 }
 

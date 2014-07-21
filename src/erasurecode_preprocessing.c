@@ -40,15 +40,16 @@ int prepare_fragments_for_encode(ec_backend_t instance,
     int i, ret = 0;
     int data_len;           /* data len to write to fragment headers */
     int aligned_data_len;   /* EC algorithm compatible data length */
+    int bsize = 0;
 
     /* Calculate data sizes, aligned_data_len guaranteed to be divisible by k*/
     data_len = orig_data_size;
     aligned_data_len = get_aligned_data_size(instance, orig_data_size);
-    *blocksize = aligned_data_len / k;
+    *blocksize = bsize = (aligned_data_len / k);
 
     for (i = 0; i < k; i++) {
-        int payload_size = data_len > *blocksize ? *blocksize : data_len;
-        char *fragment = alloc_fragment_buffer(*blocksize);
+        int payload_size = data_len > bsize ? bsize : data_len;
+        char *fragment = (char *) alloc_fragment_buffer(bsize);
         if (NULL == fragment) {
             ret = -ENOMEM;
             goto out_error;
@@ -56,32 +57,38 @@ int prepare_fragments_for_encode(ec_backend_t instance,
       
         /* Copy existing data into clean, zero'd out buffer */
         encoded_data[i] = get_data_ptr_from_fragment(fragment);
+      
         if (data_len > 0) {
             memcpy(encoded_data[i], orig_data, payload_size);
         }
 
         /* Fragment size will always be the same
          * (may be able to get rid of this) */
-        set_fragment_payload_size(fragment, *blocksize);
+        set_fragment_payload_size(fragment, bsize);
+
+        /* Original data length */
+        set_orig_data_size(fragment, orig_data_size);
 
         orig_data += payload_size;
         data_len -= payload_size;
     }
 
     for (i = 0; i < m; i++) {
-        char *fragment = alloc_fragment_buffer(*blocksize);
+        char *fragment = (char *) alloc_fragment_buffer(bsize);
         if (NULL == fragment) {
             ret = -ENOMEM;
             goto out_error;
         }
+
         encoded_parity[i] = get_data_ptr_from_fragment(fragment);
-        set_fragment_payload_size(fragment, *blocksize);
+        set_fragment_payload_size(fragment, bsize);
     }
 
 out:
     return ret;
 
 out_error:
+    printf ("ERROR in encode\n");
     if (encoded_data) {
         for (i = 0; i < k; i++) {
             if (encoded_data[i])
