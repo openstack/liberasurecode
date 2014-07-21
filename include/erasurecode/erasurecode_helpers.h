@@ -32,27 +32,6 @@
 #include "erasurecode_backend.h"
 #include "erasurecode_stdinc.h"
 
-/* ==~=*=~==~=*=~==~=*=~==~=*=~==~= Logging =~==~=*=~==~=*=~==~=*=~==~=*=~== */
-
-#if __STDC_VERSION__ < 199901L
-    #if __GNUC__ >= 2
-        #define __func__ __FUNCTION__
-    #else
-        #define __func__ "<unknown>"
-    #endif
-#endif
-
-#define _LOG1(level, ...) \
-    syslog (level, __VA_ARGS__)
-
-#define _LOG2(level, ...) \
-    syslog (level, "%s:%d:%s\n", __FILE__, __LINE__, __VA_ARGS__)
-
-#define log_info(...)  _LOG1(LOG_INFO, __VA_ARGS__)
-#define log_warn(...)  _LOG1(LOG_WARNING, __VA_ARGS__)
-#define log_error(...) _LOG1(LOG_ERR, __VA_ARGS__)
-#define log_debug(...) _LOG2(LOG_DEBUG, __VA_ARGS__)
-
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
 /**

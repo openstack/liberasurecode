@@ -44,11 +44,8 @@
    Revision 1.0 - 2007: James S. Plank
  */
 
-#include <config.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
+#include "erasurecode_log.h"
+#include "erasurecode_stdinc.h"
 #include "galois.h"
 
 #ifdef HAVE_LIBGF_COMPLETE
@@ -78,26 +75,26 @@ gf_t* galois_init_field(int w,
   gf_t *gfp;
 
   if (w <= 0 || w > 32) {
-    fprintf(stderr, "ERROR -- cannot init default Galois field for w=%d\n", w);
-    exit(1);
+    log_error("ERROR -- cannot init default Galois field for w=%d\n", w);
+    return NULL;
   }
 
   gfp = (gf_t *) malloc(sizeof(gf_t));
   if (!gfp) {
-    fprintf(stderr, "ERROR -- cannot allocate memory for Galois field w=%d\n", w);
-    exit(1);
+    log_error("ERROR -- cannot allocate memory for Galois field w=%d\n", w);
+    return NULL;
   }
 
   scratch_size = gf_scratch_size(w, mult_type, region_type, divide_type, arg1, arg2);
   if (!scratch_size) {
-    fprintf(stderr, "ERROR -- cannot get scratch size for base field w=%d\n", w);
-    exit(1);
+    log_error("ERROR -- cannot get scratch size for base field w=%d\n", w);
+    return NULL;
   }
 
   scratch_memory = malloc(scratch_size);
   if (!scratch_memory) {
-    fprintf(stderr, "ERROR -- cannot get scratch memory for base field w=%d\n", w);
-    exit(1);
+    log_error("ERROR -- cannot get scratch memory for base field w=%d\n", w);
+    return NULL;
   }
 
   if(!gf_init_hard(gfp,
@@ -111,8 +108,8 @@ gf_t* galois_init_field(int w,
                    NULL, 
                    scratch_memory))
   {
-    fprintf(stderr, "ERROR -- cannot init default Galois field for w=%d\n", w);
-    exit(1);
+    log_error("ERROR -- cannot init default Galois field for w=%d\n", w);
+    return NULL;
   }
 
   gfp_is_composite[w] = 0;
@@ -130,26 +127,26 @@ gf_t* galois_init_composite_field(int w,
   gf_t *gfp;
   
   if (w <= 0 || w > 32) {
-    fprintf(stderr, "ERROR -- cannot init composite field for w=%d\n", w);
-    exit(1);
+    log_error("ERROR -- cannot init composite field for w=%d\n", w);
+    return NULL;
   }
   
   gfp = (gf_t *) malloc(sizeof(gf_t));
   if (!gfp) {
-    fprintf(stderr, "ERROR -- cannot allocate memory for Galois field w=%d\n", w);
-    exit(1);
+    log_error("ERROR -- cannot allocate memory for Galois field w=%d\n", w);
+    return NULL;
   }
 
   scratch_size = gf_scratch_size(w, GF_MULT_COMPOSITE, region_type, divide_type, degree, 0);
   if (!scratch_size) {
-    fprintf(stderr, "ERROR -- cannot get scratch size for composite field w=%d\n", w);
-    exit(1);
+    log_error("ERROR -- cannot get scratch size for composite field w=%d\n", w);
+    return NULL;
   }
 
   scratch_memory = malloc(scratch_size);
   if (!scratch_memory) {
-    fprintf(stderr, "ERROR -- cannot get scratch memory for composite field w=%d\n", w);
-    exit(1);
+    log_error("ERROR -- cannot get scratch memory for composite field w=%d\n", w);
+    return NULL;
   }
 
   if(!gf_init_hard(gfp,
@@ -163,8 +160,8 @@ gf_t* galois_init_composite_field(int w,
                    base_gf,
                    scratch_memory))
   {
-    fprintf(stderr, "ERROR -- cannot init default composite field for w=%d\n", w);
-    exit(1);
+    log_error("ERROR -- cannot init default composite field for w=%d\n", w);
+    return NULL;
   }
   gfp_is_composite[w] = 1;
   return gfp;
@@ -173,21 +170,21 @@ gf_t* galois_init_composite_field(int w,
 static void galois_init_default_field(int w)
 {
   if (w <= 0 || w > 32) {
-    fprintf(stderr, "ERROR -- cannot init default Galois field for w=%d\n", w);
-    exit(1);
+    log_error("ERROR -- cannot init default Galois field for w=%d\n", w);
+    return NULL;
   }
 
   if (gfp_array[w] == NULL) {
     gfp_array[w] = (gf_t*)malloc(sizeof(gf_t));
     if (gfp_array[w] == NULL) {
-      fprintf(stderr, "ERROR -- cannot allocate memory for Galois field w=%d\n", w);
-      exit(1);
+      log_error("ERROR -- cannot allocate memory for Galois field w=%d\n", w);
+      return NULL;
     }
   }
 
   if (!gf_init_easy(gfp_array[w], w)) {
-    fprintf(stderr, "ERROR -- cannot init default Galois field for w=%d\n", w);
-    exit(1);
+    log_error("ERROR -- cannot init default Galois field for w=%d\n", w);
+    return NULL;
   }
 }
 
@@ -224,13 +221,13 @@ static int is_valid_gf(gf_t *gf, int w)
 void galois_change_technique(gf_t *gf, int w)
 {
   if (w <= 0 || w > 32) {
-    fprintf(stderr, "ERROR -- cannot support Galois field for w=%d\n", w);
-    exit(1);
+    log_error("ERROR -- cannot support Galois field for w=%d\n", w);
+    return NULL;
   }
 
   if (!is_valid_gf(gf, w)) {
-    fprintf(stderr, "ERROR -- overriding with invalid Galois field for w=%d\n", w);
-    exit(1);
+    log_error("ERROR -- overriding with invalid Galois field for w=%d\n", w);
+    return NULL;
   }
 
   if (gfp_array[w] != NULL) {
@@ -251,7 +248,7 @@ int galois_single_multiply(int x, int y, int w)
   if (w <= 32) {
     return gfp_array[w]->multiply.w32(gfp_array[w], x, y);
   } else {
-    fprintf(stderr, "ERROR -- Galois field not implemented for w=%d\n", w);
+    log_error("ERROR -- Galois field not implemented for w=%d\n", w);
   }
 }
 
@@ -267,7 +264,7 @@ int galois_single_divide(int x, int y, int w)
   if (w <= 32) {
     return gfp_array[w]->divide.w32(gfp_array[w], x, y);
   } else {
-    fprintf(stderr, "ERROR -- Galois field not implemented for w=%d\n", w);
+    log_error("ERROR -- Galois field not implemented for w=%d\n", w);
   }
 }
 
@@ -488,9 +485,9 @@ int galois_create_log_tables(int w)
   b = 1;
   for (j = 0; j < nwm1[w]; j++) {
     if (galois_log_tables[w][b] != nwm1[w]) {
-      fprintf(stderr, "Galois_create_log_tables Error: j=%d, b=%d, B->J[b]=%d, J->B[j]=%d (0%o)\n",
+      log_error("Galois_create_log_tables Error: j=%d, b=%d, B->J[b]=%d, J->B[j]=%d (0%o)\n",
               j, b, galois_log_tables[w][b], galois_ilog_tables[w][j], (b << 1) ^ prim_poly[w]);
-      exit(1);
+      return -1;
     }
     galois_log_tables[w][b] = j;
     galois_ilog_tables[w][j] = b;
@@ -585,8 +582,8 @@ int galois_ilog(int value, int w)
 {
   if (galois_ilog_tables[w] == NULL) {
     if (galois_create_log_tables(w) < 0) {
-      fprintf(stderr, "Error: galois_ilog - w is too big.  Sorry\n");
-      exit(1);
+      log_error("Error: galois_ilog - w is too big.  Sorry\n");
+      return -1;
     }
   }
   return galois_ilog_tables[w][value];
@@ -596,8 +593,8 @@ int galois_log(int value, int w)
 {
   if (galois_log_tables[w] == NULL) {
     if (galois_create_log_tables(w) < 0) {
-      fprintf(stderr, "Error: galois_log - w is too big.  Sorry\n");
-      exit(1);
+      log_error("Error: galois_log - w is too big.  Sorry\n");
+      return -1;
     }
   }
   return galois_log_tables[w][value];
@@ -644,16 +641,16 @@ int galois_single_multiply(int x, int y, int w)
   if (mult_type[w] == TABLE) {
     if (galois_mult_tables[w] == NULL) {
       if (galois_create_mult_tables(w) < 0) {
-        fprintf(stderr, "ERROR -- cannot make multiplication tables for w=%d\n", w);
-        exit(1);
+        log_error("ERROR -- cannot make multiplication tables for w=%d\n", w);
+        return -1;
       }
     }
     return galois_mult_tables[w][(x<<w)|y];
   } else if (mult_type[w] == LOGS) {
     if (galois_log_tables[w] == NULL) {
       if (galois_create_log_tables(w) < 0) {
-        fprintf(stderr, "ERROR -- cannot make log tables for w=%d\n", w);
-        exit(1);
+        log_error("ERROR -- cannot make log tables for w=%d\n", w);
+        return -1;
       }
     }
     sum_j = galois_log_tables[w][x] + galois_log_tables[w][y];
@@ -662,16 +659,16 @@ int galois_single_multiply(int x, int y, int w)
   } else if (mult_type[w] == SPLITW8) {
     if (galois_split_w8[0] == NULL) {
       if (galois_create_split_w8_tables() < 0) {
-        fprintf(stderr, "ERROR -- cannot make log split_w8_tables for w=%d\n", w);
-        exit(1);
+        log_error("ERROR -- cannot make log split_w8_tables for w=%d\n", w);
+        return -1;
       }
     }
     return galois_split_w8_multiply(x, y);
   } else if (mult_type[w] == SHIFT) {
     return galois_shift_multiply(x, y, w);
   }
-  fprintf(stderr, "Galois_single_multiply - no implementation for w=%d\n", w);
-  exit(1);
+  log_error("Galois_single_multiply - no implementation for w=%d\n", w);
+  return -1;
 }
 
 int galois_multtable_multiply(int x, int y, int w)
@@ -686,8 +683,8 @@ int galois_single_divide(int a, int b, int w)
   if (mult_type[w] == TABLE) {
     if (galois_div_tables[w] == NULL) {
       if (galois_create_mult_tables(w) < 0) {
-        fprintf(stderr, "ERROR -- cannot make multiplication tables for w=%d\n", w);
-        exit(1);
+        log_error("ERROR -- cannot make multiplication tables for w=%d\n", w);
+        return -1;
       }
     }
     return galois_div_tables[w][(a<<w)|b];
@@ -696,8 +693,8 @@ int galois_single_divide(int a, int b, int w)
     if (a == 0) return 0;
     if (galois_log_tables[w] == NULL) {
       if (galois_create_log_tables(w) < 0) {
-        fprintf(stderr, "ERROR -- cannot make log tables for w=%d\n", w);
-        exit(1);
+        log_error("ERROR -- cannot make log tables for w=%d\n", w);
+        return -1;
       }
     }
     sum_j = galois_log_tables[w][a] - galois_log_tables[w][b];
@@ -708,8 +705,8 @@ int galois_single_divide(int a, int b, int w)
     sum_j = galois_inverse(b, w);
     return galois_single_multiply(a, sum_j, w);
   }
-  fprintf(stderr, "Galois_single_divide - no implementation for w=%d\n", w);
-  exit(1);
+  log_error("Galois_single_divide - no implementation for w=%d\n", w);
+  return -1;
 }
 
 int galois_shift_divide(int a, int b, int w)
@@ -755,8 +752,8 @@ void galois_w08_region_multiply(char *region,      /* Region to multiply */
 
   if (galois_mult_tables[8] == NULL) {
     if (galois_create_mult_tables(8) < 0) {
-      fprintf(stderr, "galois_08_region_multiply -- couldn't make multiplication tables\n");
-      exit(1);
+      log_error("galois_08_region_multiply -- couldn't make multiplication tables\n");
+      return;
     }
   }
   srow = multby * nw[8];
@@ -782,7 +779,7 @@ void galois_w08_region_multiply(char *region,      /* Region to multiply */
   return;
 }
 
-void galois_w16_region_multiply(char *region,      /* Region to multiply */
+int galois_w16_region_multiply(char *region,      /* Region to multiply */
                                   int multby,       /* Number to multiply by */
                                   int nbytes,        /* Number of bytes in region */
                                   char *r2,          /* If r2 != NULL, products go here */
@@ -819,13 +816,13 @@ void galois_w16_region_multiply(char *region,      /* Region to multiply */
       lptop = (unsigned long *) ur2;
       while (lp2 < lptop) { *lp2 = 0; lp2++; }
     }
-    return;
+    return -1;
   }
     
   if (galois_log_tables[16] == NULL) {
     if (galois_create_log_tables(16) < 0) {
-      fprintf(stderr, "galois_16_region_multiply -- couldn't make log tables\n");
-      exit(1);
+      log_error("galois_16_region_multiply -- couldn't make log tables\n");
+      return -1;
     }
   }
   log1 = galois_log_tables[16][multby];
@@ -858,7 +855,7 @@ void galois_w16_region_multiply(char *region,      /* Region to multiply */
       *lp2 = (*lp2) ^ l;
     }
   }
-  return; 
+  return 0;
 }
 
 int galois_inverse(int y, int w)
@@ -871,7 +868,7 @@ int galois_inverse(int y, int w)
 
 /* This will destroy mat, by the way */
 
-void galois_invert_binary_matrix(int *mat, int *inv, int rows)
+int galois_invert_binary_matrix(int *mat, int *inv, int rows)
 {
   int cols, i, j, k;
   int tmp;
@@ -890,8 +887,8 @@ void galois_invert_binary_matrix(int *mat, int *inv, int rows)
     if ((mat[i] & (1 << i)) == 0) {
       for (j = i+1; j < rows && (mat[j] & (1 << i)) == 0; j++) ;
       if (j == rows) {
-        fprintf(stderr, "galois_invert_matrix: Matrix not invertible!!\n");
-        exit(1);
+        log_error("galois_invert_matrix: Matrix not invertible!!\n");
+        return -1;
       }
       tmp = mat[i]; mat[i] = mat[j]; mat[j] = tmp;
       tmp = inv[i]; inv[i] = inv[j]; inv[j] = tmp;
@@ -915,6 +912,8 @@ void galois_invert_binary_matrix(int *mat, int *inv, int rows)
       }
     }
   }
+
+  return 0;
 }
 
 int galois_shift_inverse(int y, int w)
@@ -979,7 +978,7 @@ int *galois_get_ilog_table(int w)
   return galois_ilog_tables[w];
 }
 
-void galois_w32_region_multiply(char *region,      /* Region to multiply */
+int galois_w32_region_multiply(char *region,      /* Region to multiply */
                                   int multby,       /* Number to multiply by */
                                   int nbytes,        /* Number of bytes in region */
                                   char *r2,          /* If r2 != NULL, products go here */
@@ -997,8 +996,8 @@ void galois_w32_region_multiply(char *region,      /* Region to multiply */
 
   if (galois_split_w8[0]== NULL) {
     if (galois_create_split_w8_tables() < 0) {
-      fprintf(stderr, "galois_32_region_multiply -- couldn't make split multiplication tables\n");
-      exit(1);
+      log_error("galois_32_region_multiply -- couldn't make split multiplication tables\n");
+      return -1;
     }
   }
 
