@@ -194,6 +194,21 @@ int liberasurecode_get_fragment_metadata(char *fragment);
  */
 int liberasurecode_verify_stripe_metadata(char **fragments);
 
+/**
+ * This computes the aligned size of a buffer passed into 
+ * the encode function.  The encode function must pad fragments
+ * to be algined with the word size (w) and the last fragment also
+ * needs to be aligned.  This computes the sum of the algined fragment
+ * sizes for a given buffer to encode.
+ */
+int liberasurecode_get_aligned_data_size(int desc, int data_len);
+ 
+/**
+ * This will return the minumum encode size, which is the minimum
+ * buffer size that can be encoded.
+ */
+int liberasurecode_get_minimum_encode_size(int desc);
+
 
 /* ==~=*=~===~=*=~==~=*=~== liberasurecode Error codes =~=*=~==~=~=*=~==~== */
 

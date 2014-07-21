@@ -58,6 +58,7 @@ struct ec_backend_args {
 #define DECODE          decode
 #define FRAGSNEEDED     fragments_needed
 #define RECONSTRUCT     reconstruct
+#define ELEMENTSIZE     element_size
 
 #define FN_NAME(s)      str(s)
 #define str(s)          #s
@@ -82,6 +83,7 @@ struct ec_backend_op_stubs {
     int (*RECONSTRUCT)(void *desc,
             char **data, char **parity, int *missing_idxs, int destination_idx,
             int blocksize);
+    int (*ELEMENTSIZE)(void *desc);
 };
 
 /* ==~=*=~==~=*=~==~=*=~= backend struct definitions =~=*=~==~=*=~==~=*==~== */

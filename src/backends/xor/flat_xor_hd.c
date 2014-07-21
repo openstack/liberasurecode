@@ -49,6 +49,8 @@ struct flat_xor_hd_descriptor {
             int *fragments_needed);
 };
 
+#define DEFAULT_W 32
+
 static int flat_xor_hd_encode(void *desc,
                               char **data, char **parity, int blocksize)
 {
@@ -79,7 +81,16 @@ static int flat_xor_hd_min_fragments(void *desc,
     xor_desc->fragments_needed(xor_desc, missing_idxs, fragments_needed);
 }
 
-#define DEFAULT_W 32
+/**
+ * Return the element-size, which is the number of bits stored 
+ * on a given device, per codeword.  This is usually just 'w'.
+ */
+static int
+flar_xor_hd_element_size(void* desc)
+{
+    return DEFAULT_W;
+}
+
 static void * flat_xor_hd_init(struct ec_backend_args *args, void *sohandle)
 {
     int k = args->uargs.k;
@@ -126,6 +137,7 @@ struct ec_backend_op_stubs flat_xor_hd_op_stubs = {
     .DECODE                     = flat_xor_hd_decode,
     .FRAGSNEEDED                = flat_xor_hd_min_fragments,
     .RECONSTRUCT                = flat_xor_hd_reconstruct,
+    .ELEMENTSIZE                = flar_xor_hd_element_size,
 };
 
 struct ec_backend_common backend_flat_xor_hd = {

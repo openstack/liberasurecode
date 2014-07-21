@@ -698,6 +698,47 @@ int liberasurecode_fragments_needed(int desc, int *missing_idxs,
 out_error:
     return ret;
 }
+
+/**
+ * This computes the aligned size of a buffer passed into 
+ * the encode function.  The encode function must pad fragments
+ * to be algined with the word size (w) and the last fragment also
+ * needs to be aligned.  This computes the sum of the algined fragment 
+ * sizes for a given buffer to encode.
+ */
+int liberasurecode_get_aligned_data_size(int desc, int data_len)
+{
+    int word_size;
+    int alignment_multiple;
+    int ret = 0;
+    int k;
+    ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
+
+    k = instance->args.uargs.k;
+
+    if (NULL == instance) {
+        ret = -EBACKENDNOTAVAIL;
+        goto out;
+    }
+    
+    word_size = instance->common.ops->element_size(instance->desc.backend_desc) / 8;
+
+    alignment_multiple = k * word_size;
+
+    ret = (int)ceill((double)data_len / alignment_multiple) * alignment_multiple;
+
+out:
+    return ret;
+}
+
+/**
+ * This will return the minumum encode size, which is the minimum
+ * buffer size that can be encoded.
+ */
+int liberasurecode_get_minimum_encode_size(int desc)
+{
+    return liberasurecode_get_aligned_data_size(desc, 1);
+}
  
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=* misc *=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 

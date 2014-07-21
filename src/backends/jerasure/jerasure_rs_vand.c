@@ -245,6 +245,23 @@ error:
     return NULL;
 }
 
+/**
+ * Return the element-size, which is the number of bits stored 
+ * on a given device, per codeword.  For Vandermonde, this is 
+ * 'w'.  For somthing like cauchy, this is packetsize * w. 
+ * 
+ * Returns the size in bits!
+ */
+static int
+jerasure_rs_vand_element_size(void* desc)
+{
+    struct jerasure_rs_vand_descriptor *jerasure_desc = 
+        (struct jerasure_rs_vand_descriptor*)desc;
+
+    /* Note that cauchy will return pyeclib_handle->w * PYECC_CAUCHY_PACKETSIZE * 8 */
+    return jerasure_desc->w;
+}
+
 static int jerasure_rs_vand_exit(void *desc)
 {
     struct jerasure_rs_vand_descriptor *jerasure_desc = 
@@ -262,6 +279,7 @@ struct ec_backend_op_stubs jerasure_rs_vand_op_stubs = {
     .DECODE                     = jerasure_rs_vand_decode,
     .FRAGSNEEDED                = jerasure_rs_vand_min_fragments,
     .RECONSTRUCT                = jerasure_rs_vand_reconstruct,
+    .ELEMENTSIZE                = jerasure_rs_vand_element_size,
 };
 
 struct ec_backend_common backend_jerasure_rs_vand = {
