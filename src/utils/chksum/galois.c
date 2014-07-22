@@ -44,7 +44,6 @@
    Revision 1.0 - 2007: James S. Plank
  */
 
-#include "erasurecode_log.h"
 #include "erasurecode_stdinc.h"
 #include "galois.h"
 
@@ -171,20 +170,20 @@ static void galois_init_default_field(int w)
 {
   if (w <= 0 || w > 32) {
     log_error("ERROR -- cannot init default Galois field for w=%d\n", w);
-    return NULL;
+    return;
   }
 
   if (gfp_array[w] == NULL) {
     gfp_array[w] = (gf_t*)malloc(sizeof(gf_t));
     if (gfp_array[w] == NULL) {
       log_error("ERROR -- cannot allocate memory for Galois field w=%d\n", w);
-      return NULL;
+      return;
     }
   }
 
   if (!gf_init_easy(gfp_array[w], w)) {
     log_error("ERROR -- cannot init default Galois field for w=%d\n", w);
-    return NULL;
+    return;
   }
 }
 
@@ -222,12 +221,12 @@ void galois_change_technique(gf_t *gf, int w)
 {
   if (w <= 0 || w > 32) {
     log_error("ERROR -- cannot support Galois field for w=%d\n", w);
-    return NULL;
+    return;
   }
 
   if (!is_valid_gf(gf, w)) {
     log_error("ERROR -- overriding with invalid Galois field for w=%d\n", w);
-    return NULL;
+    return;
   }
 
   if (gfp_array[w] != NULL) {

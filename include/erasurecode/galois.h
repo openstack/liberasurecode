@@ -82,14 +82,14 @@ void galois_w08_region_multiply(char *region,       /* Region to multiply */
                                                        Otherwise region is overwritten */
                                   int add);         /* If (r2 != NULL && add) the produce is XOR'd with r2 */
 
-int galois_w16_region_multiply(char *region,       /* Region to multiply */
+void galois_w16_region_multiply(char *region,       /* Region to multiply */
                                   int multby,       /* Number to multiply by */
                                   int nbytes,       /* Number of bytes in region */
                                   char *r2,         /* If r2 != NULL, products go here.  
                                                        Otherwise region is overwritten */
                                   int add);         /* If (r2 != NULL && add) the produce is XOR'd with r2 */
 
-int galois_w32_region_multiply(char *region,       /* Region to multiply */
+void galois_w32_region_multiply(char *region,       /* Region to multiply */
                                   int multby,       /* Number to multiply by */
                                   int nbytes,       /* Number of bytes in region */
                                   char *r2,         /* If r2 != NULL, products go here.  
