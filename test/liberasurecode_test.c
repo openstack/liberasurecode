@@ -142,7 +142,7 @@ struct testcase testcases[] = {
     {"simple_encode_jerasure_rs_vand",
         test_simple_encode_decode,
         "jerasure_rs_vand", &jerasure_rs_vand_args,
-        .skip = true},
+        .skip = false},
     { NULL, NULL, NULL, NULL, false },
 };
 

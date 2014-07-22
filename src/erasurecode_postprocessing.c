@@ -38,9 +38,7 @@ int finalize_fragments_after_encode(ec_backend_t instance,
     // int add_checksum = instance->args.uargs.inline_chksum;
     int add_checksum = 1;
     char *fragment = get_fragment_ptr_from_data(encoded_parity[0]);
-printf ("fragment = %p\n", fragment);
     fragment = get_fragment_ptr_from_data(encoded_parity[1]);
-printf ("fragment = %p\n", fragment);
 
     /* finalize data fragments */
     for (i = 0; i < k; i++) {

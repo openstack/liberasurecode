@@ -277,7 +277,7 @@ int fragments_to_string(int k, int m,
     int ret = -1;
 
     if (num_fragments < k) {
-        /* 
+        /*
          * This is not necessarily an error condition, so *do not log here*
          * We can maybe debug log, if necessary.
          */
@@ -314,20 +314,20 @@ int fragments_to_string(int k, int m,
             continue;
         } else {
             /* Make sure we account for duplicates */
-            if (NULL != data[index]) {
+            if (NULL != fragments[index]) {
                 data[index] = fragments[i];
                 num_data++;
             }
         }
+    }
 
-        /* We do not have enough data fragments to do this! */
-        if (num_data != k) {
-            /* 
-             * This is not necessarily an error condition, so *do not log here*
-             * We can maybe debug log, if necessary.
-             */
-            goto out;
-        }
+    /* We do not have enough data fragments to do this! */
+    if (num_data != k) {
+        /*
+         * This is not necessarily an error condition, so *do not log here*
+         * We can maybe debug log, if necessary.
+         */
+        goto out;
     }
 
     /* Create the string to return */

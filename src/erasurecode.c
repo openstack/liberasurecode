@@ -397,7 +397,7 @@ int liberasurecode_decode(int desc,
     int blocksize = 0;
     char **data = NULL;
     char **parity = NULL;
-    int *missing_idxs;
+    int *missing_idxs = NULL;
 
     uint64_t realloc_bm = 0;
 
