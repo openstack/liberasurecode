@@ -159,7 +159,7 @@ int liberasurecode_encode(int desc,
 int liberasurecode_decode(int desc,
         char **available_fragments,                     /* input */
         int num_fragments, uint64_t fragment_len,       /* input */
-        char *out_data, uint64_t *out_data_len);        /* output */
+        char **out_data, uint64_t *out_data_len);        /* output */
 
 /**
  * Reconstruct a missing fragment from a subset of available fragments

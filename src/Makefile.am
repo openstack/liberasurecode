@@ -14,17 +14,12 @@ liberasurecode_la_SOURCES = \
 		erasurecode_postprocessing.c \
 		utils/chksum/crc32.c \
 		utils/chksum/alg_sig.c \
-		utils/chksum/galois.c \
 		backends/xor/flat_xor_hd.c \
 		backends/jerasure/jerasure_rs_vand.c
 
 liberasurecode_la_CPPFLAGS = -Werror
 liberasurecode_la_LIBADD = \
 		builtin/xor_codes/libXorcode.la -lpthread -lm
-
-if GF_COMPLETE_INSTALLED
-  liberasurecode_la_LIBADD += -lgf_complete
-endif
 
 # Version format  (C - A).(A).(R) for C:R:A input
 liberasurecode_la_LDFLAGS = -rpath '$(libdir)' -version-info 9:10:9

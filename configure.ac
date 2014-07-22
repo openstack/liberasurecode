@@ -32,23 +32,6 @@ AC_CHECK_HEADERS(sys/types.h stdio.h stdlib.h stddef.h stdarg.h malloc.h memory.
                  signal.h dlfcn.h pthread.h unistd.h limits.h errno.h syslog.h)
 AC_CHECK_FUNCS(malloc calloc realloc free openlog)
 
-# Check for gf_complete headers
-AC_CHECK_HEADERS(galois.h gf_complete.h)
-    
-# Enable this check when gf_complete is external
-AC_CHECK_LIB([gf_complete], [gf_init_easy], 
-[
-  AM_CONDITIONAL([GF_COMPLETE_INSTALLED], [true])
-  AC_DEFINE([HAVE_LIBGF_COMPLETE], [1], ["Defined if gf-complete is installed"])
-],
-[
-    echo "Warning gf_complete is required for *high performance* algorithmic signature support."
-    echo "gf_complete is available from https://bitbucket.org/jimplank/gf-complete.git"
-    echo "On Debian/Ubuntu systems, you can use \'apt-get install gf-complete\'"
-    echo "This will install with a slower Galois field backend!"
-    AM_CONDITIONAL([GF_COMPLETE_INSTALLED], [false])
-])
-
 AC_ARG_ENABLE([debug],
 [  --enable-debug    Turn on debugging],
 [case "${enableval}" in

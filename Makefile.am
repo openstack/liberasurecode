@@ -15,7 +15,6 @@ AM_CFLAGS = -fPIC $(AM_CPPFLAGS) -L/usr/local/lib
 
 include_HEADERS = \
 	include/erasurecode/alg_sig.h \
-	include/erasurecode/galois.h \
 	include/erasurecode/erasurecode.h \
 	include/erasurecode/erasurecode_backend.h \
 	include/erasurecode/erasurecode_helpers.h \

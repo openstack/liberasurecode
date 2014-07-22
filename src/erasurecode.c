@@ -386,7 +386,7 @@ out:
 int liberasurecode_decode(int desc,
         char **available_fragments,                     /* input */
         int num_fragments, uint64_t fragment_len,       /* input */
-        char *out_data, uint64_t *out_data_len)         /* output */
+        char **out_data, uint64_t *out_data_len)         /* output */
 {
     int i, j;
     int ret = 0;
@@ -415,7 +415,7 @@ int liberasurecode_decode(int desc,
      */
     ret = fragments_to_string(k, m,
                               available_fragments, num_fragments,
-                              &out_data, out_data_len);
+                              out_data, out_data_len);
 
     if (ret == 0) {
         /* We were able to get the original data without decoding! */
@@ -507,7 +507,7 @@ int liberasurecode_decode(int desc,
     }
     
     /* Try to generate the original string */
-    ret = fragments_to_string(k, m, data, k, &out_data, out_data_len);
+    ret = fragments_to_string(k, m, data, k, out_data, out_data_len);
 
     if (ret < 0) {
         log_error("Could not prepare convert decoded fragments to a string!");

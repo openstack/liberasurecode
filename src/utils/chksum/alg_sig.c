@@ -22,6 +22,7 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <dlfcn.h>
 #include <alg_sig.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,6 +30,19 @@
 int valid_gf_w[] = { 8, 16, -1 };
 int valid_pairs[][2] = { { 8, 32}, {16, 32}, {16, 64}, {-1, -1} };
 
+void *get_jerasure_sohandle()
+{
+    return dlopen(JERASURE_SONAME, RTLD_LAZY | RTLD_LOCAL);
+}
+
+int load_gf_functions(void *sohandle, struct jerasure_mult_routines *routines)
+{
+    routines->galois_single_multiply = dlsym(sohandle, "galois_single_multiply");
+    if (NULL == routines->galois_single_multiply) {
+      return -1;
+    }
+    return 0;
+}
 
 static
 alg_sig_t *init_alg_sig_w8(int sig_len)
@@ -39,9 +53,23 @@ alg_sig_t *init_alg_sig_w8(int sig_len)
     int w = 8;
     int alpha = 2, beta = 4, gamma = 8;
     int num_components = sig_len / w;
+    struct jerasure_mult_routines g_jerasure_mult_routines;
+
+    void *jerasure_sohandle = get_jerasure_sohandle();
+
+    if (NULL == jerasure_sohandle) {
+      return NULL;
+    }
 
     alg_sig_handle = (alg_sig_t *)malloc(sizeof(alg_sig_t));
-    if (alg_sig_handle == NULL) {
+    if (NULL == alg_sig_handle) {
+      return NULL;
+    }
+
+    alg_sig_handle->jerasure_sohandle = jerasure_sohandle;
+
+    if (load_gf_functions(alg_sig_handle->jerasure_sohandle, &(alg_sig_handle->mult_routines)) < 0) {
+      free(alg_sig_handle);
       return NULL;
     }
 
@@ -66,14 +94,14 @@ alg_sig_t *init_alg_sig_w8(int sig_len)
      */
     for (i = 0; i < 16; i++) {
       if (num_components >= 4) {
-        alg_sig_handle->tbl1_l[i] = galois_single_multiply((unsigned char) (i << 4) & 0xf0, alpha, w);
-        alg_sig_handle->tbl1_r[i] = galois_single_multiply((unsigned char) i, alpha, w);
+        alg_sig_handle->tbl1_l[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned char)(i << 4) & 0xf0, alpha, w);
+        alg_sig_handle->tbl1_r[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned char) i, alpha, w);
 
-        alg_sig_handle->tbl2_l[i] = galois_single_multiply((unsigned char) (i << 4) & 0xf0, beta, w);
-        alg_sig_handle->tbl2_r[i] = galois_single_multiply((unsigned char) i, beta, w);
+        alg_sig_handle->tbl2_l[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned char) (i << 4) & 0xf0, beta, w);
+        alg_sig_handle->tbl2_r[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned char) i, beta, w);
       
-        alg_sig_handle->tbl3_l[i] = galois_single_multiply((unsigned char) (i << 4) & 0xf0, gamma, w);
-        alg_sig_handle->tbl3_r[i] = galois_single_multiply((unsigned char) i, gamma, w);
+        alg_sig_handle->tbl3_l[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned char) (i << 4) & 0xf0, gamma, w);
+        alg_sig_handle->tbl3_r[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned char) i, gamma, w);
       }
     }
 
@@ -89,9 +117,21 @@ alg_sig_t *init_alg_sig_w16(int sig_len)
     int w = 16;
     int alpha = 2, beta = 4, gamma = 8;
     int num_components = sig_len / w;
-
+    
+    void *jerasure_sohandle = get_jerasure_sohandle();
+    if (jerasure_sohandle == NULL) {
+      return NULL;
+    }
+    
     alg_sig_handle = (alg_sig_t *)malloc(sizeof(alg_sig_t));
     if (alg_sig_handle == NULL) {
+      return NULL;
+    }
+
+    alg_sig_handle->jerasure_sohandle = jerasure_sohandle;
+
+    if (load_gf_functions(alg_sig_handle->jerasure_sohandle, &(alg_sig_handle->mult_routines)) < 0) {
+      free(alg_sig_handle);
       return NULL;
     }
 
@@ -118,15 +158,15 @@ alg_sig_t *init_alg_sig_w16(int sig_len)
      * Note that \gamme = 8 (\alpha ^ 3 MOD 2^16)
      */
     for (i = 0; i < 256; i++) {
-      alg_sig_handle->tbl1_l[i] = galois_single_multiply((unsigned short) (i << 8), alpha, w);
-      alg_sig_handle->tbl1_r[i] = galois_single_multiply((unsigned short) i, alpha, w);
+      alg_sig_handle->tbl1_l[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned short) (i << 8), alpha, w);
+      alg_sig_handle->tbl1_r[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned short) i, alpha, w);
 
       if (num_components >= 4) {
-        alg_sig_handle->tbl2_l[i] = galois_single_multiply((unsigned short) (i << 8), beta, w);
-        alg_sig_handle->tbl2_r[i] = galois_single_multiply((unsigned short) i, beta, w);
+        alg_sig_handle->tbl2_l[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned short) (i << 8), beta, w);
+        alg_sig_handle->tbl2_r[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned short) i, beta, w);
       
-        alg_sig_handle->tbl3_l[i] = galois_single_multiply((unsigned short) (i << 8), gamma, w);
-        alg_sig_handle->tbl3_r[i] = galois_single_multiply((unsigned short) i, gamma, w);
+        alg_sig_handle->tbl3_l[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned short) (i << 8), gamma, w);
+        alg_sig_handle->tbl3_r[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned short) i, gamma, w);
       }
     }
 
@@ -165,6 +205,9 @@ void destroy_alg_sig(alg_sig_t* alg_sig_handle)
     free(alg_sig_handle);
     return;
   }
+
+  dlclose(alg_sig_handle->jerasure_sohandle);
+
   int num_components = alg_sig_handle->sig_len / alg_sig_handle->gf_w;
 
   free(alg_sig_handle->tbl1_l);
