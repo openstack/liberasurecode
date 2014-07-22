@@ -25,8 +25,6 @@
 #ifndef _ALG_SIG_H
 #define _ALG_SIG_H
 
-#include "galois.h"
-
 struct jerasure_mult_routines {
   int (*galois_single_multiply)(int, int, int);
 };
