@@ -96,8 +96,10 @@ static int test_simple_encode_decode(
     assert(0 == rc);
 
     rc = liberasurecode_decode(desc, encoded_data,
-            10, -1, decoded_data, &decoded_data_len);
+            10, encoded_fragment_len, decoded_data, &decoded_data_len);
     assert(0 == rc);
+    assert(decoded_data_len == orig_data_size);
+    assert(memcmp(decoded_data, orig_data, orig_data_size) == 0);
 
     if (desc)
         liberasurecode_instance_destroy(desc);
