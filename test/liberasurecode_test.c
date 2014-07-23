@@ -133,6 +133,12 @@ struct ec_args jerasure_rs_vand_args = {
     .w = 16,
 };
 
+struct ec_args jerasure_rs_cauchy_args = {
+    .k = 10,
+    .m = 4,
+    .w = 4,
+};
+
 struct testcase testcases[] = {
     {"liberasurecode_supported_backends",
         test_liberasurecode_supported_backends,
@@ -150,6 +156,10 @@ struct testcase testcases[] = {
         test_create_and_destroy_backend,
         "jerasure_rs_vand", &jerasure_rs_vand_args,
         .skip = false},
+    {"create_and_destroy_backend",
+        test_create_and_destroy_backend,
+        "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
+        .skip = false},
     {"simple_encode_flat_xor_hd",
         test_simple_encode_decode,
         "null", &null_args,
@@ -161,6 +171,10 @@ struct testcase testcases[] = {
     {"simple_encode_jerasure_rs_vand",
         test_simple_encode_decode,
         "jerasure_rs_vand", &jerasure_rs_vand_args,
+        .skip = false},
+    {"simple_encode_jerasure_rs_cauchy",
+        test_simple_encode_decode,
+        "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
         .skip = false},
     { NULL, NULL, NULL, NULL, false },
 };

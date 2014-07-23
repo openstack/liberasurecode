@@ -16,7 +16,8 @@ liberasurecode_la_SOURCES = \
 		utils/chksum/alg_sig.c \
 		backends/null/null.c \
 		backends/xor/flat_xor_hd.c \
-		backends/jerasure/jerasure_rs_vand.c
+		backends/jerasure/jerasure_rs_vand.c \
+		backends/jerasure/jerasure_rs_cauchy.c
 
 liberasurecode_la_CPPFLAGS = -Werror
 liberasurecode_la_LIBADD = \
