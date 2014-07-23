@@ -207,7 +207,7 @@ int liberasurecode_verify_stripe_metadata(char **fragments);
  * needs to be aligned.  This computes the sum of the algined fragment
  * sizes for a given buffer to encode.
  */
-int liberasurecode_get_aligned_data_size(int desc, int data_len);
+int liberasurecode_get_aligned_data_size(int desc, uint64_t data_len);
  
 /**
  * This will return the minumum encode size, which is the minimum
