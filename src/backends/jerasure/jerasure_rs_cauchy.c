@@ -153,13 +153,33 @@ out:
 
 }
 
+/*
+ * Caller will allocate an array of size k for fragments_needed
+ * 
+ */
 static int jerasure_rs_cauchy_min_fragments(void *desc, int *missing_idxs,
         int *fragments_needed)
 {
     struct jerasure_rs_cauchy_descriptor *jerasure_desc = 
         (struct jerasure_rs_cauchy_descriptor*)desc;
-    //ToDo (KMG): We need to move over the bitmap helper functions before we 
-    // can implement this.
+    uint64_t missing_bm = convert_list_to_bitmap(missing_idxs);
+    int i;
+    int j = 0;
+    int ret = -1;
+
+    for (i = 0; i < (jerasure_desc->k + jerasure_desc->m); i++) {
+        if (!(missing_bm & (1 << i))) {
+            fragments_needed[j] = i;
+            j++;
+        }
+        if (j == jerasure_desc->k) {
+            ret = 0;
+            break;
+        }
+    }
+
+out:
+    return ret;
 }
 
 #define DEFAULT_W 4

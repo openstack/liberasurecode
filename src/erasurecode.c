@@ -711,8 +711,8 @@ int liberasurecode_fragments_needed(int desc, int *missing_idxs,
 
     /* call the backend fragments_needed function passing it desc instance */
     ret = instance->common.ops->fragments_needed(
-            instance->desc.backend_desc,
-            missing_idxs, fragments_needed);
+            instance->desc.backend_desc, missing_idxs, 
+            fragments_needed);
 
 out_error:
     return ret;
