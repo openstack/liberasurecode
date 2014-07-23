@@ -74,6 +74,9 @@ struct ec_args {
             int hd;         /* hamming distance (3 or 4) */
         } flat_xor_hd_args; /* args specific to XOR codes */
         struct {
+            uint64_t arg1;  /* sample arg */
+        } null_args;        /* args specific to the null codes */
+        struct {
             uint64_t x, y;  /* reserved for future expansion */
             uint64_t z, a;  /* reserved for future expansion */
         } reserved;

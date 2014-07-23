@@ -85,6 +85,11 @@ static int test_simple_encode_decode(
     desc = liberasurecode_instance_create(backend, args);
     assert(desc > 0 || -EBACKENDNOTAVAIL == desc);
 
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf (stderr, "Backend library not available! ");
+        return 0;
+    }
+
     orig_data = create_buffer(orig_data_size, 'x');
     if (NULL == orig_data) {
         rc = -ENOMEM;
@@ -110,6 +115,12 @@ out:
     return rc;
 }
 
+struct ec_args null_args = {
+    .k = 8,
+    .m = 4,
+    .priv_args1.null_args.arg1 = 11,
+};
+
 struct ec_args flat_xor_hd_args = {
     .k = 10,
     .m = 6,
@@ -129,12 +140,20 @@ struct testcase testcases[] = {
         .skip = true},
     {"create_and_destroy_backend",
         test_create_and_destroy_backend,
+        "null", &null_args,
+        .skip = false},
+    {"create_and_destroy_backend",
+        test_create_and_destroy_backend,
         "flat_xor_hd", &flat_xor_hd_args,
         .skip = false},
     {"create_and_destroy_backend",
         test_create_and_destroy_backend,
         "jerasure_rs_vand", &jerasure_rs_vand_args,
         .skip = false},
+    {"simple_encode_flat_xor_hd",
+        test_simple_encode_decode,
+        "null", &null_args,
+        .skip = true},
     {"simple_encode_flat_xor_hd",
         test_simple_encode_decode,
         "flat_xor_hd", &flat_xor_hd_args,

@@ -54,6 +54,7 @@ AC_SUBST(ac_aux_dir)
 AC_SUBST(OBJECTS)
 
 AC_CONFIG_FILES([\
+    src/builtin/null_code/Makefile \
     src/builtin/xor_codes/Makefile \
     src/Makefile \
     test/Makefile \

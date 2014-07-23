@@ -25,6 +25,7 @@
  *
  * vi: set noai tw=79 ts=4 sw=4:
  */
+#include <assert.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include "erasurecode_backend.h"

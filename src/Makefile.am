@@ -1,4 +1,4 @@
-SUBDIRS = builtin/xor_codes
+SUBDIRS = builtin/xor_codes builtin/null_code
 
 lib_LTLIBRARIES = liberasurecode.la
 
@@ -14,6 +14,7 @@ liberasurecode_la_SOURCES = \
 		erasurecode_postprocessing.c \
 		utils/chksum/crc32.c \
 		utils/chksum/alg_sig.c \
+		backends/null/null.c \
 		backends/xor/flat_xor_hd.c \
 		backends/jerasure/jerasure_rs_vand.c
 
