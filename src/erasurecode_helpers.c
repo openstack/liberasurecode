@@ -216,6 +216,7 @@ int set_fragment_idx(char *buf, int idx)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
 
+    assert(NULL != header);
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
         log_error("Invalid fragment header (idx check)!\n");
         return -1;
@@ -230,6 +231,7 @@ int get_fragment_idx(char *buf)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
 
+    assert(NULL != header);
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
         log_error("Invalid fragment header (get idx)!");
         return -1;
@@ -242,6 +244,7 @@ int set_fragment_payload_size(char *buf, int size)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
 
+    assert(NULL != header);
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
         log_error("Invalid fragment header (size check)!");
         return -1;
@@ -256,6 +259,7 @@ int get_fragment_payload_size(char *buf)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
 
+    assert(NULL != header);
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
         log_error("Invalid fragment header (get size)!");
         return -1;
@@ -268,6 +272,7 @@ int set_orig_data_size(char *buf, int orig_data_size)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
 
+    assert(NULL != header);
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
         log_error("Invalid fragment header (set orig data check)!");
         return -1;
@@ -282,6 +287,7 @@ int get_orig_data_size(char *buf)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
 
+    assert(NULL != header);
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
         log_error("Invalid fragment header (get orig data check)!");
         return -1;
@@ -296,6 +302,7 @@ int validate_fragment(char *buf)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
 
+    assert(NULL != header);
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
         return -1;
     }
@@ -309,6 +316,7 @@ inline int set_chksum(char *buf, int chksum)
 {
     fragment_header_t* header = (fragment_header_t*) buf;
 
+    assert(NULL != header);
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
         log_error("Invalid fragment header (set chksum)!\n");
         return -1; 
@@ -323,6 +331,7 @@ inline int get_chksum(char *buf)
 {
     fragment_header_t* header = (fragment_header_t*) buf;
 
+    assert(NULL != header);
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
         log_error("Invalid fragment header (get chksum)!");
         return -1;
