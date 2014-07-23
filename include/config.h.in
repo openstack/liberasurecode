@@ -21,20 +21,11 @@
 /* Define to 1 if you have the `free' function. */
 #undef HAVE_FREE
 
-/* Define to 1 if you have the <galois.h> header file. */
-#undef HAVE_GALOIS_H
-
-/* Define to 1 if you have the <gf_complete.h> header file. */
-#undef HAVE_GF_COMPLETE_H
-
 /* Define to 1 if you have the <iconv.h> header file. */
 #undef HAVE_ICONV_H
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
-
-/* "Defined if gf-complete is installed" */
-#undef HAVE_LIBGF_COMPLETE
 
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H

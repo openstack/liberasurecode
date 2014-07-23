@@ -24,6 +24,7 @@
 
 #include <dlfcn.h>
 #include <alg_sig.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -45,7 +46,7 @@ int load_gf_functions(void *sohandle, struct jerasure_mult_routines *routines)
 }
 
 static
-alg_sig_t *init_alg_sig_w8(int sig_len)
+alg_sig_t *init_alg_sig_w8(void *jerasure_sohandle, int sig_len)
 {
     alg_sig_t *alg_sig_handle;
     int num_gf_lr_table_syms;
@@ -54,12 +55,6 @@ alg_sig_t *init_alg_sig_w8(int sig_len)
     int alpha = 2, beta = 4, gamma = 8;
     int num_components = sig_len / w;
     struct jerasure_mult_routines g_jerasure_mult_routines;
-
-    void *jerasure_sohandle = get_jerasure_sohandle();
-
-    if (NULL == jerasure_sohandle) {
-      return NULL;
-    }
 
     alg_sig_handle = (alg_sig_t *)malloc(sizeof(alg_sig_t));
     if (NULL == alg_sig_handle) {
@@ -109,7 +104,7 @@ alg_sig_t *init_alg_sig_w8(int sig_len)
 }
 
 static
-alg_sig_t *init_alg_sig_w16(int sig_len)
+alg_sig_t *init_alg_sig_w16(void *jerasure_sohandle, int sig_len)
 {
     alg_sig_t *alg_sig_handle;
     int num_gf_lr_table_syms;
@@ -117,14 +112,13 @@ alg_sig_t *init_alg_sig_w16(int sig_len)
     int w = 16;
     int alpha = 2, beta = 4, gamma = 8;
     int num_components = sig_len / w;
-    
-    void *jerasure_sohandle = get_jerasure_sohandle();
-    if (jerasure_sohandle == NULL) {
-      return NULL;
+
+    if (NULL == jerasure_sohandle) {
+        return NULL;
     }
     
     alg_sig_handle = (alg_sig_t *)malloc(sizeof(alg_sig_t));
-    if (alg_sig_handle == NULL) {
+    if (NULL == alg_sig_handle) {
       return NULL;
     }
 
@@ -176,6 +170,13 @@ alg_sig_t *init_alg_sig_w16(int sig_len)
 alg_sig_t *init_alg_sig(int sig_len, int gf_w)
 {
   int i=0;
+  void *jerasure_sohandle = get_jerasure_sohandle();
+
+  if (NULL == jerasure_sohandle) {
+    fprintf (stderr, "Could not open Jerasure backend.  Install Jerasure or fix LD_LIBRARY_PATH.  Passing.\n");
+    return NULL;
+  }
+
   while (valid_pairs[i][0] > -1) {
     if (gf_w == valid_pairs[i][0] && 
         sig_len == valid_pairs[i][1]) {
@@ -189,9 +190,9 @@ alg_sig_t *init_alg_sig(int sig_len, int gf_w)
   }
 
   if (gf_w == 8) {
-    return init_alg_sig_w8(sig_len);
+    return init_alg_sig_w8(jerasure_sohandle, sig_len);
   } else if (gf_w == 16) {
-    return init_alg_sig_w16(sig_len);
+    return init_alg_sig_w16(jerasure_sohandle, sig_len);
   }
   return NULL;
 }

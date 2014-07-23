@@ -159,8 +159,9 @@ int main(int argc, char **argv)
     for (ii = 0; testcases[ii].description != NULL; ++ii) {
         fflush(stdout);
         if (testcases[ii].skip) {
-            fprintf(stdout, "ok # SKIP %d - %s\n", ii + 1,
-                    testcases[ii].description);
+            fprintf(stdout, "ok # SKIP %d - %s: %s\n", ii + 1,
+                    testcases[ii].description,
+                    (const char *) testcases[ii].arg1);
             continue;
         }
         testcases[ii].function(testcases[ii].arg1, testcases[ii].arg2);

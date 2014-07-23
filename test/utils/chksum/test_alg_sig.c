@@ -83,7 +83,6 @@ out:
 
 static int basic_xor_test_8_32()
 {
-  alg_sig_t* sig_handle = init_alg_sig(32, 8);
   int blocksize = 65536;
   int num_data = 12;
   char **data;
@@ -92,6 +91,10 @@ static int basic_xor_test_8_32()
   int i;
   int ret = 0;
 
+  alg_sig_t* sig_handle = init_alg_sig(32, 8);
+  if (NULL == sig_handle) {
+      goto out;
+  }
   data = (char**)malloc(sizeof(char*) * num_data);
   sigs = (char**)malloc(sizeof(char*) * (num_data + 1));
   for (i=0; i < num_data; i++) {
@@ -125,12 +128,12 @@ static int basic_xor_test_8_32()
   free(data);
   destroy_alg_sig(sig_handle);
 
+out:
   return ret;
 }
 
 static int basic_xor_test_16_64()
 {
-  alg_sig_t* sig_handle = init_alg_sig(64, 16);
   int blocksize = 65536;
   int num_data = 12;
   char **data;
@@ -138,6 +141,11 @@ static int basic_xor_test_16_64()
   char **sigs;
   int i;
   int ret = 0;
+
+  alg_sig_t* sig_handle = init_alg_sig(64, 16);
+  if (NULL == sig_handle) {
+      goto out;
+  }
 
   data = (char**)malloc(sizeof(char*) * num_data);
   sigs = (char**)malloc(sizeof(char*) * (num_data + 1));
@@ -171,13 +179,12 @@ static int basic_xor_test_16_64()
   free(data);
   destroy_alg_sig(sig_handle);
 
+out:
   return ret;
-
 }
 
 static int basic_xor_test_16_32()
 {
-  alg_sig_t* sig_handle = init_alg_sig(32, 16);
   int blocksize = 65536;
   int num_data = 12;
   char **data;
@@ -186,6 +193,10 @@ static int basic_xor_test_16_32()
   int i;
   int ret = 0;
 
+  alg_sig_t* sig_handle = init_alg_sig(32, 16);
+  if (NULL == sig_handle) {
+      goto out;
+  }
   data = (char**)malloc(sizeof(char*) * num_data);
   sigs = (char**)malloc(sizeof(char*) * (num_data + 1));
   for (i=0; i < num_data; i++) {
@@ -219,6 +230,7 @@ static int basic_xor_test_16_32()
   free(data);
   destroy_alg_sig(sig_handle);
 
+out:
   return ret;
 }
 

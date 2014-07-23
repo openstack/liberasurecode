@@ -11,7 +11,7 @@ check_PROGRAMS = test_xor_hd_code
 alg_sig_test_SOURCES = utils/chksum/test_alg_sig.c
 alg_sig_test_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/include/erasurecode -I$(top_srcdir)/include/xor_codes
 alg_sig_test_LDFLAGS = -static-libtool-libs $(top_srcdir)/src/liberasurecode.la -ldl
-# check_PROGRAMS += alg_sig_test
+check_PROGRAMS += alg_sig_test
 
 liberasurecode_test_SOURCES = liberasurecode_test.c
 liberasurecode_test_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/include/erasurecode
