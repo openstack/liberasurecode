@@ -156,7 +156,11 @@ struct ec_backend_op_stubs flat_xor_hd_op_stubs = {
 struct ec_backend_common backend_flat_xor_hd = {
     .id                         = EC_BACKEND_FLAT_XOR_HD,
     .name                       = "flat_xor_hd",
+#if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
+    .soname                     = "libXorcode.dylib",
+#else
     .soname                     = "libXorcode.so",
+#endif
     .soversion                  = "1.0",
     .ops                        = &flat_xor_hd_op_stubs,
 };

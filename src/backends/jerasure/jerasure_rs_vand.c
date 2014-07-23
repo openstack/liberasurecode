@@ -269,7 +269,11 @@ struct ec_backend_op_stubs jerasure_rs_vand_op_stubs = {
 struct ec_backend_common backend_jerasure_rs_vand = {
     .id                         = EC_BACKEND_JERASURE_RS_VAND,
     .name                       = "jerasure_rs_vand",
+#if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
+    .soname                     = "libJerasure.dylib",
+#else
     .soname                     = "libJerasure.so",
+#endif
     .soversion                  = "2.0",
     .ops                        = &jerasure_rs_vand_op_stubs,
 };
