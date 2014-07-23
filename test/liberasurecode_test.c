@@ -157,15 +157,18 @@ int main(int argc, char **argv)
     printf("1..%d\n", num_cases);
 
     for (ii = 0; testcases[ii].description != NULL; ++ii) {
+        const char *testname = (const char *) testcases[ii].arg1;
         fflush(stdout);
         if (testcases[ii].skip) {
             fprintf(stdout, "ok # SKIP %d - %s: %s\n", ii + 1,
                     testcases[ii].description,
-                    (const char *) testcases[ii].arg1);
+                    (testname) ? testname : "");
             continue;
         }
         testcases[ii].function(testcases[ii].arg1, testcases[ii].arg2);
-        fprintf(stdout, "ok %d - %s\n", ii + 1, testcases[ii].description);
+        fprintf(stdout, "ok %d - %s: %s\n", ii + 1,
+                testcases[ii].description,
+                (testname) ? testname : "");
         fflush(stdout);
     }
 
