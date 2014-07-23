@@ -128,7 +128,7 @@ static int jerasure_rs_cauchy_reconstruct(void *desc, char **data, char **parity
         erased = jerasure_desc->jerasure_erasures_to_erased(jerasure_desc->k,
                 jerasure_desc->m, missing_idxs);
 
-        ret = jerasure_make_decoding_bitmatrix(jerasure_desc->k, jerasure_desc->m, jerasure_desc->w, jerasure_desc->bitmatrix,
+        ret = jerasure_desc->jerasure_make_decoding_bitmatrix(jerasure_desc->k, jerasure_desc->m, jerasure_desc->w, jerasure_desc->bitmatrix,
                                                erased, decoding_matrix, dm_ids);
         decoding_row = decoding_matrix + (destination_idx * jerasure_desc->k * jerasure_desc->w * jerasure_desc->w);
 
@@ -138,7 +138,7 @@ static int jerasure_rs_cauchy_reconstruct(void *desc, char **data, char **parity
     }
       
     if (ret == 0) {
-        jerasure_bitmatrix_dotprod(jerasure_desc->k, jerasure_desc->w, decoding_row, dm_ids, destination_idx,
+        jerasure_desc->jerasure_bitmatrix_dotprod(jerasure_desc->k, jerasure_desc->w, decoding_row, dm_ids, destination_idx,
                                    data, parity, blocksize,
                                    PYECC_CAUCHY_PACKETSIZE);
     }
