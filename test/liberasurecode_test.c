@@ -138,7 +138,7 @@ struct testcase testcases[] = {
     {"simple_encode_flat_xor_hd",
         test_simple_encode_decode,
         "flat_xor_hd", &flat_xor_hd_args,
-        .skip = true},
+        .skip = false},
     {"simple_encode_jerasure_rs_vand",
         test_simple_encode_decode,
         "jerasure_rs_vand", &jerasure_rs_vand_args,

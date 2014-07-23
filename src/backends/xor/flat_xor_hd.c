@@ -54,7 +54,10 @@ struct flat_xor_hd_descriptor {
 static int flat_xor_hd_encode(void *desc,
                               char **data, char **parity, int blocksize)
 {
-    xor_code_t *xor_desc = (xor_code_t *) desc;
+    struct flat_xor_hd_descriptor *xdesc =
+        (struct flat_xor_hd_descriptor *) desc;
+
+    xor_code_t *xor_desc = (xor_code_t *) xdesc->xor_desc;
     xor_desc->encode(xor_desc, data, parity, blocksize);
 }
 
@@ -62,7 +65,10 @@ static int flat_xor_hd_decode(void *desc,
                               char **data, char **parity, int *missing_idxs,
                               int blocksize)
 {
-    xor_code_t *xor_desc = (xor_code_t *) desc;
+    struct flat_xor_hd_descriptor *xdesc =
+        (struct flat_xor_hd_descriptor *) desc;
+
+    xor_code_t *xor_desc = (xor_code_t *) xdesc->xor_desc;
     xor_desc->decode(xor_desc, data, parity, missing_idxs, blocksize, 1);
 }
 
@@ -70,14 +76,20 @@ static int flat_xor_hd_reconstruct(void *desc,
                                    char **data, char **parity, int *missing_idxs,
                                    int destination_idx, int blocksize)
 {
-    xor_code_t *xor_desc = (xor_code_t *) desc;
+    struct flat_xor_hd_descriptor *xdesc =
+        (struct flat_xor_hd_descriptor *) desc;
+
+    xor_code_t *xor_desc = (xor_code_t *) xdesc->xor_desc;
     // (*fptr)(xor_desc, data, parity, missing_idxs, destination_idx, blocksize);
 }
 
 static int flat_xor_hd_min_fragments(void *desc,
                                      int *missing_idxs, int *fragments_needed)
 {
-    xor_code_t *xor_desc = (xor_code_t *) desc;
+    struct flat_xor_hd_descriptor *xdesc =
+        (struct flat_xor_hd_descriptor *) desc;
+
+    xor_code_t *xor_desc = (xor_code_t *) xdesc->xor_desc;
     xor_desc->fragments_needed(xor_desc, missing_idxs, fragments_needed);
 }
 
@@ -124,7 +136,8 @@ static void * flat_xor_hd_init(struct ec_backend_args *args, void *sohandle)
 
 static int flat_xor_hd_exit(void *desc)
 {
-    struct flat_xor_hd_descriptor *bdesc = (struct flat_xor_hd_descriptor *) desc;
+    struct flat_xor_hd_descriptor *bdesc =
+        (struct flat_xor_hd_descriptor *) desc;
 
     free (bdesc->xor_desc);
     free (bdesc);
