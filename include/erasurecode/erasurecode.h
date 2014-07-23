@@ -94,7 +94,9 @@ struct ec_args {
 /* liberasurecode frontend API functions */
 
 /**
- * Returns a list of supported EC backend names
+ * Returns a list of EC backends implemented/enabled - the user should always
+ * rely on the return from this function as this set of backends can be
+ * different from the names listed in ec_backend_names above.
  */
 void liberasurecode_supported_backends(char **backend_names);
 
@@ -111,7 +113,9 @@ void liberasurecode_supported_backends(char **backend_names);
  *          inline_checksum - 
  *          algsig_checksum -
  *        backend-specific arguments
+ *          null_args - arguments for the null backend
  *          flat_xor_hd_args - arguments for the xor_hd backend
+ *          jerasure_args - arguments for the Jerasure backend
  *      
  * @returns liberasurecode instance descriptor (int > 0)
  */

@@ -219,6 +219,7 @@ int liberasurecode_backend_close(ec_backend_t instance)
  *          inline_checksum - 
  *          algsig_checksum -
  *        backend-specific arguments
+ *          null_args - arguments for the null backend
  *          flat_xor_hd_args - arguments for the xor_hd backend
  *          jerasure_args - arguments for the Jerasure backend
  *      
