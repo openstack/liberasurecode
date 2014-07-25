@@ -81,6 +81,7 @@ int prepare_fragments_for_encode(ec_backend_t instance,
         }
 
         encoded_parity[i] = get_data_ptr_from_fragment(fragment);
+        set_orig_data_size(fragment, orig_data_size);
         set_fragment_payload_size(fragment, bsize);
     }
 

@@ -49,6 +49,36 @@ char *create_buffer(int size, int fill)
     return buf;
 }
 
+static int create_frags_array(char ***array, 
+                              char **data,
+                              int data_size,
+                              char **parity,
+                              int parity_size)
+{
+    int num_frags = 0;
+    *array = malloc((data_size + parity_size) * sizeof(char *));
+    if (array == NULL) {
+        num_frags = -1;
+        goto out;
+    }
+    //add data frags
+    int i = 0;
+    char **ptr = *array;
+    for (i = 0; i < data_size; i++)
+    {
+        *ptr++ = data[i]; 
+        num_frags++;
+    }
+    //add parity frags
+    for (i = 0; i < parity_size; i++)
+    {
+        *ptr++ = parity[i]; 
+        num_frags++;
+    }
+out:
+    return num_frags;
+}
+
 static int test_liberasurecode_supported_backends(
         const char *backend,
         struct ec_args *args)
@@ -78,6 +108,7 @@ static int test_simple_encode_decode(
     char *orig_data = NULL;
     char **encoded_data = NULL, **encoded_parity = NULL;
     uint64_t encoded_fragment_len = 0;
+    int num_fragments = args-> k + args->m;
 
     uint64_t decoded_data_len = 0;
     char *decoded_data = NULL;
@@ -100,8 +131,16 @@ static int test_simple_encode_decode(
             &encoded_data, &encoded_parity, &encoded_fragment_len);
     assert(0 == rc);
 
-    rc = liberasurecode_decode(desc, encoded_data,
-            10, encoded_fragment_len, &decoded_data, &decoded_data_len);
+    char **avail_frags = NULL;
+    int num_avail_frags = create_frags_array(&avail_frags,
+                          encoded_data, args->k, encoded_parity, args->m);
+    if (num_avail_frags == -1) {
+        rc = -ENOMEM;
+        goto out;
+    }
+
+    rc = liberasurecode_decode(desc, avail_frags,
+            num_avail_frags, encoded_fragment_len, &decoded_data, &decoded_data_len);
     assert(0 == rc);
     assert(decoded_data_len == orig_data_size);
     assert(memcmp(decoded_data, orig_data, orig_data_size) == 0);
@@ -112,6 +151,15 @@ static int test_simple_encode_decode(
     free(orig_data);
 
 out:
+    if (avail_frags != NULL)
+    {
+        int idx = 0;
+        for (idx = 0; idx < num_fragments; idx++) 
+        {
+            free(avail_frags[idx]);
+        }
+        free(avail_frags);
+    }
     return rc;
 }
 
@@ -207,4 +255,3 @@ int main(int argc, char **argv)
 
     return 0;
 }
-
