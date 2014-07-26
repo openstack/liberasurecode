@@ -33,18 +33,6 @@
 #include "erasurecode_preprocessing.h"
 #include "erasurecode_stdinc.h"
 
-/* =*=~==~=*=~==~=*=~= liberasurecode init/exit routines =~=*=~==~=*=~==~=*= */
-
-void __attribute__ ((constructor))
-liberasurecode_init(void) {
-    openlog("liberasurecode", LOG_PID | LOG_CONS, LOG_USER);
-}
-
-void __attribute__ ((destructor))
-liberasurecode_exit(void) {
-    closelog();
-}
-
 /* =~=*=~==~=*=~==~=*=~= Supported EC backends =~=*=~==~=*=~==~=*=~==~=*=~== */
 
 /* EC backend references */
@@ -53,19 +41,24 @@ extern struct ec_backend_common backend_flat_xor_hd;
 extern struct ec_backend_common backend_jerasure_rs_vand;
 extern struct ec_backend_common backend_jerasure_rs_cauchy;
 
-ec_backend_t ec_backends_supported[EC_BACKENDS_MAX] = {
+ec_backend_t ec_backends_supported[] = {
     (ec_backend_t) &backend_null,
     (ec_backend_t) &backend_jerasure_rs_vand,
     (ec_backend_t) &backend_jerasure_rs_cauchy,
     (ec_backend_t) &backend_flat_xor_hd,
+    NULL,
 };
+
+/* backend list to return to the caller */
+int num_supported_backends = 0;
+char *ec_backends_supported_str[EC_BACKENDS_MAX];
 
 /* Get EC backend by name */
 ec_backend_t liberasurecode_backend_lookup_by_name(const char *name)
 {
     int b = 0;
 
-    for (b = 0; b < EC_BACKENDS_MAX; ++b) {
+    for (b = 0; ec_backends_supported[b]; ++b) {
         if (!strcmp(ec_backends_supported[b]->common.name, name))
             return ec_backends_supported[b];
     }
@@ -78,7 +71,7 @@ ec_backend_id_t liberasurecode_backend_lookup_id(const char *name)
 {
     int b = 0;
 
-    for (b = 0; b < EC_BACKENDS_MAX; ++b) {
+    for (b = 0; ec_backends_supported[b]; ++b) {
         ec_backend_t backend = ec_backends_supported[b];
         if (backend && !strcmp(backend->common.name, name))
             return backend->common.id;
@@ -122,7 +115,7 @@ ec_backend_t liberasurecode_backend_instance_get_by_desc(int desc)
 int liberasurecode_backend_alloc_desc(void)
 {
     for (;;) {
-       if (++next_backend_desc <= 0)
+        if (++next_backend_desc <= 0)
             next_backend_desc = 1;
         if (!liberasurecode_backend_instance_get_by_desc(next_backend_desc))
             return next_backend_desc;
@@ -205,7 +198,42 @@ int liberasurecode_backend_close(ec_backend_t instance)
     return 0;
 }
 
+/* =*=~==~=*=~==~=*=~= liberasurecode init/exit routines =~=*=~==~=*=~==~=*= */
+
+void __attribute__ ((constructor))
+liberasurecode_init(void) {
+    /* init logging */
+    openlog("liberasurecode", LOG_PID | LOG_CONS, LOG_USER);
+    
+    /* populate supported backends list as a string */
+    {
+        int i;
+        for (i = 0; ec_backends_supported[i]; ++i) {
+            ec_backends_supported_str[i] = strdup(
+                    ec_backends_supported[i]->common.name);
+        }
+        num_supported_backends = i;
+    }
+}
+
+void __attribute__ ((destructor))
+liberasurecode_exit(void) {
+    int i;
+    for (i = 0; i < num_supported_backends; ++i)
+        free(ec_backends_supported_str[i]);
+    closelog();
+}
+
 /* =~=*=~==~=*=~= liberasurecode frontend API implementation =~=*=~==~=*=~== */
+
+/**
+ * Returns a list of EC backends implemented/enabled
+ */
+const char ** liberasurecode_supported_backends(int *num_backends)
+{
+    *num_backends = num_supported_backends;
+    return (const char **) ec_backends_supported_str;
+}
 
 /**
  * Create a liberasurecode instance and return a descriptor 
@@ -389,7 +417,7 @@ out:
 int liberasurecode_decode(int desc,
         char **available_fragments,                     /* input */
         int num_fragments, uint64_t fragment_len,       /* input */
-        char **out_data, uint64_t *out_data_len)         /* output */
+        char **out_data, uint64_t *out_data_len)        /* output */
 {
     int i, j;
     int ret = 0;

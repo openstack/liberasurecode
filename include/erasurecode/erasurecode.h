@@ -94,11 +94,16 @@ struct ec_args {
 /* liberasurecode frontend API functions */
 
 /**
- * Returns a list of EC backends implemented/enabled - the user should always
- * rely on the return from this function as this set of backends can be
- * different from the names listed in ec_backend_names above.
+ * Returns a list of EC backends implemented/enabled - the user
+ * should always rely on the return from this function as this
+ * set of backends can be different from the names listed in
+ * ec_backend_names above.
+ *
+ * @param num_backends - pointer to return number of backends in
+ *
+ * @returns 
  */
-void liberasurecode_supported_backends(char **backend_names);
+const char ** liberasurecode_supported_backends(int *num_backends);
 
 /**
  * Create a liberasurecode instance and return a descriptor 
@@ -161,6 +166,10 @@ int liberasurecode_encode(int desc,
  * @param fragment_len - length of each fragment (assume they are the same)
  * @param out_data - _output_ pointer to decoded data
  * @param out_data_len - _output_ length of decoded output
+ *          (both output data pointers are allocated by liberasurecode,
+ *           caller invokes liberasurecode_decode_clean() after it has
+ *           read decoded data in 'out_data')
+ *
  * @return 0 on success, -error code otherwise
  */
 int liberasurecode_decode(int desc,
@@ -178,6 +187,7 @@ int liberasurecode_decode(int desc,
  * @param num_fragments - number of fragments being passed in
  * @param destination_idx - missing idx to reconstruct
  * @param out_fragment - output of reconstruct
+ *
  * @return 0 on success, -error code otherwise
  */
 int liberasurecode_reconstruct_fragment(int desc,
