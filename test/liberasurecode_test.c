@@ -31,7 +31,8 @@
 
 #include "erasurecode.h"
 
-typedef int (*TEST_FUNC)(const char *, struct ec_args *);
+// typedef int (*TEST_FUNC)(const char *, struct ec_args *);
+typedef int (*TEST_FUNC)();
 
 struct testcase {
     const char *description;
@@ -79,11 +80,14 @@ out:
     return num_frags;
 }
 
-static int test_liberasurecode_supported_backends(
-        const char *backend,
-        struct ec_args *args)
+static int test_liberasurecode_supported_backends()
 {
-    //EDL skipping for now since this function is not implemented.
+    int i, num_backends;
+    const char **supported_ec_backends =
+        liberasurecode_supported_backends(&num_backends);
+
+    for (i = 0; i < num_backends; i++)
+        printf("%s\n", supported_ec_backends[i]);
 }
 
 static int test_create_and_destroy_backend(
@@ -191,7 +195,7 @@ struct testcase testcases[] = {
     {"liberasurecode_supported_backends",
         test_liberasurecode_supported_backends,
         NULL, NULL,
-        .skip = true},
+        .skip = false},
     {"create_and_destroy_backend",
         test_create_and_destroy_backend,
         "null", &null_args,
