@@ -118,6 +118,7 @@ void init_fragment_header(char *buf)
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
 void *alloc_zeroed_buffer(int size);
+void *alloc_and_set_buffer(int size, int value);
 void *check_and_free_buffer(void *buf);
 char *alloc_fragment_buffer(int size);
 int free_fragment_buffer(char *buf);

@@ -65,6 +65,18 @@ void *get_aligned_buffer16(int size)
  */
 void * alloc_zeroed_buffer(int size)
 {
+    return alloc_and_set_buffer(size, 0);
+}
+
+/**
+ * Allocate a buffer of a specific size and set its' contents
+ * to the specified value.
+ *
+ * @param size integer size in bytes of buffer to allocate
+ * @param value
+ * @return pointer to start of allocated buffer or NULL on error
+ */
+void * alloc_and_set_buffer(int size, int value) {
     void * buf = NULL;  /* buffer to allocate and return */
   
     /* Allocate and zero the buffer, or set the appropriate error */
