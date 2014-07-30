@@ -52,7 +52,7 @@ void *get_aligned_buffer16(int size)
         return NULL;
     }
 
-    bzero(buf, size);
+    memset(buf, 0, size);
 
     return buf;
 }
@@ -82,7 +82,7 @@ void * alloc_and_set_buffer(int size, int value) {
     /* Allocate and zero the buffer, or set the appropriate error */
     buf = malloc((size_t) size);
     if (buf) {
-        buf = memset(buf, 0, (size_t) size);
+        buf = memset(buf, value, (size_t) size);
     }
     return buf;
 }
@@ -198,6 +198,22 @@ char *get_data_ptr_from_fragment(char *buf)
     buf += sizeof(fragment_header_t);
 
     return buf;
+}
+
+int get_data_ptr_array_from_fragments(char **data_array, char **fragments,
+                                      int num_fragments)
+{
+    int i = 0, num = 0;
+    for (i = 0; i < num_fragments; i++) {
+        char *frag = fragments[i];
+        if (frag == NULL) {
+            data_array[i] = NULL;
+            continue;
+        }
+        data_array[i] = get_data_ptr_from_fragment(frag);
+        num++;
+    }
+    return num;
 }
 
 char *get_fragment_ptr_from_data_novalidate(char *buf)
