@@ -28,10 +28,8 @@
 
 #include <assert.h>
 #include <stdbool.h>
-
 #include "erasurecode.h"
 
-// typedef int (*TEST_FUNC)(const char *, struct ec_args *);
 typedef int (*TEST_FUNC)();
 
 struct testcase {
@@ -50,14 +48,29 @@ char *create_buffer(int size, int fill)
     return buf;
 }
 
+int *create_skips_array(struct ec_args *args, int skip)
+{
+    int num = args->k + args->m;
+    int *buf = malloc(sizeof(int) * num);
+    if (buf != NULL)
+    {
+        memset(buf, 0, num);
+        if (skip >= 0 && skip < num)
+        {
+            buf[skip] = 1;
+        }
+    }
+    return buf;
+}
+
 static int create_frags_array(char ***array, 
                               char **data,
-                              int data_size,
                               char **parity,
-                              int parity_size)
+                              struct ec_args *args,
+                              int *skips)
 {
     int num_frags = 0;
-    *array = malloc((data_size + parity_size) * sizeof(char *));
+    *array = malloc((args->k + args->m) * sizeof(char *));
     if (array == NULL) {
         num_frags = -1;
         goto out;
@@ -65,14 +78,22 @@ static int create_frags_array(char ***array,
     //add data frags
     int i = 0;
     char **ptr = *array;
-    for (i = 0; i < data_size; i++)
+    for (i = 0; i < args->k; i++)
     {
+        if (data[i] == NULL || skips[i] == 1)
+        {
+            continue;
+        }
         *ptr++ = data[i]; 
         num_frags++;
     }
     //add parity frags
-    for (i = 0; i < parity_size; i++)
+    for (i = 0; i < args->m; i++)
     {
+        if (parity[i] == NULL || skips[i + args->k] == 1)
+        {
+            continue;
+        }
         *ptr++ = parity[i]; 
         num_frags++;
     }
@@ -101,9 +122,9 @@ static int test_create_and_destroy_backend(
     return 0;
 }
 
-static int test_simple_encode_decode(
-        const char *backend,
-        struct ec_args *args)
+static int encode_decode_test_impl(const char *backend,
+                                   struct ec_args *args,
+                                   int *skip)
 {
     int rc = 0;
     int desc = -1;
@@ -130,14 +151,13 @@ static int test_simple_encode_decode(
         rc = -ENOMEM;
         goto out;
     }
-
     rc = liberasurecode_encode(desc, orig_data, orig_data_size,
             &encoded_data, &encoded_parity, &encoded_fragment_len);
     assert(0 == rc);
 
     char **avail_frags = NULL;
-    int num_avail_frags = create_frags_array(&avail_frags,
-                          encoded_data, args->k, encoded_parity, args->m);
+    int num_avail_frags = create_frags_array(&avail_frags, encoded_data,
+                                             encoded_parity, args, skip);
     if (num_avail_frags == -1) {
         rc = -ENOMEM;
         goto out;
@@ -151,19 +171,56 @@ static int test_simple_encode_decode(
 
     if (desc)
         liberasurecode_instance_destroy(desc);
-
-    free(orig_data);
-
 out:
+    free(orig_data);
     if (avail_frags != NULL)
     {
         int idx = 0;
-        for (idx = 0; idx < num_fragments; idx++) 
+        for (idx = 0; idx < num_avail_frags; idx++) 
         {
             free(avail_frags[idx]);
         }
         free(avail_frags);
     }
+    return rc;
+}
+
+static int test_decode_with_missing_data(const char *backend,
+                                         struct ec_args *args)
+{
+    int *skip = create_skips_array(args,0);
+    if (skip == NULL) 
+    {
+        return -ENOMEM;
+    }
+    int rc = encode_decode_test_impl(backend, args, skip);
+    free(skip);
+    return rc;
+}
+
+static int test_decode_with_missing_parity(const char *backend,
+                                           struct ec_args *args)
+{
+    int *skip = create_skips_array(args,args->k);
+    if (skip == NULL) 
+    {
+        return -ENOMEM;
+    }
+    int rc = encode_decode_test_impl(backend, args, skip);
+    free(skip);
+    return rc;
+}
+
+static int test_simple_encode_decode(const char *backend,
+                                     struct ec_args *args)
+{
+    int *skip = create_skips_array(args,-1);
+    if (skip == NULL) 
+    {
+        return -ENOMEM;
+    }
+    int rc = encode_decode_test_impl(backend, args, skip);
+    free(skip);
     return rc;
 }
 
@@ -218,6 +275,14 @@ struct testcase testcases[] = {
         .skip = true},
     {"simple_encode_flat_xor_hd",
         test_simple_encode_decode,
+        "flat_xor_hd", &flat_xor_hd_args,
+        .skip = false},
+    {"decode_with_missing_data",
+        test_decode_with_missing_data,
+        "flat_xor_hd", &flat_xor_hd_args,
+        .skip = false},
+    {"decode_with_missing_parity",
+        test_decode_with_missing_parity,
         "flat_xor_hd", &flat_xor_hd_args,
         .skip = false},
     {"simple_encode_jerasure_rs_vand",
