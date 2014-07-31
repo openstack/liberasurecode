@@ -6,7 +6,7 @@ AC_PREREQ([2.61])
 AM_INIT_AUTOMAKE([subdir-objects])
 LT_INIT # libtool
 
-AC_CONFIG_HEADER(include/config.h)
+AC_CONFIG_HEADER(include/config_liberasurecode.h)
 
 dnl Needed when reconfiguring with 'autoreconf -i -s'
 AC_CONFIG_MACRO_DIR([m4])
