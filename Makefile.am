@@ -25,7 +25,8 @@ include_HEADERS = \
 	include/erasurecode/erasurecode_version.h \
 	include/erasurecode/list.h \
 	include/xor_codes/xor_hd_code_defs.h \
-	include/xor_codes/xor_code.h
+	include/xor_codes/xor_code.h \
+  include/config_liberasurecode.h
 
 test: check
 	@./test/alg_sig_test
