@@ -428,6 +428,8 @@ int liberasurecode_decode(int desc,
     int blocksize = 0;
     char **data = NULL;
     char **parity = NULL;
+    char **data_segments = NULL;
+    char **parity_segments = NULL;
     int *missing_idxs = NULL;
 
     uint64_t realloc_bm = 0;
@@ -492,9 +494,6 @@ int liberasurecode_decode(int desc,
      * back a bitmap telling us which buffers need to be freed by us
      * (realloc_bm).
      *
-     * This also returns data/parity as fragment payloads (the header is not
-     * included).  The pointers need to be asjusted after decode to include
-     * the headers.
      */
     ret = prepare_fragments_for_decode(k, m,
                                        data, parity, missing_idxs, 
@@ -505,9 +504,15 @@ int liberasurecode_decode(int desc,
         goto out;
     }
 
+    data_segments = alloc_zeroed_buffer(k * sizeof(char *));
+    parity_segments = alloc_zeroed_buffer(m * sizeof(char *));
+    get_data_ptr_array_from_fragments(data_segments, data, k);
+    get_data_ptr_array_from_fragments(parity_segments, parity, m);
+
     /* call the backend decode function passing it desc instance */
     ret = instance->common.ops->decode(instance->desc.backend_desc,
-                                       data, parity, missing_idxs, blocksize);
+                                       data_segments, parity_segments,
+                                       missing_idxs, blocksize);
     
     if (ret < 0) {
         log_error("Encountered error in backend decode function!");
@@ -523,16 +528,11 @@ int liberasurecode_decode(int desc,
         int missing_idx = missing_idxs[j]; 
         if (missing_idx < k) {
             /* Generate headers */
-            char *fragment_ptr = 
-                get_fragment_ptr_from_data_novalidate(data[missing_idx]);
-
+            char *fragment_ptr = data[j];
             init_fragment_header(fragment_ptr);
             set_fragment_idx(fragment_ptr, missing_idx);
             set_orig_data_size(fragment_ptr, orig_data_size);
             set_fragment_payload_size(fragment_ptr, blocksize);
-
-            /* Swap it! */
-            data[missing_idx] = fragment_ptr;
         }
         j++;
     }
@@ -549,26 +549,22 @@ out:
     if (realloc_bm != 0) {
         for (i = 0; i < k; i++) {
             if (realloc_bm & (1 << i)) {
-                free(get_fragment_ptr_from_data_novalidate(data[i]));
+                free(data[i]);
             }
         }
 
         for (i = 0; i < m; i++) {
             if (realloc_bm & (1 << (i + k))) {
-                free(get_fragment_ptr_from_data_novalidate(parity[i]));
+                free(parity[i]);
             }
         }
     }
 
-    if (NULL != data) {
-        free(data);
-    }
-    if (NULL != parity) {
-        free(parity);
-    }
-    if (NULL != missing_idxs) {
-        free(missing_idxs);
-    }
+    free(data);
+    free(parity);
+    free(missing_idxs);
+    free(data_segments);
+    free(parity_segments);
 
     return ret;
 }
@@ -603,6 +599,8 @@ int liberasurecode_reconstruct_fragment(int desc,
     int i;
     int j;
     uint64_t realloc_bm = 0;
+    char **data_segments = NULL;
+    char **parity_segments = NULL;
 
     ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
     if (NULL == instance) {
@@ -650,19 +648,23 @@ int liberasurecode_reconstruct_fragment(int desc,
      * were passed in available_fragments.  It passes back a bitmap telling us which buffers need to
      * be freed by us (realloc_bm).
      *
-     * This also returns data/parity as fragment payloads (the header is not included).  The pointers
-     * need to be asjusted after reconstruction to include the headers.
      */
     ret = prepare_fragments_for_decode(k, m, data, parity, missing_idxs, &orig_data_size, &blocksize, fragment_len, &realloc_bm);
     if (ret < 0) {
         log_error("Could not prepare fragments for reconstruction!");
         goto out;
     }
+    data_segments = alloc_zeroed_buffer(k * sizeof(char *));
+    parity_segments = alloc_zeroed_buffer(m * sizeof(char *));
+    get_data_ptr_array_from_fragments(data_segments, data, k);
+    get_data_ptr_array_from_fragments(parity_segments, parity, m);
+
 
     /* call the backend reconstruct function passing it desc instance */
     ret = instance->common.ops->reconstruct(instance->desc.backend_desc,
-                                            data, parity, missing_idxs,
-                                            destination_idx, blocksize);
+                                            data_segments, parity_segments,
+                                            missing_idxs, destination_idx,
+                                            blocksize);
 
     /*
      * Update the header to reflect the newly constructed fragment
@@ -689,26 +691,22 @@ out:
     if (realloc_bm != 0) {
         for (i = 0; i < k; i++) {
             if (realloc_bm & (1 << i)) {
-                free(get_fragment_ptr_from_data_novalidate(data[i]));
+                free(data[i]);
             }
         }
 
         for (i = 0; i < m; i++) {
             if (realloc_bm & (1 << (i + k))) {
-                free(get_fragment_ptr_from_data_novalidate(parity[i]));
+                free(parity[i]);
             }
         }
     }
 
-    if (NULL != data) {
-        free(data);
-    }
-    if (NULL != parity) {
-        free(parity);
-    }
-    if (NULL != missing_idxs) {
-        free(missing_idxs);
-    }
+    free(data);
+    free(parity);
+    free(missing_idxs);
+    free(data_segments);
+    free(parity_segments);
 
     return ret;
 }

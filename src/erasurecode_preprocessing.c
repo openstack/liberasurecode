@@ -170,13 +170,6 @@ int prepare_fragments_for_decode(
                 return -1;
             }
        }
-
-        /* Set the data element to the fragment payload */
-        data[i] = get_data_ptr_from_fragment(data[i]);
-        if (data[i] == NULL) {
-            log_error("Invalid data pointer in fragment!");
-            return -1;
-        }
     }
 
     /* Perform the same allocation, alignment checks on the parity fragments */
@@ -199,12 +192,6 @@ int prepare_fragments_for_decode(
             *realloc_bm = *realloc_bm | (1 << (k + i));
         }
 
-        /* Set the parity element to the fragment payload */
-        parity[i] = get_data_ptr_from_fragment(parity[i]);
-        if (parity[i] == NULL) {
-            log_error("Invalid parity pointer in fragment!");
-            return -1;
-        }
     }
 
     *orig_size = orig_data_size;
