@@ -190,12 +190,24 @@ out:
 static int test_decode_with_missing_data(const char *backend,
                                          struct ec_args *args)
 {
-    int *skip = create_skips_array(args,0);
+    int rc = -1;
+    int i;
+    int *skip = create_skips_array(args, -1);
     if (skip == NULL) 
     {
         return -ENOMEM;
     }
-    int rc = encode_decode_test_impl(backend, args, skip);
+    for (i = 0; i < args->k; i++) {
+        skip[i] = 1;
+        rc = encode_decode_test_impl(backend, args, skip);
+        if (rc != 0)
+        {
+            goto out;
+        }
+        skip[i] = 0;
+    }
+    rc = 0;
+out:
     free(skip);
     return rc;
 }
