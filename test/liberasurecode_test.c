@@ -51,14 +51,16 @@ char *create_buffer(int size, int fill)
 int *create_skips_array(struct ec_args *args, int skip)
 {
     int num = args->k + args->m;
-    int *buf = malloc(sizeof(int) * num);
-    if (buf != NULL)
+    size_t array_size = sizeof(int) * num;
+    int *buf = malloc(array_size);
+    if (buf == NULL)
     {
-        memset(buf, 0, num);
-        if (skip >= 0 && skip < num)
-        {
-            buf[skip] = 1;
-        }
+        return NULL;
+    }
+    memset(buf, 0, array_size);
+    if (skip >= 0 && skip < num)
+    {
+        buf[skip] = 1;
     }
     return buf;
 }
