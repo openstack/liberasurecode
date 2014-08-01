@@ -528,7 +528,7 @@ int liberasurecode_decode(int desc,
         int missing_idx = missing_idxs[j]; 
         if (missing_idx < k) {
             /* Generate headers */
-            char *fragment_ptr = data[j];
+            char *fragment_ptr = data[missing_idx];
             init_fragment_header(fragment_ptr);
             set_fragment_idx(fragment_ptr, missing_idx);
             set_orig_data_size(fragment_ptr, orig_data_size);
