@@ -197,7 +197,8 @@ static int test_decode_with_missing_data(const char *backend,
     {
         return -ENOMEM;
     }
-    for (i = 0; i < args->k; i++) {
+    for (i = 0; i < args->k; i++)
+    {
         skip[i] = 1;
         rc = encode_decode_test_impl(backend, args, skip);
         if (rc != 0)
@@ -215,12 +216,65 @@ out:
 static int test_decode_with_missing_parity(const char *backend,
                                            struct ec_args *args)
 {
+    int rc = -1;
+    int i;
     int *skip = create_skips_array(args,args->k);
     if (skip == NULL) 
     {
         return -ENOMEM;
     }
-    int rc = encode_decode_test_impl(backend, args, skip);
+    for (i = args->k; i < args->m; i++)
+    {
+        skip[i] = 1;
+        rc = encode_decode_test_impl(backend, args, skip);
+        if (rc != 0)
+        {
+            goto out;
+        }
+        skip[i] = 0;
+    }
+    rc = 0;
+out:
+    free(skip);
+    return rc;
+}
+
+static int test_decode_with_missing_multi_data(const char *backend,
+                                               struct ec_args *args)
+{
+    int rc = -1;
+    int i;
+    int *skip = create_skips_array(args,0);
+    int missing = 3; //Flat XOR can handle at most 3 missing data chunks
+    if (skip == NULL) 
+    {
+        return -ENOMEM;
+    }
+    for (i = 0; i < missing; i++)
+    {
+        skip[i]=1;
+    }
+    rc = encode_decode_test_impl(backend, args, skip);
+    free(skip);
+    return rc;
+}
+
+static int test_decode_with_missing_multi_parity(const char *backend,
+                                                 struct ec_args *args)
+{
+    int rc = -1;
+    int i;
+    int *skip = create_skips_array(args,0);
+    int missing = 3; //Flat XOR can handle at most 3 missing parity chunks
+    if (skip == NULL) 
+    {
+        return -ENOMEM;
+    }
+    for (i = args->k; i < missing; i++)
+    {
+        skip[i]=1;
+    }
+    rc = encode_decode_test_impl(backend, args, skip);
     free(skip);
     return rc;
 }
@@ -283,6 +337,7 @@ struct testcase testcases[] = {
         test_create_and_destroy_backend,
         "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
         .skip = false},
+    // Flat XOR tests
     {"simple_encode_flat_xor_hd",
         test_simple_encode_decode,
         "null", &null_args,
@@ -299,12 +354,46 @@ struct testcase testcases[] = {
         test_decode_with_missing_parity,
         "flat_xor_hd", &flat_xor_hd_args,
         .skip = false},
+    {"decode_with_missing_multi_data",
+        test_decode_with_missing_multi_data,
+        "flat_xor_hd", &flat_xor_hd_args,
+        .skip = false},
+    {"decode_with_missing_multi_parity",
+        test_decode_with_missing_multi_parity,
+        "flat_xor_hd", &flat_xor_hd_args,
+        .skip = false},
+    // Jerasure RS Vand tests
     {"simple_encode_jerasure_rs_vand",
         test_simple_encode_decode,
         "jerasure_rs_vand", &jerasure_rs_vand_args,
         .skip = false},
-    {"simple_encode_jerasure_rs_cauchy",
+    {"decode_with_missing_data_jerasure_rs_vand",
+        test_decode_with_missing_data,
+        "jerasure_rs_vand", &jerasure_rs_vand_args,
+        .skip = false},
+    {"decode_with_missing_multi_data_jerasure_rs_vand",
+        test_decode_with_missing_multi_data,
+        "jerasure_rs_vand", &jerasure_rs_vand_args,
+        .skip = false},
+    {"decode_with_missing_multi_parity_jerasure_rs_vand",
+        test_decode_with_missing_multi_parity,
+        "jerasure_rs_vand", &jerasure_rs_vand_args,
+        .skip = false},
+    // Jerasure RS Cauchy tests
+    {"simple_encode_jerasureFlat XOR tests_rs_cauchy",
         test_simple_encode_decode,
+        "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
+        .skip = false},
+    {"decode_with_missing_data_jerasureFlat XOR tests_rs_cauchy",
+        test_decode_with_missing_data,
+        "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
+        .skip = false},
+    {"decode_with_missing_multi_data_jerasureFlat XOR tests_rs_cauchy",
+        test_decode_with_missing_multi_data,
+        "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
+        .skip = false},
+    {"decode_with_missing_multi_parity_jerasureFlat XOR tests_rs_cauchy",
+        test_decode_with_missing_multi_parity,
         "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
         .skip = false},
     { NULL, NULL, NULL, NULL, false },
