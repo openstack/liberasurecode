@@ -30,7 +30,7 @@
 #include <stdbool.h>
 #include "erasurecode.h"
 
-typedef int (*TEST_FUNC)();
+typedef void (*TEST_FUNC)();
 
 struct testcase {
     const char *description;
@@ -103,7 +103,7 @@ out:
     return num_frags;
 }
 
-static int test_liberasurecode_supported_backends()
+static void test_liberasurecode_supported_backends()
 {
     int i, num_backends;
     const char **supported_ec_backends =
@@ -113,7 +113,7 @@ static int test_liberasurecode_supported_backends()
         printf("%s\n", supported_ec_backends[i]);
 }
 
-static int test_create_and_destroy_backend(
+static void test_create_and_destroy_backend(
         const char *backend,
         struct ec_args *args)
 {
@@ -121,38 +121,27 @@ static int test_create_and_destroy_backend(
     assert(desc > 0 || -EBACKENDNOTAVAIL == desc);
     if (desc)
         liberasurecode_instance_destroy(desc);
-    return 0;
 }
 
-static int encode_decode_test_impl(const char *backend,
+static void encode_decode_test_impl(const char *backend,
                                    struct ec_args *args,
                                    int *skip)
 {
     int rc = 0;
     int desc = -1;
-
     int orig_data_size = 1024 * 1024;
     char *orig_data = NULL;
     char **encoded_data = NULL, **encoded_parity = NULL;
     uint64_t encoded_fragment_len = 0;
     int num_fragments = args-> k + args->m;
-
     uint64_t decoded_data_len = 0;
     char *decoded_data = NULL;
         
     desc = liberasurecode_instance_create(backend, args);
     assert(desc > 0 || -EBACKENDNOTAVAIL == desc);
 
-    if (-EBACKENDNOTAVAIL == desc) {
-        fprintf (stderr, "Backend library not available! ");
-        return 0;
-    }
-
     orig_data = create_buffer(orig_data_size, 'x');
-    if (NULL == orig_data) {
-        rc = -ENOMEM;
-        goto out;
-    }
+    assert(orig_data != NULL);
     rc = liberasurecode_encode(desc, orig_data, orig_data_size,
             &encoded_data, &encoded_parity, &encoded_fragment_len);
     assert(0 == rc);
@@ -160,10 +149,7 @@ static int encode_decode_test_impl(const char *backend,
     char **avail_frags = NULL;
     int num_avail_frags = create_frags_array(&avail_frags, encoded_data,
                                              encoded_parity, args, skip);
-    if (num_avail_frags == -1) {
-        rc = -ENOMEM;
-        goto out;
-    }
+    assert(num_avail_frags != -1);
 
     rc = liberasurecode_decode(desc, avail_frags,
             num_avail_frags, encoded_fragment_len, &decoded_data, &decoded_data_len);
@@ -173,7 +159,6 @@ static int encode_decode_test_impl(const char *backend,
 
     if (desc)
         liberasurecode_instance_destroy(desc);
-out:
     free(orig_data);
     if (avail_frags != NULL)
     {
@@ -184,112 +169,123 @@ out:
         }
         free(avail_frags);
     }
-    return rc;
 }
 
-static int test_decode_with_missing_data(const char *backend,
-                                         struct ec_args *args)
+static void reconstruct_test_impl(const char *backend,
+                                 struct ec_args *args,
+                                 int *skip)
 {
-    int rc = -1;
+    int rc = 0;
+    int desc = -1;
+    int orig_data_size = 1024 * 1024;
+    char *orig_data = NULL;
+    char **encoded_data = NULL, **encoded_parity = NULL;
+    uint64_t encoded_fragment_len = 0;
+    int num_fragments = args-> k + args->m;
+    uint64_t decoded_data_len = 0;
+    char *decoded_data = NULL;
+
+    desc = liberasurecode_instance_create(backend, args);
+    assert(desc > 0 || -EBACKENDNOTAVAIL == desc);
+
+    orig_data = create_buffer(orig_data_size, 'x');
+    assert(orig_data != NULL);
+    rc = liberasurecode_encode(desc, orig_data, orig_data_size,
+            &encoded_data, &encoded_parity, &encoded_fragment_len);
+    assert(rc == 0);
+    char **avail_frags = NULL;
+    int num_avail_frags = create_frags_array(&avail_frags, encoded_data,
+                                             encoded_parity, args, skip);
+    int i = 0;
+    char *out = malloc(encoded_fragment_len);
+    assert(out != NULL);
+    for (i = 0; i < num_fragments; i++) {
+        if (skip[i] == 0)
+        {
+            continue;
+        }
+        memset(out, 0, encoded_fragment_len);
+        rc = liberasurecode_reconstruct_fragment(desc, avail_frags, num_avail_frags, encoded_fragment_len, i, out);
+        assert(rc == 0);
+    }
+}
+
+static void test_decode_with_missing_data(const char *backend,
+                                          struct ec_args *args)
+{
     int i;
     int *skip = create_skips_array(args, -1);
-    if (skip == NULL) 
-    {
-        return -ENOMEM;
-    }
+    assert(skip != NULL);
     for (i = 0; i < args->k; i++)
     {
         skip[i] = 1;
-        rc = encode_decode_test_impl(backend, args, skip);
-        if (rc != 0)
-        {
-            goto out;
-        }
+        encode_decode_test_impl(backend, args, skip);
         skip[i] = 0;
     }
-    rc = 0;
-out:
     free(skip);
-    return rc;
 }
 
-static int test_decode_with_missing_parity(const char *backend,
+static void test_decode_with_missing_parity(const char *backend,
                                            struct ec_args *args)
 {
-    int rc = -1;
     int i;
     int *skip = create_skips_array(args,args->k);
-    if (skip == NULL) 
-    {
-        return -ENOMEM;
-    }
+    assert(skip != NULL);
     for (i = args->k; i < args->m; i++)
     {
         skip[i] = 1;
-        rc = encode_decode_test_impl(backend, args, skip);
-        if (rc != 0)
-        {
-            goto out;
-        }
+        encode_decode_test_impl(backend, args, skip);
         skip[i] = 0;
     }
-    rc = 0;
-out:
     free(skip);
-    return rc;
 }
 
-static int test_decode_with_missing_multi_data(const char *backend,
+static void test_decode_with_missing_multi_data(const char *backend,
                                                struct ec_args *args)
 {
-    int rc = -1;
     int i;
-    int *skip = create_skips_array(args,0);
     int missing = 3; //Flat XOR can handle at most 3 missing data chunks
-    if (skip == NULL) 
-    {
-        return -ENOMEM;
-    }
+    int *skip = create_skips_array(args,0);
+    assert(skip != NULL);
     for (i = 0; i < missing; i++)
     {
         skip[i]=1;
     }
-    rc = encode_decode_test_impl(backend, args, skip);
+    encode_decode_test_impl(backend, args, skip);
     free(skip);
-    return rc;
 }
 
-static int test_decode_with_missing_multi_parity(const char *backend,
+static void test_decode_with_missing_multi_parity(const char *backend,
                                                  struct ec_args *args)
 {
-    int rc = -1;
     int i;
-    int *skip = create_skips_array(args,0);
     int missing = 3; //Flat XOR can handle at most 3 missing parity chunks
-    if (skip == NULL) 
-    {
-        return -ENOMEM;
-    }
+    int *skip = create_skips_array(args,0);
+    assert(skip != NULL);
     for (i = args->k; i < missing; i++)
     {
         skip[i]=1;
     }
-    rc = encode_decode_test_impl(backend, args, skip);
+    encode_decode_test_impl(backend, args, skip);
     free(skip);
-    return rc;
 }
 
-static int test_simple_encode_decode(const char *backend,
+static void test_simple_encode_decode(const char *backend,
                                      struct ec_args *args)
 {
     int *skip = create_skips_array(args,-1);
-    if (skip == NULL) 
-    {
-        return -ENOMEM;
-    }
-    int rc = encode_decode_test_impl(backend, args, skip);
+    assert(skip != NULL);
+    encode_decode_test_impl(backend, args, skip);
     free(skip);
-    return rc;
+}
+
+static void test_simple_reconstruct(const char *backend,
+                                     struct ec_args *args)
+{
+    int *skip = create_skips_array(args,-1);
+    assert(skip != NULL);
+    reconstruct_test_impl(backend, args, skip);
+    free(skip);
 }
 
 struct ec_args null_args = {
@@ -346,20 +342,24 @@ struct testcase testcases[] = {
         test_simple_encode_decode,
         "flat_xor_hd", &flat_xor_hd_args,
         .skip = false},
-    {"decode_with_missing_data",
+    {"decode_with_missing_data_flat_xor_hd",
         test_decode_with_missing_data,
         "flat_xor_hd", &flat_xor_hd_args,
         .skip = false},
-    {"decode_with_missing_parity",
+    {"decode_with_missing_parity_flat_xor_hd",
         test_decode_with_missing_parity,
         "flat_xor_hd", &flat_xor_hd_args,
         .skip = false},
-    {"decode_with_missing_multi_data",
+    {"decode_with_missing_multi_data_flat_xor_hd",
         test_decode_with_missing_multi_data,
         "flat_xor_hd", &flat_xor_hd_args,
         .skip = false},
-    {"decode_with_missing_multi_parity",
+    {"decode_with_missing_multi_parity_flat_xor_hd",
         test_decode_with_missing_multi_parity,
+        "flat_xor_hd", &flat_xor_hd_args,
+        .skip = false},
+    {"simple_reconstruct_flat_xor_hd",
+        test_simple_reconstruct,
         "flat_xor_hd", &flat_xor_hd_args,
         .skip = false},
     // Jerasure RS Vand tests
