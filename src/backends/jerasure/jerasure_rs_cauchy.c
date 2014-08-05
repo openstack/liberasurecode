@@ -123,26 +123,28 @@ static int jerasure_rs_cauchy_reconstruct(void *desc, char **data, char **parity
         goto out;
     }
 
-    if (destination_idx < jerasure_desc->k) {
+    erased = jerasure_desc->jerasure_erasures_to_erased(jerasure_desc->k,
+            jerasure_desc->m, missing_idxs);
 
-        erased = jerasure_desc->jerasure_erasures_to_erased(jerasure_desc->k,
-                jerasure_desc->m, missing_idxs);
-
-        ret = jerasure_desc->jerasure_make_decoding_bitmatrix(jerasure_desc->k, jerasure_desc->m, jerasure_desc->w, jerasure_desc->bitmatrix,
+    ret = jerasure_desc->jerasure_make_decoding_bitmatrix(jerasure_desc->k, jerasure_desc->m, 
+                                               jerasure_desc->w, jerasure_desc->bitmatrix,
                                                erased, decoding_matrix, dm_ids);
+
+    if (destination_idx < jerasure_desc->k) {
         decoding_row = decoding_matrix + (destination_idx * jerasure_desc->k * jerasure_desc->w * jerasure_desc->w);
 
     } else {
-        ret = 0;
         decoding_row = jerasure_desc->bitmatrix + ((destination_idx - jerasure_desc->k) * jerasure_desc->k * jerasure_desc->w * jerasure_desc->w);
     }
-      
+   
     if (ret == 0) {
-        jerasure_desc->jerasure_bitmatrix_dotprod(jerasure_desc->k, jerasure_desc->w, decoding_row, dm_ids, destination_idx,
+        jerasure_desc->jerasure_bitmatrix_dotprod(jerasure_desc->k, jerasure_desc->w, 
+                                   decoding_row, dm_ids, destination_idx,
                                    data, parity, blocksize,
                                    PYECC_CAUCHY_PACKETSIZE);
+    } else {
+      goto out;
     }
-
 out:
     if (NULL != decoding_matrix) {
         free(decoding_matrix);
@@ -150,7 +152,7 @@ out:
     if (NULL != dm_ids) {
         free(dm_ids);
     }
-
+    return ret;
 }
 
 /*

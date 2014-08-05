@@ -82,6 +82,8 @@ static int jerasure_rs_vand_decode(void *desc, char **data, char **parity,
     jerasure_desc->jerasure_matrix_decode(jerasure_desc->k,
             jerasure_desc->m, jerasure_desc->w,
             jerasure_desc->matrix, 1, missing_idxs, data, parity, blocksize);
+
+    return 0;
 }
 
 static int jerasure_rs_vand_reconstruct(void *desc, char **data, char **parity,
@@ -101,28 +103,28 @@ static int jerasure_rs_vand_reconstruct(void *desc, char **data, char **parity,
     if (NULL == decoding_matrix || NULL == dm_ids) {
         goto out;
     }
+    erased = jerasure_desc->jerasure_erasures_to_erased(jerasure_desc->k,
+            jerasure_desc->m, missing_idxs);
+
+    ret = jerasure_desc->jerasure_make_decoding_matrix(jerasure_desc->k,
+            jerasure_desc->m, jerasure_desc->w, jerasure_desc->matrix,
+            erased, decoding_matrix, dm_ids);
+    
 
     if (destination_idx < jerasure_desc->k) {
-
-        erased = jerasure_desc->jerasure_erasures_to_erased(jerasure_desc->k,
-                jerasure_desc->m, missing_idxs);
-
-        ret = jerasure_desc->jerasure_make_decoding_matrix(jerasure_desc->k,
-                jerasure_desc->m, jerasure_desc->w, jerasure_desc->matrix,
-                erased, decoding_matrix, dm_ids);
-
         decoding_row = decoding_matrix + (destination_idx * jerasure_desc->k);
 
     } else {
-        ret = 0;
         decoding_row = jerasure_desc->matrix +
             ((destination_idx - jerasure_desc->k) * jerasure_desc->k);
     }
-      
+    
     if (ret == 0) {
         jerasure_desc->jerasure_matrix_dotprod(jerasure_desc->k,
                 jerasure_desc->w, decoding_row, dm_ids, destination_idx,
                 data, parity, blocksize);
+    } else {
+      goto out;
     }
 
 out:
@@ -133,6 +135,7 @@ out:
         free(dm_ids);
     }
 
+    return ret;
 }
 
 static int jerasure_rs_vand_min_fragments(void *desc, int *missing_idxs,
