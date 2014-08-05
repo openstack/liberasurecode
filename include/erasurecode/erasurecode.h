@@ -68,11 +68,9 @@ struct ec_args {
     int k;                  /* number of data fragments */
     int m;                  /* number of parity fragments */
     int w;                  /* word size, in bits (optional) */
+    int hd;                 /* Hamming distance (=m for Reed-Solomon) */
 
     union {
-        struct {
-            int hd;         /* hamming distance (3 or 4) */
-        } flat_xor_hd_args; /* args specific to XOR codes */
         struct {
             uint64_t arg1;  /* sample arg */
         } null_args;        /* args specific to the null codes */

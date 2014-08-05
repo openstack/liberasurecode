@@ -37,8 +37,6 @@ int finalize_fragments_after_encode(ec_backend_t instance,
     int i;
     // int add_checksum = instance->args.uargs.inline_chksum;
     int add_checksum = 1;
-    char *fragment = get_fragment_ptr_from_data(encoded_parity[0]);
-    fragment = get_fragment_ptr_from_data(encoded_parity[1]);
 
     /* finalize data fragments */
     for (i = 0; i < k; i++) {
@@ -64,4 +62,3 @@ int finalize_fragments_after_encode(ec_backend_t instance,
 
     return 0;
 }
-

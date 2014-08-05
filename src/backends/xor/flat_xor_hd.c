@@ -107,7 +107,7 @@ static void * flat_xor_hd_init(struct ec_backend_args *args, void *sohandle)
 {
     int k = args->uargs.k;
     int m = args->uargs.m;
-    int hd = args->uargs.priv_args1.flat_xor_hd_args.hd;
+    int hd = args->uargs.hd;
 
     xor_code_t *xor_desc = NULL;
     struct flat_xor_hd_descriptor *bdesc = NULL;

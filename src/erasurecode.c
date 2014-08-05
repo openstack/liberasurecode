@@ -598,6 +598,8 @@ int liberasurecode_reconstruct_fragment(int desc,
     int m;
     int i;
     int j;
+    int checksum = 0;
+    int add_checksum = 1;
     uint64_t realloc_bm = 0;
     char **data_segments = NULL;
     char **parity_segments = NULL;
@@ -626,7 +628,7 @@ int liberasurecode_reconstruct_fragment(int desc,
         goto out;
     }
     
-    missing_idxs = alloc_and_set_buffer(sizeof(char*) * k, -1);
+    missing_idxs = alloc_and_set_buffer(sizeof(int*) * k, -1);
     if (NULL == missing_idxs) {
         log_error("Could not allocate missing_idxs buffer!");
         goto out;
@@ -665,19 +667,26 @@ int liberasurecode_reconstruct_fragment(int desc,
                                             data_segments, parity_segments,
                                             missing_idxs, destination_idx,
                                             blocksize);
+    if (ret < 0) {
+        log_error("Could not reconstruct fragment!");
+        goto out;
+    }
 
     /*
      * Update the header to reflect the newly constructed fragment
      */
     if (destination_idx < k) {
-        fragment_ptr = get_fragment_ptr_from_data_novalidate(data[destination_idx]);
+        fragment_ptr = data[destination_idx];
+        checksum = crc32(0, data_segments[destination_idx], blocksize);
     } else {
-        fragment_ptr = get_fragment_ptr_from_data_novalidate(parity[destination_idx - k]);
+        fragment_ptr = parity[destination_idx - k];
+        checksum = crc32(0, parity_segments[destination_idx - k], blocksize);
     }
     init_fragment_header(fragment_ptr);
     set_fragment_idx(fragment_ptr, destination_idx);
     set_orig_data_size(fragment_ptr, orig_data_size);
     set_fragment_payload_size(fragment_ptr, blocksize);
+    set_chksum(fragment_ptr, checksum);
 
     /*
      * Copy the reconstructed fragment to the output buffer

@@ -297,7 +297,7 @@ struct ec_args null_args = {
 struct ec_args flat_xor_hd_args = {
     .k = 10,
     .m = 6,
-    .priv_args1.flat_xor_hd_args.hd = 3,
+    .hd = 3,
 };
 
 struct ec_args jerasure_rs_vand_args = {
