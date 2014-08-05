@@ -80,7 +80,9 @@ static int flat_xor_hd_reconstruct(void *desc,
         (struct flat_xor_hd_descriptor *) desc;
 
     xor_code_t *xor_desc = (xor_code_t *) xdesc->xor_desc;
-    // (*fptr)(xor_desc, data, parity, missing_idxs, destination_idx, blocksize);
+    xor_reconstruct_one(xor_desc, data, parity, 
+                          missing_idxs, destination_idx, blocksize);
+    return 0;
 }
 
 static int flat_xor_hd_min_fragments(void *desc,
@@ -91,6 +93,7 @@ static int flat_xor_hd_min_fragments(void *desc,
 
     xor_code_t *xor_desc = (xor_code_t *) xdesc->xor_desc;
     xor_desc->fragments_needed(xor_desc, missing_idxs, fragments_needed);
+    return 0;
 }
 
 /**
