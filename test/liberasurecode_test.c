@@ -204,9 +204,19 @@ static void reconstruct_test_impl(const char *backend,
         {
             continue;
         }
+        char *cmp = NULL;
+        if (i < args->k)
+        {
+            cmp = encoded_data[i];
+        }
+        else
+        {
+            cmp = encoded_parity[i - args->k];
+        }
         memset(out, 0, encoded_fragment_len);
         rc = liberasurecode_reconstruct_fragment(desc, avail_frags, num_avail_frags, encoded_fragment_len, i, out);
         assert(rc == 0);
+        assert(memcmp(out, cmp, encoded_fragment_len) == 0);
     }
 }
 
@@ -282,10 +292,14 @@ static void test_simple_encode_decode(const char *backend,
 static void test_simple_reconstruct(const char *backend,
                                      struct ec_args *args)
 {
-    int *skip = create_skips_array(args,-1);
-    assert(skip != NULL);
-    reconstruct_test_impl(backend, args, skip);
-    free(skip);
+    int i = 0;
+    for (i = 0; i < args->k + args->m; i++)
+    {
+        int *skip = create_skips_array(args,i);
+        assert(skip != NULL);
+        reconstruct_test_impl(backend, args, skip);
+        free(skip);
+    }
 }
 
 struct ec_args null_args = {
@@ -379,6 +393,10 @@ struct testcase testcases[] = {
         test_decode_with_missing_multi_parity,
         "jerasure_rs_vand", &jerasure_rs_vand_args,
         .skip = false},
+    {"simple_reconstruct_jerasure_rs_vand",
+        test_simple_reconstruct,
+        "jerasure_rs_vand", &jerasure_rs_vand_args,
+        .skip = false},
     // Jerasure RS Cauchy tests
     {"simple_encode_jerasureFlat XOR tests_rs_cauchy",
         test_simple_encode_decode,
@@ -394,6 +412,10 @@ struct testcase testcases[] = {
         .skip = false},
     {"decode_with_missing_multi_parity_jerasureFlat XOR tests_rs_cauchy",
         test_decode_with_missing_multi_parity,
+        "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
+        .skip = false},
+    {"simple_reconstruct_jerasureFlat XOR tests_rs_cauch",
+        test_simple_reconstruct,
         "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
         .skip = false},
     { NULL, NULL, NULL, NULL, false },
