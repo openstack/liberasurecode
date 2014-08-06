@@ -118,9 +118,12 @@ static void test_create_and_destroy_backend(
         struct ec_args *args)
 {
     int desc = liberasurecode_instance_create(backend, args);
-    assert(desc > 0 || -EBACKENDNOTAVAIL == desc);
-    if (desc)
-        liberasurecode_instance_destroy(desc);
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf (stderr, "Backend library not available!\n");
+        return;
+    }
+    assert(desc > 0);
+    liberasurecode_instance_destroy(desc);
 }
 
 static void encode_decode_test_impl(const char *backend,
@@ -138,7 +141,11 @@ static void encode_decode_test_impl(const char *backend,
     char *decoded_data = NULL;
         
     desc = liberasurecode_instance_create(backend, args);
-    assert(desc > 0 || -EBACKENDNOTAVAIL == desc);
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf (stderr, "Backend library not available!\n");
+        return;
+    }
+    assert(desc > 0);
 
     orig_data = create_buffer(orig_data_size, 'x');
     assert(orig_data != NULL);
@@ -186,7 +193,11 @@ static void reconstruct_test_impl(const char *backend,
     char *decoded_data = NULL;
 
     desc = liberasurecode_instance_create(backend, args);
-    assert(desc > 0 || -EBACKENDNOTAVAIL == desc);
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf (stderr, "Backend library not available!\n");
+        return;
+    }
+    assert(desc > 0);
 
     orig_data = create_buffer(orig_data_size, 'x');
     assert(orig_data != NULL);
