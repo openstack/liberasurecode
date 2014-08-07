@@ -40,10 +40,10 @@ extern "C" {
 /* =~=*=~==~=*=~==~=*=~= Supported EC backends =~=*=~==~=*=~==~=*=~==~=*=~== */
 
 typedef enum {
-    EC_BACKEND_NULL                     = 0,
-    EC_BACKEND_JERASURE_RS_VAND         = 1,
-    EC_BACKEND_JERASURE_RS_CAUCHY       = 2,
-    EC_BACKEND_FLAT_XOR_HD              = 3,
+    EC_BACKEND_NULL                 = 0,
+    EC_BACKEND_JERASURE_RS_VAND     = 1,
+    EC_BACKEND_JERASURE_RS_CAUCHY   = 2,
+    EC_BACKEND_FLAT_XOR_HD          = 3,
     EC_BACKENDS_MAX,
 } ec_backend_id_t;
 
@@ -58,6 +58,26 @@ static const char *ec_backend_names[EC_BACKENDS_MAX] = {
 };
 #endif // EC_BACKENDS_SUPPORTED
 
+/* ~=*=~==~=*=~= EC Fragment metadata - supported checksum types ~=*=~==~=*=~ */
+
+/* Checksum types supported for fragment metadata stored in each fragment */
+typedef enum {
+    CHKSUM_NONE                     = 0,
+    CHKSUM_CRC32                    = 1,
+    CHKSUM_MD5                      = 2,
+    CHKSUM_TYPES_MAX,
+} ec_checksum_type_t;
+
+#ifndef EC_CHKSUM_TYPES_SUPPORTED
+#define EC_CHKSUM_TYPES_SUPPORTED
+/* Supported EC backends */
+static const char *ec_chksum_types[CHKSUM_TYPES_MAX] = {
+    "none",
+    "crc32",
+    "md5",
+};
+#endif // EC_CHKSUM_TYPES_SUPPORTED
+
 /* =~=*=~==~=*=~== EC Arguments - Common and backend-specific =~=*=~==~=*=~== */
 
 /**
@@ -68,7 +88,7 @@ struct ec_args {
     int k;                  /* number of data fragments */
     int m;                  /* number of parity fragments */
     int w;                  /* word size, in bits (optional) */
-    int hd;                 /* Hamming distance (=m for Reed-Solomon) */
+    int hd;                 /* hamming distance (=m for Reed-Solomon) */
 
     union {
         struct {
@@ -82,9 +102,7 @@ struct ec_args {
 
     void *priv_args2;       /** flexible placeholder for
                               * future backend args */
-
-    int inline_chksum;      /* embedded fragment checksums (yes/no), type */
-    int algsig_chksum;      /* use algorithmic signature checksums */
+    ec_checksum_type_t ct;  /* fragment checksum type */
 };
 
 /* =~=*=~==~=*=~== liberasurecode frontend API functions =~=*=~==~=~=*=~==~= */
@@ -99,9 +117,19 @@ struct ec_args {
  *
  * @param num_backends - pointer to return number of backends in
  *
- * @returns 
+ * @returns list of EC backends implemented
  */
 const char ** liberasurecode_supported_backends(int *num_backends);
+
+/**
+ * Returns a list of checksum types supported for fragment data, stored in
+ * individual fragment headers as part of fragment metadata
+ *
+ * @param num_checksum_types - pointer to return number of checksum types in
+ *
+ * @returns list of checksum types supported for fragment data
+ */
+const char ** liberasurecode_supported_checksum_types(void);
 
 /**
  * Create a liberasurecode instance and return a descriptor 
@@ -113,12 +141,12 @@ const char ** liberasurecode_supported_backends(int *num_backends);
  *        arguments common to all backends
  *          k - number of data fragments
  *          m - number of parity fragments
- *          inline_checksum - 
- *          algsig_checksum -
+ *          w - word size, in bits
+ *          hd - hamming distance (=m for Reed-Solomon)
+ *          ct - fragment checksum type (stored with the fragment metadata)
  *        backend-specific arguments
  *          null_args - arguments for the null backend
- *          flat_xor_hd_args - arguments for the xor_hd backend
- *          jerasure_args - arguments for the Jerasure backend
+ *          flat_xor_hd, jerasure do not require any special args
  *      
  * @returns liberasurecode instance descriptor (int > 0)
  */
@@ -173,16 +201,16 @@ int liberasurecode_encode(int desc,
 int liberasurecode_decode(int desc,
         char **available_fragments,                     /* input */
         int num_fragments, uint64_t fragment_len,       /* input */
-        char **out_data, uint64_t *out_data_len);        /* output */
+        char **out_data, uint64_t *out_data_len);       /* output */
 
 /**
  * Reconstruct a missing fragment from a subset of available fragments
  *
  * @param desc - liberasurecode descriptor/handle
  *        from liberasurecode_instance_create()
- * @param fragment_len - size in bytes of the fragments
  * @param available_fragments - erasure encoded fragments
  * @param num_fragments - number of fragments being passed in
+ * @param fragment_len - size in bytes of the fragments
  * @param destination_idx - missing idx to reconstruct
  * @param out_fragment - output of reconstruct
  *
@@ -202,20 +230,54 @@ int liberasurecode_reconstruct_fragment(int desc,
 int liberasurecode_fragments_needed(int desc,
         int *missing_idxs, int *fragments_needed);
 
+
+/* ==~=*=~==~=*=~== liberasurecode fragment metadata routines ==~*==~=*=~==~ */
+
+#define LIBERASURECODE_MAX_CHECKSUM_LEN 8
+typedef struct __attribute__((__packed__))
+fragment_metadata
+{
+    uint32_t    idx;                /* 4 */
+    uint32_t    size;               /* 4 */
+    uint64_t    orig_data_size;     /* 8 */
+    uint8_t     chksum_type;        /* 1 */
+    uint32_t    chksum[LIBERASURECODE_MAX_CHECKSUM_LEN]; /* 32 */
+    uint8_t     chksum_mismatch;    /* 1 */
+} fragment_metadata_t;
+
+#define FRAGSIZE_2_BLOCKSIZE(fragment_size) \
+    (fragment_size - sizeof(fragment_header_t))
+
 /**
  * Get opaque metadata for a fragment.  The metadata is opaque to the
  * client, but meaningful to the underlying library.  It is used to verify
  * stripes in verify_stripe_metadata().
+ *
+ * @param desc - liberasurecode descriptor/handle
+ *        from liberasurecode_instance_create()
+ * @param fragment - fragment data pointer
+ *
+ * @param fragment_metadata - pointer to output fragment metadata struct
+ *          (reference passed by the user)
  */
-int liberasurecode_get_fragment_metadata(char *fragment, 
-        char **fragment_metadata, int *fragment_metadata_len);
-
+int liberasurecode_get_fragment_metadata(int desc,
+        char *fragment, fragment_metadata_t *fragment_metadata);
 
 /**
  * Verify a subset of fragments generated by encode()
+ *
+ * @param desc - liberasurecode descriptor/handle
+ *        from liberasurecode_instance_create()
+ * @param fragments - fragments part of the EC stripe to verify
+ * @num_fragments - number of fragments part of the EC stripe
+ *
+ * @ returns 1 if stripe checksum verification is successful
+ *           0 otherwise
  */
-int liberasurecode_verify_stripe_metadata(char **fragment_metadata, 
-        int num_fragments, int fragment_metadata_len);
+int liberasurecode_verify_stripe_metadata(int desc,
+        char **fragments, int num_fragments);
+
+/* ==~=*=~===~=*=~==~=*=~== liberasurecode Helpers ==~*==~=*=~==~=~=*=~==~= */
 
 /**
  * This computes the aligned size of a buffer passed into 
@@ -227,11 +289,10 @@ int liberasurecode_verify_stripe_metadata(char **fragment_metadata,
 int liberasurecode_get_aligned_data_size(int desc, uint64_t data_len);
  
 /**
- * This will return the minumum encode size, which is the minimum
+ * This will return the minimum encode size, which is the minimum
  * buffer size that can be encoded.
  */
 int liberasurecode_get_minimum_encode_size(int desc);
-
 
 /* ==~=*=~===~=*=~==~=*=~== liberasurecode Error codes =~=*=~==~=~=*=~==~== */
 

@@ -62,13 +62,6 @@ int prepare_fragments_for_encode(ec_backend_t instance,
             memcpy(encoded_data[i], orig_data, payload_size);
         }
 
-        /* Fragment size will always be the same
-         * (may be able to get rid of this) */
-        set_fragment_payload_size(fragment, bsize);
-
-        /* Original data length */
-        set_orig_data_size(fragment, orig_data_size);
-
         orig_data += payload_size;
         data_len -= payload_size;
     }
@@ -81,8 +74,6 @@ int prepare_fragments_for_encode(ec_backend_t instance,
         }
 
         encoded_parity[i] = get_data_ptr_from_fragment(fragment);
-        set_orig_data_size(fragment, orig_data_size);
-        set_fragment_payload_size(fragment, bsize);
     }
 
 out:

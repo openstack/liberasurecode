@@ -39,20 +39,18 @@
  *
  * Prevent the compiler from padding this by using the __packed__ keyword
  */
+
+#define LIBERASURECODE_FRAG_HEADER_MAGIC    0xb0c5ecc
+#define LIBERASURECODE_MAX_CHECKSUM_LEN     8   /* quad words */
+
 typedef struct __attribute__((__packed__)) fragment_header_s
 {
-    uint32_t magic;
-    uint32_t idx;
-    uint32_t size;
-    uint32_t orig_data_size;
-    // FIXME - reserve 16-bytes for md5
-    uint32_t chksum;
+    fragment_metadata_t meta;   /* 50 bytes */
+    uint32_t            magic;  /*  4 bytes */
     // We must be aligned to 16-byte boundaries
     // So, size this array accordingly
-    uint32_t aligned_padding[3];
+    uint8_t             aligned_padding[10];
 } fragment_header_t;
-
-#define LIBERASURECODE_FRAG_HEADER_MAGIC  0xb0c5ecc
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
@@ -125,7 +123,8 @@ int free_fragment_buffer(char *buf);
 void *get_aligned_buffer16(int size);
 int get_aligned_data_size(ec_backend_t instance, int data_len);
 char *get_data_ptr_from_fragment(char *buf);
-int get_data_ptr_array_from_fragments(char **data_array, char **fragments, int num_fragments);
+int get_data_ptr_array_from_fragments(char **data_array, char **fragments,
+        int num_fragments);
 char *get_fragment_ptr_from_data_novalidate(char *buf);
 char *get_fragment_ptr_from_data(char *buf);
 uint64_t get_fragment_size(char *buf);

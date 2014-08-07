@@ -113,6 +113,16 @@ static void test_liberasurecode_supported_backends()
         printf("%s\n", supported_ec_backends[i]);
 }
 
+static void test_liberasurecode_supported_checksum_types()
+{
+    int i;
+    const char **supported_checksum_types =
+        liberasurecode_supported_checksum_types();
+
+    for (i = 0; i < CHKSUM_TYPES_MAX; i++)
+        printf("%s\n", supported_checksum_types[i]);
+}
+
 static void test_create_and_destroy_backend(
         const char *backend,
         struct ec_args *args)
@@ -367,6 +377,10 @@ struct ec_args jerasure_rs_cauchy_args = {
 struct testcase testcases[] = {
     {"liberasurecode_supported_backends",
         test_liberasurecode_supported_backends,
+        NULL, NULL,
+        .skip = false},
+    {"test_liberasurecode_supported_checksum_types",
+        test_liberasurecode_supported_checksum_types,
         NULL, NULL,
         .skip = false},
     {"create_and_destroy_backend",

@@ -155,7 +155,7 @@ uint64_t get_fragment_size(char *buf)
         return -1;
 
     header = (fragment_header_t *) buf;
-    return (header->size + sizeof(fragment_header_t));
+    return (header->meta.size + sizeof(fragment_header_t));
  }
 
 /**
@@ -251,7 +251,7 @@ int set_fragment_idx(char *buf, int idx)
         return -1;
     }
 
-    header->idx = idx;
+    header->meta.idx = idx;
 
     return 0;
 }
@@ -266,7 +266,7 @@ int get_fragment_idx(char *buf)
         return -1;
     }
 
-    return header->idx;
+    return header->meta.idx;
 }
 
 int set_fragment_payload_size(char *buf, int size)
@@ -279,7 +279,7 @@ int set_fragment_payload_size(char *buf, int size)
         return -1;
     }
 
-    header->size = size;
+    header->meta.size = size;
 
     return 0;
 }
@@ -294,7 +294,7 @@ int get_fragment_payload_size(char *buf)
         return -1;
     }
 
-    return header->size;
+    return header->meta.size;
 }
 
 int set_orig_data_size(char *buf, int orig_data_size)
@@ -307,7 +307,7 @@ int set_orig_data_size(char *buf, int orig_data_size)
         return -1;
     }
 
-    header->orig_data_size = orig_data_size;
+    header->meta.orig_data_size = orig_data_size;
 
     return 0;
 }
@@ -322,7 +322,7 @@ int get_orig_data_size(char *buf)
         return -1;
     }
 
-    return header->orig_data_size;
+    return header->meta.orig_data_size;
 }
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
@@ -341,9 +341,10 @@ int validate_fragment(char *buf)
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
-inline int set_chksum(char *buf, int chksum)
+inline int set_chksum(char *buf, int blocksize)
 {
     fragment_header_t* header = (fragment_header_t*) buf;
+    char *data = get_data_ptr_from_fragment(buf);
 
     assert(NULL != header);
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
@@ -351,22 +352,31 @@ inline int set_chksum(char *buf, int chksum)
         return -1; 
     }
 
-    header->chksum = chksum;
+    switch(header->meta.chksum_type) {
+        case CHKSUM_CRC32:
+            header->meta.chksum[0] = crc32(0, data, blocksize);
+            break;
+        case CHKSUM_MD5:
+            break;
+        case CHKSUM_NONE:
+        default:
+            break;
+    }
     
     return 0;
 }
 
-inline int get_chksum(char *buf)
+inline uint32_t* get_chksum(char *buf)
 {
     fragment_header_t* header = (fragment_header_t*) buf;
 
     assert(NULL != header);
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
         log_error("Invalid fragment header (get chksum)!");
-        return -1;
+        return NULL;
     }
 
-    return header->chksum;
+    return (uint32_t *) header->meta.chksum;
 }
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */

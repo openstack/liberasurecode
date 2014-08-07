@@ -30,33 +30,37 @@
 #include "erasurecode_helpers.h"
 #include "erasurecode_stdinc.h"
 
+void add_fragment_metadata(char *fragment,
+        int idx, uint64_t orig_data_size, int blocksize,
+        int add_chksum)
+{
+    set_fragment_idx(fragment, idx);
+    set_orig_data_size(fragment, orig_data_size);
+    set_fragment_payload_size(fragment, blocksize);
+    if (add_chksum) {
+        set_chksum(fragment, blocksize);
+    }
+}
+
 int finalize_fragments_after_encode(ec_backend_t instance,
-        int k, int m, int blocksize,
+        int k, int m, int blocksize, uint64_t orig_data_size,
         char **encoded_data, char **encoded_parity)
 {
-    int i;
-    // int add_checksum = instance->args.uargs.inline_chksum;
-    int add_checksum = 1;
+    int i, set_chksum = 1;
 
     /* finalize data fragments */
     for (i = 0; i < k; i++) {
         char *fragment = get_fragment_ptr_from_data(encoded_data[i]);
-        set_fragment_idx(fragment, i);
-        if (add_checksum) {
-            int chksum = crc32(0, encoded_data[i], blocksize);
-            set_chksum(fragment, chksum);
-        }
+        add_fragment_metadata(fragment, i, orig_data_size,
+                blocksize, set_chksum);
         encoded_data[i] = fragment;
     }
 
     /* finalize parity fragments */
     for (i = 0; i < m; i++) {
         char *fragment = get_fragment_ptr_from_data(encoded_parity[i]);
-        set_fragment_idx(fragment, i + k);
-        if (add_checksum) {
-            int chksum = crc32(0, encoded_parity[i], blocksize);
-            set_chksum(fragment, chksum);
-        }
+        add_fragment_metadata(fragment, i + k, orig_data_size,
+                blocksize, set_chksum);
         encoded_parity[i] = fragment;
     }
 
