@@ -49,6 +49,25 @@ else
     CFLAGS="-O2 -g -Werror -D_GNU_SOURCE=1"
 fi
 
+AC_ARG_ENABLE([gcov],
+[  --enable-gcov    Turn on code coverage],
+[case "${enableval}" in
+    yes) gcov=true ;;
+    no)  gcov=false ;;
+    *) AC_MSG_ERROR([bad value ${enableval} for --enable-gcov]) ;;
+esac],[gcov=false])
+if test x$gcov = xtrue ; then
+    AC_CHECK_LIB(gcov, main,
+                 [
+                     GCOV_FLAGS="-fprofile-arcs -ftest-coverage"
+                     GCOV_LDFLAGS="-lgcov"
+                 ], [
+                     AC_MSG_ERROR([failed to locate gcov library])
+                 ])
+fi
+AC_SUBST(GCOV_FLAGS)
+AC_SUBST(GCOV_LDFLAGS)
+
 dnl Expand the sources and objects needed to build the library
 AC_SUBST(ac_aux_dir)
 AC_SUBST(OBJECTS)
