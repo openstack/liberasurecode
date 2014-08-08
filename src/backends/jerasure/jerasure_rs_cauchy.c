@@ -176,6 +176,7 @@ static int jerasure_rs_cauchy_min_fragments(void *desc, int *missing_idxs,
         }
         if (j == jerasure_desc->k) {
             ret = 0;
+            fragments_needed[j] = -1;
             break;
         }
     }
