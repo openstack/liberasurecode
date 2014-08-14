@@ -346,6 +346,47 @@ int liberasurecode_instance_destroy(int desc)
 }
 
 /**
+ * Cleanup structures allocated by librasurecode_encode
+ * 
+ * The caller has no context, so cannot safely free memory
+ * allocated by liberasurecode, so it must pass the 
+ * deallocation responsibility back to liberasurecode.
+ *
+ * @param desc - liberasurecode descriptor/handle
+ *        from liberasurecode_instance_create()
+ * @param encoded_data - (char **) array of k data
+ *        fragments (char *), allocated by liberasurecode_encode
+ * @param encoded_parity - (char **) array of m parity
+ *        fragments (char *), allocated by liberasurecode_encode
+ * @return 0 in success; -error otherwise
+ */
+int liberasurecode_encode_cleanup(int desc, char **encoded_data, char **encoded_parity)
+{
+    int i, k, m;
+    ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
+    if (NULL == instance) {
+        return -EBACKENDNOTAVAIL;
+    }
+
+    k = instance->args.uargs.k;
+    m = instance->args.uargs.m;
+
+    for (i = 0; i < k; i++) {
+        free(encoded_data[i]);
+    }
+
+    free(encoded_data);
+    
+    for (i = 0; i < m; i++) {
+        free(encoded_parity[i]);
+    }
+    
+    free(encoded_parity);
+
+    return 0;
+}
+
+/**
  * Erasure encode a data buffer
  *
  * @param desc - liberasurecode descriptor/handle
@@ -416,10 +457,38 @@ int liberasurecode_encode(int desc,
 
     *fragment_len = get_fragment_size((*encoded_data)[0]);
 out:
-    /* FIXME add cleanup API to call when encode() has an error */
-    if (ret)
+    if (ret) {
+        /* Cleanup the allocations we have done */
+        liberasurecode_encode_cleanup(desc, *encoded_data, *encoded_parity);
         log_error("Error in liberasurecode_encode %d", ret);
+    }
     return ret;
+}
+
+/**
+ * Cleanup structures allocated by librasurecode_decode
+ *
+ * The caller has no context, so cannot safely free memory
+ * allocated by liberasurecode, so it must pass the
+ * deallocation responsibility back to liberasurecode.
+ *
+ * @param desc - liberasurecode descriptor/handle
+ *        from liberasurecode_instance_create()
+ * @param data - (char *) buffer of data decoded by 
+ *        librasurecode_decode
+ * @return 0 in success; -error otherwise
+ */
+int liberasurecode_decode_cleanup(int desc, char *data)
+{
+    int i;
+    ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
+    if (NULL == instance) {
+        return -EBACKENDNOTAVAIL;
+    }
+
+    free(data);
+
+    return 0;
 }
 
 /**
@@ -561,7 +630,7 @@ int liberasurecode_decode(int desc,
     ret = fragments_to_string(k, m, data, k, out_data, out_data_len);
 
     if (ret < 0) {
-        log_error("Could not prepare convert decoded fragments to a string!");
+        log_error("Could not convert decoded fragments to a string!");
     }
 
 out:
@@ -695,10 +764,8 @@ int liberasurecode_reconstruct_fragment(int desc,
      */
     if (destination_idx < k) {
         fragment_ptr = data[destination_idx];
-        // checksum = crc32(0, data_segments[destination_idx], blocksize);
     } else {
         fragment_ptr = parity[destination_idx - k];
-        // checksum = crc32(0, parity_segments[destination_idx - k], blocksize);
     }
     init_fragment_header(fragment_ptr);
     add_fragment_metadata(fragment_ptr, destination_idx, orig_data_size, blocksize);

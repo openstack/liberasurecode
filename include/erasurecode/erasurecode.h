@@ -183,6 +183,23 @@ int liberasurecode_encode(int desc,
         uint64_t *fragment_len);                        /* output */
 
 /**
+ * Cleanup structures allocated by librasurecode_encode
+ *
+ * The caller has no context, so cannot safely free memory
+ * allocated by liberasurecode, so it must pass the
+ * deallocation responsibility back to liberasurecode.
+ *
+ * @param desc - liberasurecode descriptor/handle
+ *        from liberasurecode_instance_create()
+ * @param encoded_data - (char **) array of k data
+ *        fragments (char *), allocated by liberasurecode_encode
+ * @param encoded_parity - (char **) array of m parity
+ *        fragments (char *), allocated by liberasurecode_encode
+ * @return 0 in success; -error otherwise
+ */
+int liberasurecode_encode_cleanup(int desc, char **encoded_data, char **encoded_parity);
+
+/**
  * Reconstruct original data from a set of k encoded fragments
  *
  * @param desc - liberasurecode descriptor/handle
@@ -202,6 +219,21 @@ int liberasurecode_decode(int desc,
         char **available_fragments,                     /* input */
         int num_fragments, uint64_t fragment_len,       /* input */
         char **out_data, uint64_t *out_data_len);       /* output */
+
+/**
+ * Cleanup structures allocated by librasurecode_decode
+ *
+ * The caller has no context, so cannot safely free memory
+ * allocated by liberasurecode, so it must pass the
+ * deallocation responsibility back to liberasurecode.
+ *
+ * @param desc - liberasurecode descriptor/handle
+ *        from liberasurecode_instance_create()
+ * @param data - (char *) buffer of data decoded by
+ *        librasurecode_decode
+ * @return 0 in success; -error otherwise
+ */
+int liberasurecode_decode_cleanup(int desc, char *data);
 
 /**
  * Reconstruct a missing fragment from a subset of available fragments
