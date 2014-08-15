@@ -246,12 +246,13 @@ const char ** liberasurecode_supported_backends(int *num_backends)
  * Returns a list of checksum types supported for fragment data, stored in
  * individual fragment headers as part of fragment metadata
  *
- * @param num_checksum_types - pointer to return number of checksum types in
+ * @param num_checksum_types - pointer to int, size of list returned
  *
  * @returns list of checksum types supported for fragment data
  */
-const char ** liberasurecode_supported_checksum_types(void)
+const char ** liberasurecode_supported_checksum_types(int *num_checksum_types)
 {
+    *num_checksum_types = CHKSUM_TYPES_MAX;
     return (const char **) ec_chksum_types;
 }
 
