@@ -131,30 +131,46 @@ int liberasurecode_backend_alloc_desc(void)
  */
 int liberasurecode_backend_instance_register(ec_backend_t instance)
 {
-    int desc = -1;
+    int desc = -1;  /* descriptor to return */
+    int rc = 0;     /* return call value */
 
-    rwlock_wrlock(&active_instances_rwlock);
-    SLIST_INSERT_HEAD(&active_instances, instance, link);
-    desc = liberasurecode_backend_alloc_desc();
-    if (desc <= 0)
-        goto register_out;
-    instance->idesc = desc;
+    rc = rwlock_wrlock(&active_instances_rwlock);
+    if (rc == 0) {
+        SLIST_INSERT_HEAD(&active_instances, instance, link);
+        desc = liberasurecode_backend_alloc_desc();
+        if (desc <= 0)
+            goto register_out;
+        instance->idesc = desc;
+    } else {
+        goto exit;
+    }
 
 register_out:
     rwlock_unlock(&active_instances_rwlock);
+exit:
     return desc;
 }
 
 /**
  * Unregister a backend instance
+ *
+ * @returns 0 on success, non-0 on error
  */
 int liberasurecode_backend_instance_unregister(ec_backend_t instance)
 {
-    rwlock_wrlock(&active_instances_rwlock);
-    SLIST_REMOVE(&active_instances, instance, ec_backend, link);
-    rwlock_unlock(&active_instances_rwlock);
+    int rc = 0;  /* return call value */
+    
+    rc = rwlock_wrlock(&active_instances_rwlock);
+    if (rc == 0) {
+        SLIST_REMOVE(&active_instances, instance, ec_backend, link);
+    }  else {
+        goto exit;
+    }
 
-    return 0;
+register_out:
+    rwlock_unlock(&active_instances_rwlock);
+exit:
+    return rc;
 }
 
 /* =~=*=~==~=*=~== liberasurecode backend API helpers =~=*=~==~=*=~== */
