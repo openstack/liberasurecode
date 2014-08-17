@@ -116,9 +116,11 @@ static void test_liberasurecode_supported_backends()
 static void test_liberasurecode_supported_checksum_types()
 {
     int i;
+    int num_checksum_types;
     const char **supported_checksum_types =
-        liberasurecode_supported_checksum_types();
+        liberasurecode_supported_checksum_types(&num_checksum_types);
 
+    assert(num_checksum_types == CHKSUM_TYPES_MAX);
     for (i = 0; i < CHKSUM_TYPES_MAX; i++)
         printf("%s\n", supported_checksum_types[i]);
 }

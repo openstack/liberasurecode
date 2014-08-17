@@ -115,7 +115,7 @@ struct ec_args {
  * set of backends can be different from the names listed in
  * ec_backend_names above.
  *
- * @param num_backends - pointer to return number of backends in
+ * @param num_backends - pointer to int, size of list returned
  *
  * @returns list of EC backends implemented
  */
@@ -125,11 +125,11 @@ const char ** liberasurecode_supported_backends(int *num_backends);
  * Returns a list of checksum types supported for fragment data, stored in
  * individual fragment headers as part of fragment metadata
  *
- * @param num_checksum_types - pointer to return number of checksum types in
+ * @param num_checksum_types - pointer to int, size of list returned
  *
  * @returns list of checksum types supported for fragment data
  */
-const char ** liberasurecode_supported_checksum_types(void);
+const char ** liberasurecode_supported_checksum_types(int *num_checksum_types);
 
 /**
  * Create a liberasurecode instance and return a descriptor 
