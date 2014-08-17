@@ -258,21 +258,23 @@ int liberasurecode_reconstruct_fragment(int desc,
         char* out_fragment);                            /* output */
 
 /**
- * Determine which fragments are needed to reconstruct some subset
- * of missing fragments.  The two lists passed into the method (missing_idxs,
- * and fragments_needed), must be allocated by the user.
+ * Return a list of lists with valid rebuild indexes given
+ * a list of missing indexes.
  *
- * @param desc - liberasurecode descriptor/handle 
- *        from liberasurecode_instance_create()
- * @param missing_idxs - -1 terminated list of missing indexes
- * @param fragements_needed - integer array of length at least k + 1, on
- *        successful completion, this array will be a -1 terminated list of
- *        required fragment indexes.
+ * @desc: liberasurecode instance descriptor (obtained with
+ *        liberasurecode_instance_create)
+ * @fragments_to_reconstruct list of indexes to reconstruct
+ * @fragments_to_exclude list of indexes to exclude from 
+ *        reconstruction equation
+ * @fragments_needed list of fragments needed to reconstruct
+ *        fragments in fragments_to_reconstruct
  *
  * @return 0 on success, non-zero on error
  */
 int liberasurecode_fragments_needed(int desc,
-        int *missing_idxs, int *fragments_needed);
+        int *fragments_to_reconstruct, 
+        int *fragments_to_exclude,
+        int *fragments_needed);
 
 
 /* ==~=*=~==~=*=~== liberasurecode fragment metadata routines ==~*==~=*=~==~ */

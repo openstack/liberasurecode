@@ -827,12 +827,18 @@ out:
  *
  * @desc: liberasurecode instance descriptor (obtained with
  *        liberasurecode_instance_create)
- * @missing_idx_list: list of indexes of missing elements
+ * @fragments_to_reconstruct list of indexes to reconstruct
+ * @fragments_to_exclude list of indexes to exclude from 
+          reconstruction equation
+ * @fragments_needed list of fragments needed to reconstruct
+          fragments in fragments_to_reconstruct
  *
  * @return a list of lists (bitmaps) of indexes to rebuild data
  *        from (in 'fragments_needed')
  */
-int liberasurecode_fragments_needed(int desc, int *missing_idxs,
+int liberasurecode_fragments_needed(int desc,
+                                    int *fragments_to_reconstruct, 
+                                    int *fragments_to_exclude,
                                     int *fragments_needed)
 {
     int ret = 0;
@@ -845,10 +851,11 @@ int liberasurecode_fragments_needed(int desc, int *missing_idxs,
 
     /* FIXME preprocessing */
 
+    /* FIXME use fragments_to_exclude */
+
     /* call the backend fragments_needed function passing it desc instance */
     ret = instance->common.ops->fragments_needed(
-            instance->desc.backend_desc, missing_idxs, 
-            fragments_needed);
+            instance->desc.backend_desc, fragments_to_reconstruct, fragments_needed);
 
 out_error:
     return ret;
