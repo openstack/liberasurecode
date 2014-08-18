@@ -61,6 +61,8 @@ if test x$gcov = xtrue ; then
                  [
                      GCOV_FLAGS="-fprofile-arcs -ftest-coverage"
                      GCOV_LDFLAGS="-lgcov"
+                     CXXFLAGS=""
+                     CFLAGS=""
                  ], [
                      AC_MSG_ERROR([failed to locate gcov library])
                  ])
