@@ -93,7 +93,7 @@ int next_backend_desc = 0;
 /**
  * Look up a backend instance by descriptor
  *
- * Returns pointer to a registered liberasurecode instance
+ * @returns pointer to a registered liberasurecode instance
  * The caller must hold active_instances_rwlock
  */
 ec_backend_t liberasurecode_backend_instance_get_by_desc(int desc)
@@ -342,10 +342,12 @@ int liberasurecode_instance_create(const char *backend_name,
  */
 int liberasurecode_instance_destroy(int desc)
 {
-    ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
+    ec_backend_t instance = NULL;  /* instance to destroy */
+    int rc = 0;                    /* return code */
 
+    instance = liberasurecode_backend_instance_get_by_desc(desc);
     if (NULL == instance)
-        return 0;
+        return EBACKENDNOTAVAIL;
 
     /* Call private exit() for the backend */
     instance->common.ops->exit(instance->desc.backend_desc);
@@ -354,12 +356,12 @@ int liberasurecode_instance_destroy(int desc)
     liberasurecode_backend_close(instance);
 
     /* Remove instace from registry */
-    liberasurecode_backend_instance_unregister(instance);
+    rc = liberasurecode_backend_instance_unregister(instance);
+    if (rc == 0) {
+        free(instance);
+    }
 
-    /* Cleanup */
-    free(instance);
-
-    return 0;
+    return rc;
 }
 
 /**

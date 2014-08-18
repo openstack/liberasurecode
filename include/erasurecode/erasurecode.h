@@ -117,7 +117,7 @@ struct ec_args {
  *
  * @param num_backends - pointer to int, size of list returned
  *
- * @returns list of EC backends implemented
+ * @return list of EC backends implemented
  */
 const char ** liberasurecode_supported_backends(int *num_backends);
 
@@ -127,7 +127,7 @@ const char ** liberasurecode_supported_backends(int *num_backends);
  *
  * @param num_checksum_types - pointer to int, size of list returned
  *
- * @returns list of checksum types supported for fragment data
+ * @return list of checksum types supported for fragment data
  */
 const char ** liberasurecode_supported_checksum_types(int *num_checksum_types);
 
@@ -148,7 +148,7 @@ const char ** liberasurecode_supported_checksum_types(int *num_checksum_types);
  *          null_args - arguments for the null backend
  *          flat_xor_hd, jerasure do not require any special args
  *      
- * @returns liberasurecode instance descriptor (int > 0)
+ * @return liberasurecode instance descriptor (int > 0)
  */
 int liberasurecode_instance_create(const char *backend_name,
                                    struct ec_args *args);
@@ -156,7 +156,9 @@ int liberasurecode_instance_create(const char *backend_name,
 /**
  * Close a liberasurecode instance
  *
- * @param liberasurecode descriptor to close
+ * @param desc - liberasurecode descriptor to close
+ *
+ * @return 0 on success, otherwise non-zero error code
  */
 int liberasurecode_instance_destroy(int desc);
 
@@ -195,6 +197,7 @@ int liberasurecode_encode(int desc,
  *        fragments (char *), allocated by liberasurecode_encode
  * @param encoded_parity - (char **) array of m parity
  *        fragments (char *), allocated by liberasurecode_encode
+ *
  * @return 0 in success; -error otherwise
  */
 int liberasurecode_encode_cleanup(int desc, char **encoded_data, char **encoded_parity);
@@ -229,16 +232,16 @@ int liberasurecode_decode(int desc,
  *
  * @param desc - liberasurecode descriptor/handle
  *        from liberasurecode_instance_create()
- * @param data - (char *) buffer of data decoded by
- *        librasurecode_decode
- * @return 0 in success; -error otherwise
+ * @param data - (char *) buffer of data decoded by librasurecode_decode
+ *
+ * @return 0 on success; -error otherwise
  */
 int liberasurecode_decode_cleanup(int desc, char *data);
 
 /**
  * Reconstruct a missing fragment from a subset of available fragments
  *
- * @param desc - liberasurecode descriptor/handle
+ * @param desc - liberasurecode descriptor/handle 
  *        from liberasurecode_instance_create()
  * @param available_fragments - erasure encoded fragments
  * @param num_fragments - number of fragments being passed in
@@ -256,8 +259,17 @@ int liberasurecode_reconstruct_fragment(int desc,
 
 /**
  * Determine which fragments are needed to reconstruct some subset
- * of missing fragments.  Returns a list of lists (as bitmaps)
- * of fragments required to reconstruct missing indexes.
+ * of missing fragments.  The two lists passed into the method (missing_idxs,
+ * and fragments_needed), must be allocated by the user.
+ *
+ * @param desc - liberasurecode descriptor/handle 
+ *        from liberasurecode_instance_create()
+ * @param missing_idxs - -1 terminated list of missing indexes
+ * @param fragements_needed - integer array of length at least k + 1, on
+ *        successful completion, this array will be a -1 terminated list of
+ *        required fragment indexes.
+ *
+ * @return 0 on success, non-zero on error
  */
 int liberasurecode_fragments_needed(int desc,
         int *missing_idxs, int *fragments_needed);
@@ -288,9 +300,10 @@ fragment_metadata
  * @param desc - liberasurecode descriptor/handle
  *        from liberasurecode_instance_create()
  * @param fragment - fragment data pointer
+ * @param fragment_metadata - pointer to allocated buffer of size at least
+ *        sizeof(struct fragment_metadata) to hold fragment metadata struct
  *
- * @param fragment_metadata - pointer to output fragment metadata struct
- *          (reference passed by the user)
+ * @return 0 on success, non-zero on error
  */
 int liberasurecode_get_fragment_metadata(int desc,
         char *fragment, fragment_metadata_t *fragment_metadata);
@@ -301,10 +314,9 @@ int liberasurecode_get_fragment_metadata(int desc,
  * @param desc - liberasurecode descriptor/handle
  *        from liberasurecode_instance_create()
  * @param fragments - fragments part of the EC stripe to verify
- * @num_fragments - number of fragments part of the EC stripe
+ * @param num_fragments - number of fragments part of the EC stripe
  *
- * @ returns 1 if stripe checksum verification is successful
- *           0 otherwise
+ * @return 1 if stripe checksum verification is successful, 0 otherwise
  */
 int liberasurecode_verify_stripe_metadata(int desc,
         char **fragments, int num_fragments);
@@ -317,12 +329,23 @@ int liberasurecode_verify_stripe_metadata(int desc,
  * to be algined with the word size (w) and the last fragment also
  * needs to be aligned.  This computes the sum of the algined fragment
  * sizes for a given buffer to encode.
+ *
+ * @param desc - liberasurecode descriptor/handle
+ *        from liberasurecode_instance_create()
+ * @param data_len - original data length in bytes
+ *
+ * @return aligned length, or -error code on error
  */
 int liberasurecode_get_aligned_data_size(int desc, uint64_t data_len);
  
 /**
  * This will return the minimum encode size, which is the minimum
  * buffer size that can be encoded.
+ * 
+ * @param desc - liberasurecode descriptor/handle
+ *        from liberasurecode_instance_create()
+ *
+ * @return minimum data length length, or -error code on error
  */
 int liberasurecode_get_minimum_encode_size(int desc);
 
