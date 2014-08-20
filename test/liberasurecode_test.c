@@ -135,7 +135,7 @@ static void test_create_and_destroy_backend(
         return;
     }
     assert(desc > 0);
-    liberasurecode_instance_destroy(desc);
+    assert(0 == liberasurecode_instance_destroy(desc));
 }
 
 static void encode_decode_test_impl(const char *backend,
@@ -177,7 +177,7 @@ static void encode_decode_test_impl(const char *backend,
     assert(memcmp(decoded_data, orig_data, orig_data_size) == 0);
 
     if (desc)
-        liberasurecode_instance_destroy(desc);
+        assert(0 == liberasurecode_instance_destroy(desc));
     free(orig_data);
     if (avail_frags != NULL)
     {
