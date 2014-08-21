@@ -93,7 +93,7 @@ int next_backend_desc = 0;
 /**
  * Look up a backend instance by descriptor
  *
- * Returns pointer to a registered liberasurecode instance
+ * @returns pointer to a registered liberasurecode instance
  * The caller must hold active_instances_rwlock
  */
 ec_backend_t liberasurecode_backend_instance_get_by_desc(int desc)
@@ -192,7 +192,8 @@ int liberasurecode_backend_open(ec_backend_t instance)
         return 0;
 
     /* Use RTLD_LOCAL to avoid symbol collisions */
-    instance->desc.backend_sohandle = dlopen(instance->common.soname, RTLD_LAZY | RTLD_LOCAL);
+    instance->desc.backend_sohandle = dlopen(instance->common.soname,
+                                             RTLD_LAZY | RTLD_LOCAL);
     if (NULL == instance->desc.backend_sohandle) {
         print_dlerror(__func__);
         return -EBACKENDNOTAVAIL;
@@ -322,8 +323,8 @@ int liberasurecode_instance_create(const char *backend_name,
     }
 
     /* Call private init() for the backend */
-    instance->desc.backend_desc = instance->common.ops->init(&instance->args,
-            instance->desc.backend_sohandle);
+    instance->desc.backend_desc = instance->common.ops->init(
+            &instance->args, instance->desc.backend_sohandle);
     if (NULL == instance->desc.backend_desc) {
         free (instance);
         return -EBACKENDINITERR;
@@ -342,10 +343,12 @@ int liberasurecode_instance_create(const char *backend_name,
  */
 int liberasurecode_instance_destroy(int desc)
 {
-    ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
+    ec_backend_t instance = NULL;  /* instance to destroy */
+    int rc = 0;                    /* return code */
 
+    instance = liberasurecode_backend_instance_get_by_desc(desc);
     if (NULL == instance)
-        return 0;
+        return EBACKENDNOTAVAIL;
 
     /* Call private exit() for the backend */
     instance->common.ops->exit(instance->desc.backend_desc);
@@ -354,12 +357,12 @@ int liberasurecode_instance_destroy(int desc)
     liberasurecode_backend_close(instance);
 
     /* Remove instace from registry */
-    liberasurecode_backend_instance_unregister(instance);
+    rc = liberasurecode_backend_instance_unregister(instance);
+    if (rc == 0) {
+        free(instance);
+    }
 
-    /* Cleanup */
-    free(instance);
-
-    return 0;
+    return rc;
 }
 
 /**
@@ -377,7 +380,9 @@ int liberasurecode_instance_destroy(int desc)
  *        fragments (char *), allocated by liberasurecode_encode
  * @return 0 in success; -error otherwise
  */
-int liberasurecode_encode_cleanup(int desc, char **encoded_data, char **encoded_parity)
+int liberasurecode_encode_cleanup(int desc,
+                                  char **encoded_data,
+                                  char **encoded_parity)
 {
     int i, k, m;
     ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
@@ -742,7 +747,8 @@ int liberasurecode_reconstruct_fragment(int desc,
      * Separate the fragments into data and parity.  Also determine which
      * pieces are missing.
      */
-    ret = get_fragment_partition(k, m, available_fragments, num_fragments, data, parity, missing_idxs);
+    ret = get_fragment_partition(k, m, available_fragments, num_fragments,
+                                 data, parity, missing_idxs);
 
     if (ret < 0) {
         log_error("Could not properly partition the fragments!");
@@ -750,12 +756,14 @@ int liberasurecode_reconstruct_fragment(int desc,
     }
 
     /*
-     * Preparing the fragments for reconstruction.  This will alloc aligned buffers when unaligned buffers
-     * were passed in available_fragments.  It passes back a bitmap telling us which buffers need to
-     * be freed by us (realloc_bm).
-     *
+     * Preparing the fragments for reconstruction.  This will alloc aligned
+     * buffers when unaligned buffers were passed in available_fragments.
+     * It passes back a bitmap telling us which buffers need to be freed by
+     * us (realloc_bm).
      */
-    ret = prepare_fragments_for_decode(k, m, data, parity, missing_idxs, &orig_data_size, &blocksize, fragment_len, &realloc_bm);
+    ret = prepare_fragments_for_decode(k, m, data, parity, missing_idxs,
+                                       &orig_data_size, &blocksize,
+                                       fragment_len, &realloc_bm);
     if (ret < 0) {
         log_error("Could not prepare fragments for reconstruction!");
         goto out;
@@ -785,7 +793,8 @@ int liberasurecode_reconstruct_fragment(int desc,
         fragment_ptr = parity[destination_idx - k];
     }
     init_fragment_header(fragment_ptr);
-    add_fragment_metadata(fragment_ptr, destination_idx, orig_data_size, blocksize);
+    add_fragment_metadata(fragment_ptr, destination_idx, orig_data_size,
+                          blocksize);
 
     /*
      * Copy the reconstructed fragment to the output buffer
@@ -825,12 +834,18 @@ out:
  *
  * @desc: liberasurecode instance descriptor (obtained with
  *        liberasurecode_instance_create)
- * @missing_idx_list: list of indexes of missing elements
+ * @fragments_to_reconstruct list of indexes to reconstruct
+ * @fragments_to_exclude list of indexes to exclude from 
+          reconstruction equation
+ * @fragments_needed list of fragments needed to reconstruct
+          fragments in fragments_to_reconstruct
  *
  * @return a list of lists (bitmaps) of indexes to rebuild data
  *        from (in 'fragments_needed')
  */
-int liberasurecode_fragments_needed(int desc, int *missing_idxs,
+int liberasurecode_fragments_needed(int desc,
+                                    int *fragments_to_reconstruct, 
+                                    int *fragments_to_exclude,
                                     int *fragments_needed)
 {
     int ret = 0;
@@ -843,10 +858,12 @@ int liberasurecode_fragments_needed(int desc, int *missing_idxs,
 
     /* FIXME preprocessing */
 
+    /* FIXME use fragments_to_exclude */
+
     /* call the backend fragments_needed function passing it desc instance */
     ret = instance->common.ops->fragments_needed(
-            instance->desc.backend_desc, missing_idxs, 
-            fragments_needed);
+            instance->desc.backend_desc,
+            fragments_to_reconstruct, fragments_needed);
 
 out_error:
     return ret;
