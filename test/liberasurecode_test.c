@@ -29,6 +29,8 @@
 #include <assert.h>
 #include <stdbool.h>
 #include "erasurecode.h"
+#include "erasurecode_helpers.h"
+#include "erasurecode_backend.h"
 
 typedef void (*TEST_FUNC)();
 
@@ -142,6 +144,7 @@ static void encode_decode_test_impl(const char *backend,
                                    struct ec_args *args,
                                    int *skip)
 {
+    int i = 0;
     int rc = 0;
     int desc = -1;
     int orig_data_size = 1024 * 1024;
@@ -151,6 +154,7 @@ static void encode_decode_test_impl(const char *backend,
     int num_fragments = args-> k + args->m;
     uint64_t decoded_data_len = 0;
     char *decoded_data = NULL;
+    size_t frag_header_size =  sizeof(fragment_header_t);
         
     desc = liberasurecode_instance_create(backend, args);
     if (-EBACKENDNOTAVAIL == desc) {
@@ -164,6 +168,23 @@ static void encode_decode_test_impl(const char *backend,
     rc = liberasurecode_encode(desc, orig_data, orig_data_size,
             &encoded_data, &encoded_parity, &encoded_fragment_len);
     assert(0 == rc);
+    char *orig_data_ptr = orig_data;
+    int remaining = orig_data_size;
+    for (i = 0; i < args->k; i++)
+    {
+        char *frag = encoded_data[i];
+        fragment_header_t *header = (fragment_header_t*)frag;
+        assert(header != NULL);
+        fragment_metadata_t metadata = header->meta;
+        assert(metadata.idx == i);
+        assert(metadata.size == encoded_fragment_len - frag_header_size);
+        assert(metadata.orig_data_size == orig_data_size);
+        unsigned char *data_ptr = frag + frag_header_size;
+        int cmp_size = remaining >= metadata.size ? metadata.size : remaining;
+        assert(memcmp(data_ptr, orig_data_ptr, cmp_size) == 0); 
+        remaining -= cmp_size;
+        orig_data_ptr += metadata.size;
+    }
 
     char **avail_frags = NULL;
     int num_avail_frags = create_frags_array(&avail_frags, encoded_data,
