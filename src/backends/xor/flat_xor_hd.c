@@ -46,7 +46,7 @@ struct flat_xor_hd_descriptor {
     int (*xor_hd_decode)(xor_code_t *code_desc, char **data, char **parity,
             int *missing_idxs, int blocksize, int decode_parity);
     int (*xor_hd_fragments_needed)(xor_code_t *code_desc, int *missing_idxs,
-            int *fragments_needed);
+            int *fragments_to_exclude, int *fragments_needed);
 };
 
 #define DEFAULT_W 32
@@ -86,13 +86,14 @@ static int flat_xor_hd_reconstruct(void *desc,
 }
 
 static int flat_xor_hd_min_fragments(void *desc,
-                                     int *missing_idxs, int *fragments_needed)
+                                     int *missing_idxs, int *fragments_to_exclude, 
+                                     int *fragments_needed)
 {
     struct flat_xor_hd_descriptor *xdesc =
         (struct flat_xor_hd_descriptor *) desc;
 
     xor_code_t *xor_desc = (xor_code_t *) xdesc->xor_desc;
-    xor_desc->fragments_needed(xor_desc, missing_idxs, fragments_needed);
+    xor_desc->fragments_needed(xor_desc, missing_idxs, fragments_to_exclude, fragments_needed);
     return 0;
 }
 

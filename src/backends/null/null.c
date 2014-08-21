@@ -54,7 +54,7 @@ struct null_descriptor {
 
     /* set of fragments needed to reconstruct at a minimum */
     int (*null_code_fragments_needed)(void *code_desc, int *missing_idxs,
-            int *fragments_needed);
+            int *fragments_to_exclude, int *fragments_needed);
 
     /* fields needed to hold state */
     int *matrix;
@@ -94,7 +94,7 @@ static int null_reconstruct(void *desc, char **data, char **parity,
 }
 
 static int null_min_fragments(void *desc, int *missing_idxs,
-        int *fragments_needed)
+        int *fragments_to_exclude, int *fragments_needed)
 {
     struct null_descriptor *xdesc =
         (struct null_descriptor *) desc;

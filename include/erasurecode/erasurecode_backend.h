@@ -83,7 +83,7 @@ struct ec_backend_op_stubs {
     int (*DECODE)(void *desc,
             char **data, char **parity, int *missing_idxs, int blocksize);
     int (*FRAGSNEEDED)(void *desc,
-            int *missing_idxs, int *fragments_needed);
+            int *missing_idxs, int * fragments_to_exclude, int *fragments_needed);
     int (*RECONSTRUCT)(void *desc,
             char **data, char **parity, int *missing_idxs, int destination_idx,
             int blocksize);

@@ -858,12 +858,10 @@ int liberasurecode_fragments_needed(int desc,
 
     /* FIXME preprocessing */
 
-    /* FIXME use fragments_to_exclude */
-
     /* call the backend fragments_needed function passing it desc instance */
     ret = instance->common.ops->fragments_needed(
             instance->desc.backend_desc,
-            fragments_to_reconstruct, fragments_needed);
+            fragments_to_reconstruct, fragments_to_exclude, fragments_needed);
 
 out_error:
     return ret;

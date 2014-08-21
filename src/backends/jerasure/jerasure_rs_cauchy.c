@@ -160,11 +160,12 @@ out:
  * 
  */
 static int jerasure_rs_cauchy_min_fragments(void *desc, int *missing_idxs,
-        int *fragments_needed)
+        int *fragments_to_exclude, int *fragments_needed)
 {
     struct jerasure_rs_cauchy_descriptor *jerasure_desc = 
         (struct jerasure_rs_cauchy_descriptor*)desc;
-    uint64_t missing_bm = convert_list_to_bitmap(missing_idxs);
+    uint64_t exclude_bm = convert_list_to_bitmap(fragments_to_exclude);
+    uint64_t missing_bm = convert_list_to_bitmap(missing_idxs) | exclude_bm;
     int i;
     int j = 0;
     int ret = -1;

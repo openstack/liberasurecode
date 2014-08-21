@@ -58,7 +58,7 @@ typedef struct xor_code_s
   int *data_bms;
   int (*decode)(struct xor_code_s *code_desc, char **data, char **parity, int *missing_idxs, int blocksize, int decode_parity);
   void (*encode)(struct xor_code_s *code_desc, char **data, char **parity, int blocksize);
-  int (*fragments_needed)(struct xor_code_s *code_desc, int *missing_idxs, int *fragments_needed);
+  int (*fragments_needed)(struct xor_code_s *code_desc, int *missing_idxs, int *fragments_to_exclude, int *fragments_needed);
 } xor_code_t;
 
 int is_data_in_parity(int data_idx, unsigned int parity_bm);
@@ -91,7 +91,7 @@ int index_of_connected_parity(xor_code_t *code_desc, int data_index, int *missin
 
 void remove_from_missing_list(int element, int *missing_list);
 
-int* get_symbols_needed(xor_code_t *code_desc, int *missing_list);
+int* get_symbols_needed(xor_code_t *code_desc, int *missing_list, int *fragments_to_exclude);
 
 void xor_reconstruct_one(xor_code_t *code_desc, char **data, char **parity, int *missing_idxs, int index_to_reconstruct, int blocksize);
 

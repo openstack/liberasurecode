@@ -70,6 +70,9 @@ int test_hd_code(xor_code_t *code_desc, int num_failure_combs, int failure_combs
   clock_t start_time, end_time;
   int *fragments_needed;
 
+  /* FIXME: This should actually exclude fragments once XOR codes fully supports the feature */
+  int fragments_to_exclude[2] = { -1 };
+
   srand(time(NULL));
 
   data = (char**)malloc(code_desc->k * sizeof(char*));
@@ -150,7 +153,7 @@ int test_hd_code(xor_code_t *code_desc, int num_failure_combs, int failure_combs
      * Spot check to ensure missing elements are not included in
      * list of fragments needed and that decode is 'doable'
      */
-    ret = code_desc->fragments_needed(code_desc, missing_idxs, fragments_needed);
+    ret = code_desc->fragments_needed(code_desc, missing_idxs, fragments_to_exclude, fragments_needed);
 
     if (ret < 0) {
       fprintf(stderr, "xor_hd_fragments_needed thinks reconstruction not possible, when it is!\n");
