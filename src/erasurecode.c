@@ -192,7 +192,8 @@ int liberasurecode_backend_open(ec_backend_t instance)
         return 0;
 
     /* Use RTLD_LOCAL to avoid symbol collisions */
-    instance->desc.backend_sohandle = dlopen(instance->common.soname, RTLD_LAZY | RTLD_LOCAL);
+    instance->desc.backend_sohandle = dlopen(instance->common.soname,
+                                             RTLD_LAZY | RTLD_LOCAL);
     if (NULL == instance->desc.backend_sohandle) {
         print_dlerror(__func__);
         return -EBACKENDNOTAVAIL;
@@ -322,8 +323,8 @@ int liberasurecode_instance_create(const char *backend_name,
     }
 
     /* Call private init() for the backend */
-    instance->desc.backend_desc = instance->common.ops->init(&instance->args,
-            instance->desc.backend_sohandle);
+    instance->desc.backend_desc = instance->common.ops->init(
+            &instance->args, instance->desc.backend_sohandle);
     if (NULL == instance->desc.backend_desc) {
         free (instance);
         return -EBACKENDINITERR;
@@ -379,7 +380,9 @@ int liberasurecode_instance_destroy(int desc)
  *        fragments (char *), allocated by liberasurecode_encode
  * @return 0 in success; -error otherwise
  */
-int liberasurecode_encode_cleanup(int desc, char **encoded_data, char **encoded_parity)
+int liberasurecode_encode_cleanup(int desc,
+                                  char **encoded_data,
+                                  char **encoded_parity)
 {
     int i, k, m;
     ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
@@ -744,7 +747,8 @@ int liberasurecode_reconstruct_fragment(int desc,
      * Separate the fragments into data and parity.  Also determine which
      * pieces are missing.
      */
-    ret = get_fragment_partition(k, m, available_fragments, num_fragments, data, parity, missing_idxs);
+    ret = get_fragment_partition(k, m, available_fragments, num_fragments,
+                                 data, parity, missing_idxs);
 
     if (ret < 0) {
         log_error("Could not properly partition the fragments!");
@@ -752,12 +756,14 @@ int liberasurecode_reconstruct_fragment(int desc,
     }
 
     /*
-     * Preparing the fragments for reconstruction.  This will alloc aligned buffers when unaligned buffers
-     * were passed in available_fragments.  It passes back a bitmap telling us which buffers need to
-     * be freed by us (realloc_bm).
-     *
+     * Preparing the fragments for reconstruction.  This will alloc aligned
+     * buffers when unaligned buffers were passed in available_fragments.
+     * It passes back a bitmap telling us which buffers need to be freed by
+     * us (realloc_bm).
      */
-    ret = prepare_fragments_for_decode(k, m, data, parity, missing_idxs, &orig_data_size, &blocksize, fragment_len, &realloc_bm);
+    ret = prepare_fragments_for_decode(k, m, data, parity, missing_idxs,
+                                       &orig_data_size, &blocksize,
+                                       fragment_len, &realloc_bm);
     if (ret < 0) {
         log_error("Could not prepare fragments for reconstruction!");
         goto out;
@@ -787,7 +793,8 @@ int liberasurecode_reconstruct_fragment(int desc,
         fragment_ptr = parity[destination_idx - k];
     }
     init_fragment_header(fragment_ptr);
-    add_fragment_metadata(fragment_ptr, destination_idx, orig_data_size, blocksize);
+    add_fragment_metadata(fragment_ptr, destination_idx, orig_data_size,
+                          blocksize);
 
     /*
      * Copy the reconstructed fragment to the output buffer
@@ -855,7 +862,8 @@ int liberasurecode_fragments_needed(int desc,
 
     /* call the backend fragments_needed function passing it desc instance */
     ret = instance->common.ops->fragments_needed(
-            instance->desc.backend_desc, fragments_to_reconstruct, fragments_needed);
+            instance->desc.backend_desc,
+            fragments_to_reconstruct, fragments_needed);
 
 out_error:
     return ret;

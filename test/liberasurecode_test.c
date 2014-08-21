@@ -53,13 +53,11 @@ int *create_skips_array(struct ec_args *args, int skip)
     int num = args->k + args->m;
     size_t array_size = sizeof(int) * num;
     int *buf = malloc(array_size);
-    if (buf == NULL)
-    {
+    if (buf == NULL) {
         return NULL;
     }
     memset(buf, 0, array_size);
-    if (skip >= 0 && skip < num)
-    {
+    if (skip >= 0 && skip < num) {
         buf[skip] = 1;
     }
     return buf;
@@ -80,8 +78,7 @@ static int create_frags_array(char ***array,
     //add data frags
     int i = 0;
     char **ptr = *array;
-    for (i = 0; i < args->k; i++)
-    {
+    for (i = 0; i < args->k; i++) {
         if (data[i] == NULL || skips[i] == 1)
         {
             continue;
@@ -90,10 +87,8 @@ static int create_frags_array(char ***array,
         num_frags++;
     }
     //add parity frags
-    for (i = 0; i < args->m; i++)
-    {
-        if (parity[i] == NULL || skips[i + args->k] == 1)
-        {
+    for (i = 0; i < args->m; i++) {
+        if (parity[i] == NULL || skips[i + args->k] == 1) {
             continue;
         }
         *ptr++ = parity[i]; 
@@ -109,8 +104,9 @@ static void test_liberasurecode_supported_backends()
     const char **supported_ec_backends =
         liberasurecode_supported_backends(&num_backends);
 
-    for (i = 0; i < num_backends; i++)
+    for (i = 0; i < num_backends; i++) {
         printf("%s\n", supported_ec_backends[i]);
+    }
 }
 
 static void test_liberasurecode_supported_checksum_types()
@@ -121,8 +117,9 @@ static void test_liberasurecode_supported_checksum_types()
         liberasurecode_supported_checksum_types(&num_checksum_types);
 
     assert(num_checksum_types == CHKSUM_TYPES_MAX);
-    for (i = 0; i < CHKSUM_TYPES_MAX; i++)
+    for (i = 0; i < CHKSUM_TYPES_MAX; i++) {
         printf("%s\n", supported_checksum_types[i]);
+    }
 }
 
 static void test_create_and_destroy_backend(
@@ -151,6 +148,9 @@ static void encode_decode_test_impl(const char *backend,
     int num_fragments = args-> k + args->m;
     uint64_t decoded_data_len = 0;
     char *decoded_data = NULL;
+
+    char **avail_frags = NULL;
+    int num_avail_frags = 0;
         
     desc = liberasurecode_instance_create(backend, args);
     if (-EBACKENDNOTAVAIL == desc) {
@@ -165,25 +165,25 @@ static void encode_decode_test_impl(const char *backend,
             &encoded_data, &encoded_parity, &encoded_fragment_len);
     assert(0 == rc);
 
-    char **avail_frags = NULL;
-    int num_avail_frags = create_frags_array(&avail_frags, encoded_data,
-                                             encoded_parity, args, skip);
+    num_avail_frags = create_frags_array(&avail_frags, encoded_data,
+                                         encoded_parity, args, skip);
     assert(num_avail_frags != -1);
 
-    rc = liberasurecode_decode(desc, avail_frags,
-            num_avail_frags, encoded_fragment_len, &decoded_data, &decoded_data_len);
+    rc = liberasurecode_decode(desc, avail_frags, num_avail_frags,
+                               encoded_fragment_len, &decoded_data,
+                               &decoded_data_len);
     assert(0 == rc);
     assert(decoded_data_len == orig_data_size);
     assert(memcmp(decoded_data, orig_data, orig_data_size) == 0);
 
-    if (desc)
+    if (desc) {
         assert(0 == liberasurecode_instance_destroy(desc));
+    }
+
     free(orig_data);
-    if (avail_frags != NULL)
-    {
+    if (avail_frags != NULL) {
         int idx = 0;
-        for (idx = 0; idx < num_avail_frags; idx++) 
-        {
+        for (idx = 0; idx < num_avail_frags; idx++) {
             free(avail_frags[idx]);
         }
         free(avail_frags);
@@ -204,6 +204,12 @@ static void reconstruct_test_impl(const char *backend,
     uint64_t decoded_data_len = 0;
     char *decoded_data = NULL;
 
+    char **avail_frags = NULL;
+    int num_avail_frags = 0;
+
+    int i = 0;
+    char *out = NULL;
+
     desc = liberasurecode_instance_create(backend, args);
     if (-EBACKENDNOTAVAIL == desc) {
         fprintf (stderr, "Backend library not available!\n");
@@ -216,24 +222,19 @@ static void reconstruct_test_impl(const char *backend,
     rc = liberasurecode_encode(desc, orig_data, orig_data_size,
             &encoded_data, &encoded_parity, &encoded_fragment_len);
     assert(rc == 0);
-    char **avail_frags = NULL;
-    int num_avail_frags = create_frags_array(&avail_frags, encoded_data,
+    num_avail_frags = create_frags_array(&avail_frags, encoded_data,
                                              encoded_parity, args, skip);
-    int i = 0;
-    char *out = malloc(encoded_fragment_len);
+    out = malloc(encoded_fragment_len);
     assert(out != NULL);
     for (i = 0; i < num_fragments; i++) {
-        if (skip[i] == 0)
-        {
+        if (skip[i] == 0) {
             continue;
         }
         char *cmp = NULL;
-        if (i < args->k)
-        {
+        if (i < args->k) {
             cmp = encoded_data[i];
         }
-        else
-        {
+        else {
             cmp = encoded_parity[i - args->k];
         }
         memset(out, 0, encoded_fragment_len);
@@ -278,12 +279,10 @@ static void test_decode_with_missing_multi_data(const char *backend,
 {
     int max_num_missing = args->hd;
     int i,j;
-    for (i = 0; i < args->k - max_num_missing + 1; i++)
-    {
+    for (i = 0; i < args->k - max_num_missing + 1; i++) {
         int *skip = create_skips_array(args,-1);
         assert(skip != NULL);
-        for (j = i; j < i + max_num_missing; j++)
-        {
+        for (j = i; j < i + max_num_missing; j++) {
             skip[j]=1;
         }
         encode_decode_test_impl(backend, args, skip);
@@ -296,12 +295,10 @@ static void test_decode_with_missing_multi_parity(const char *backend,
 {
     int i,j;
     int max_num_missing = args->hd;
-    for (i = args->k; i < args->k + args->m - max_num_missing + 1; i++)
-    {
+    for (i = args->k; i < args->k + args->m - max_num_missing + 1; i++) {
         int *skip = create_skips_array(args,-1);
         assert(skip != NULL);
-        for (j = i; j < i + max_num_missing; j++)
-        {
+        for (j = i; j < i + max_num_missing; j++) {
             skip[j]=1;
         }
         encode_decode_test_impl(backend, args, skip);
@@ -315,12 +312,10 @@ static void test_decode_with_missing_multi_data_parity(const char *backend,
     int i,j;
     int max_num_missing = args->hd;
     int start = args->k - max_num_missing + 1;
-    for (i = start; i < start + max_num_missing -1; i++)
-    {
+    for (i = start; i < start + max_num_missing -1; i++) {
         int *skip = create_skips_array(args,-1);
         assert(skip != NULL);
-        for (j = i; j < i + max_num_missing; j++)
-        {
+        for (j = i; j < i + max_num_missing; j++) {
             skip[j]=1;
         }
         encode_decode_test_impl(backend, args, skip);
@@ -341,8 +336,7 @@ static void test_simple_reconstruct(const char *backend,
                                      struct ec_args *args)
 {
     int i = 0;
-    for (i = 0; i < args->k + args->m; i++)
-    {
+    for (i = 0; i < args->k + args->m; i++) {
         int *skip = create_skips_array(args,i);
         assert(skip != NULL);
         reconstruct_test_impl(backend, args, skip);
@@ -401,11 +395,12 @@ struct testcase testcases[] = {
         test_create_and_destroy_backend,
         "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
         .skip = false},
-    // Flat XOR tests
-    {"simple_encode_flat_xor_hd",
+    // NULL backend tests
+    {"simple_encode_null",
         test_simple_encode_decode,
         "null", &null_args,
-        .skip = true},
+        .skip = false},
+    // Flat XOR backend tests
     {"simple_encode_flat_xor_hd",
         test_simple_encode_decode,
         "flat_xor_hd", &flat_xor_hd_args,
@@ -434,7 +429,7 @@ struct testcase testcases[] = {
         test_simple_reconstruct,
         "flat_xor_hd", &flat_xor_hd_args,
         .skip = false},
-    // Jerasure RS Vand tests
+    // Jerasure RS Vand backend tests
     {"simple_encode_jerasure_rs_vand",
         test_simple_encode_decode,
         "jerasure_rs_vand", &jerasure_rs_vand_args,
@@ -459,7 +454,7 @@ struct testcase testcases[] = {
         test_simple_reconstruct,
         "jerasure_rs_vand", &jerasure_rs_vand_args,
         .skip = false},
-    // Jerasure RS Cauchy tests
+    // Jerasure RS Cauchy backend tests
     {"simple_encode_jerasureFlat XOR tests_rs_cauchy",
         test_simple_encode_decode,
         "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
