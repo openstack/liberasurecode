@@ -72,14 +72,15 @@ static int create_frags_array(char ***array,
                               int *skips)
 {
     int num_frags = 0;
+    int i = 0;
+    char **ptr = NULL;
     *array = malloc((args->k + args->m) * sizeof(char *));
     if (array == NULL) {
         num_frags = -1;
         goto out;
     }
     //add data frags
-    int i = 0;
-    char **ptr = *array;
+    ptr = *array;
     for (i = 0; i < args->k; i++) {
         if (data[i] == NULL || skips[i] == 1)
         {
@@ -154,7 +155,9 @@ static void encode_decode_test_impl(const char *backend,
     size_t frag_header_size =  sizeof(fragment_header_t);
     char **avail_frags = NULL;
     int num_avail_frags = 0;
-        
+    char *orig_data_ptr = NULL;
+    int remaining = 0;
+
     desc = liberasurecode_instance_create(backend, args);
     if (-EBACKENDNOTAVAIL == desc) {
         fprintf (stderr, "Backend library not available!\n");
@@ -167,8 +170,8 @@ static void encode_decode_test_impl(const char *backend,
     rc = liberasurecode_encode(desc, orig_data, orig_data_size,
             &encoded_data, &encoded_parity, &encoded_fragment_len);
     assert(0 == rc);
-    char *orig_data_ptr = orig_data;
-    int remaining = orig_data_size;
+    orig_data_ptr = orig_data;
+    remaining = orig_data_size;
     for (i = 0; i < args->k; i++)
     {
         char *frag = encoded_data[i];
@@ -223,10 +226,8 @@ static void reconstruct_test_impl(const char *backend,
     int num_fragments = args-> k + args->m;
     uint64_t decoded_data_len = 0;
     char *decoded_data = NULL;
-
     char **avail_frags = NULL;
     int num_avail_frags = 0;
-
     int i = 0;
     char *out = NULL;
 
