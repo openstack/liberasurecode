@@ -66,11 +66,9 @@ struct null_descriptor {
 
 #define DEFAULT_W 32
 
-static int null_encode(void *desc, char **data, char **parity,
-        int blocksize)
+static int null_encode(void *desc, char **data, char **parity, int blocksize)
 {
-    struct null_descriptor *xdesc =
-        (struct null_descriptor *) desc;
+    struct null_descriptor *xdesc = (struct null_descriptor *) desc;
 
     return 0;
 }
@@ -78,8 +76,7 @@ static int null_encode(void *desc, char **data, char **parity,
 static int null_decode(void *desc, char **data, char **parity,
         int *missing_idxs, int blocksize)
 {
-    struct null_descriptor *xdesc =
-        (struct null_descriptor *) desc;
+    struct null_descriptor *xdesc = (struct null_descriptor *) desc;
 
     return 0;
 }
@@ -87,8 +84,7 @@ static int null_decode(void *desc, char **data, char **parity,
 static int null_reconstruct(void *desc, char **data, char **parity,
         int *missing_idxs, int destination_idx, int blocksize)
 {
-    struct null_descriptor *xdesc =
-        (struct null_descriptor *) desc;
+    struct null_descriptor *xdesc = (struct null_descriptor *) desc;
 
     return 0;
 }
@@ -96,8 +92,7 @@ static int null_reconstruct(void *desc, char **data, char **parity,
 static int null_min_fragments(void *desc, int *missing_idxs,
         int *fragments_to_exclude, int *fragments_needed)
 {
-    struct null_descriptor *xdesc =
-        (struct null_descriptor *) desc;
+    struct null_descriptor *xdesc = (struct null_descriptor *) desc;
 
     return 0;
 }
@@ -114,7 +109,6 @@ null_element_size(void* desc)
 
 static void * null_init(struct ec_backend_args *args, void *backend_sohandle)
 {
-    int k, m, arg1, w;
     struct null_descriptor *xdesc = NULL;
 
     /* allocate and fill in null_descriptor */
@@ -181,10 +175,7 @@ static void * null_init(struct ec_backend_args *args, void *backend_sohandle)
     return (void *) xdesc;
 
 error:
-    if (NULL != xdesc) {
-        free(xdesc);
-        xdesc = NULL;
-    }
+    free (xdesc);
 
     return NULL;
 }
