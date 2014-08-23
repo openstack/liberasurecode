@@ -89,31 +89,33 @@ static int jerasure_rs_vand_decode(void *desc, char **data, char **parity,
 static int jerasure_rs_vand_reconstruct(void *desc, char **data, char **parity,
         int *missing_idxs, int destination_idx, int blocksize)
 {
-    int ret = 1;
-    int *decoding_row;
-    int *erased;
+    int ret = 1;                  /* return code */
+    int *decoding_row;            /* decoding matrix row for decode */
+    int *erased = NULL;           /* k+m length list of erased frag ids */
+    int *dm_ids = NULL;           /* k length list of frag ids */
+    int *decoding_matrix = NULL;  /* matrix for decoding */
 
     struct jerasure_rs_vand_descriptor *jerasure_desc = 
         (struct jerasure_rs_vand_descriptor*) desc;
-    int *dm_ids = (int *)
-        alloc_zeroed_buffer(sizeof(int) * jerasure_desc->k);
-    int *decoding_matrix = (int *)
+    
+    dm_ids = (int *) alloc_zeroed_buffer(sizeof(int) * jerasure_desc->k);
+    decoding_matrix = (int *)
         alloc_zeroed_buffer(sizeof(int*) * jerasure_desc->k * jerasure_desc->k);
-
     if (NULL == decoding_matrix || NULL == dm_ids) {
         goto out;
     }
+    
     erased = jerasure_desc->jerasure_erasures_to_erased(jerasure_desc->k,
             jerasure_desc->m, missing_idxs);
+    if (NULL == erased) {
+        goto out;
+    }
 
     ret = jerasure_desc->jerasure_make_decoding_matrix(jerasure_desc->k,
             jerasure_desc->m, jerasure_desc->w, jerasure_desc->matrix,
             erased, decoding_matrix, dm_ids);
-    
-
     if (destination_idx < jerasure_desc->k) {
         decoding_row = decoding_matrix + (destination_idx * jerasure_desc->k);
-
     } else {
         decoding_row = jerasure_desc->matrix +
             ((destination_idx - jerasure_desc->k) * jerasure_desc->k);
@@ -128,12 +130,9 @@ static int jerasure_rs_vand_reconstruct(void *desc, char **data, char **parity,
     }
 
 out:
-    if (NULL != decoding_matrix) {
-        free(decoding_matrix);
-    }
-    if (NULL != dm_ids) {
-        free(dm_ids);
-    }
+    free(erased);
+    free(decoding_matrix);
+    free(dm_ids);
 
     return ret;
 }
@@ -170,10 +169,10 @@ out:
 static void * jerasure_rs_vand_init(struct ec_backend_args *args,
         void *backend_sohandle)
 {
-    struct jerasure_rs_vand_descriptor *desc =
-        (struct jerasure_rs_vand_descriptor *) malloc(
-                sizeof(struct jerasure_rs_vand_descriptor));
-
+    struct jerasure_rs_vand_descriptor *desc = NULL;
+    
+    desc = (struct jerasure_rs_vand_descriptor *)
+           malloc(sizeof(struct jerasure_rs_vand_descriptor));
     if (NULL == desc) {
         return NULL;
     }
@@ -200,7 +199,7 @@ static void * jerasure_rs_vand_init(struct ec_backend_args *args,
      }
 
     /* fill in function addresses */
-    desc->jerasure_matrix_encode = dlsym(
+    desc->jerasure_matrix_encode = dlsym( 
             backend_sohandle, "jerasure_matrix_encode");
     if (NULL == desc->jerasure_matrix_encode) {
         goto error; 
@@ -245,9 +244,8 @@ static void * jerasure_rs_vand_init(struct ec_backend_args *args,
     return desc;
 
 error:
-    if (NULL != desc) {
-        free(desc);
-    }
+    free(desc);
+    
     return NULL;
 }
 
@@ -270,12 +268,11 @@ jerasure_rs_vand_element_size(void* desc)
 
 static int jerasure_rs_vand_exit(void *desc)
 {
-    struct jerasure_rs_vand_descriptor *jerasure_desc = 
-        (struct jerasure_rs_vand_descriptor*)desc;
+    struct jerasure_rs_vand_descriptor *jerasure_desc = NULL;
+    
+    jerasure_desc = (struct jerasure_rs_vand_descriptor*) desc;
 
-    if (NULL != desc) {
-        free(desc);
-    }
+    free(jerasure_desc);
 }
 
 struct ec_backend_op_stubs jerasure_rs_vand_op_stubs = {
