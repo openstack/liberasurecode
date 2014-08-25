@@ -108,33 +108,33 @@ static int jerasure_rs_cauchy_decode(void *desc, char **data, char **parity,
 static int jerasure_rs_cauchy_reconstruct(void *desc, char **data, char **parity,
         int *missing_idxs, int destination_idx, int blocksize)
 {
-    int ret = 1;
-    int *decoding_row = NULL;
-    int *erased = NULL;
+    int k, m, w;                  /* erasure code paramters */
+    int ret = 1;                  /* return code */
+    int *decoding_row = NULL;     /* decoding matrix row for decode */
+    int *erased = NULL;           /* k+m length list of erased frag ids */
+    int *dm_ids = NULL;           /* k length list of fragment ids */
+    int *decoding_matrix = NULL;  /* matrix for decoding */
 
     struct jerasure_rs_cauchy_descriptor *jerasure_desc = 
         (struct jerasure_rs_cauchy_descriptor*) desc;
-    int *dm_ids = (int *)
-        alloc_zeroed_buffer(sizeof(int) * jerasure_desc->k);
-    int *decoding_matrix = (int *)
-        (int *) alloc_zeroed_buffer(sizeof(int*) * jerasure_desc->k * jerasure_desc->k * jerasure_desc->w * jerasure_desc->w); 
+    k = jerasure_desc->k;
+    m = jerasure_desc->m;
+    w = jerasure_desc->w;
 
-    if (NULL == decoding_matrix || NULL == dm_ids) {
+    dm_ids = (int *) alloc_zeroed_buffer(sizeof(int) * k);
+    decoding_matrix = (int *) alloc_zeroed_buffer(sizeof(int *) * k * k * w * w);
+    erased = jerasure_desc->jerasure_erasures_to_erased(k, m, missing_idxs);
+    if (NULL == decoding_matrix || NULL == dm_ids || NULL == erased) {
         goto out;
     }
 
-    erased = jerasure_desc->jerasure_erasures_to_erased(jerasure_desc->k,
-            jerasure_desc->m, missing_idxs);
-
-    ret = jerasure_desc->jerasure_make_decoding_bitmatrix(jerasure_desc->k, jerasure_desc->m, 
-                                               jerasure_desc->w, jerasure_desc->bitmatrix,
+    ret = jerasure_desc->jerasure_make_decoding_bitmatrix(k, m, w, 
+                                               jerasure_desc->bitmatrix,
                                                erased, decoding_matrix, dm_ids);
-
-    if (destination_idx < jerasure_desc->k) {
-        decoding_row = decoding_matrix + (destination_idx * jerasure_desc->k * jerasure_desc->w * jerasure_desc->w);
-
+    if (destination_idx < k) {
+        decoding_row = decoding_matrix + (destination_idx * k * w * w);
     } else {
-        decoding_row = jerasure_desc->bitmatrix + ((destination_idx - jerasure_desc->k) * jerasure_desc->k * jerasure_desc->w * jerasure_desc->w);
+        decoding_row = jerasure_desc->bitmatrix + ((destination_idx - k) * k * w * w);
     }
    
     if (ret == 0) {
@@ -145,13 +145,12 @@ static int jerasure_rs_cauchy_reconstruct(void *desc, char **data, char **parity
     } else {
       goto out;
     }
+
 out:
-    if (NULL != decoding_matrix) {
-        free(decoding_matrix);
-    }
-    if (NULL != dm_ids) {
-        free(dm_ids);
-    }
+    free(erased);
+    free(decoding_matrix);
+    free(dm_ids);
+    
     return ret;
 }
 
@@ -190,28 +189,35 @@ out:
 static void * jerasure_rs_cauchy_init(struct ec_backend_args *args,
         void *backend_sohandle)
 {
-    struct jerasure_rs_cauchy_descriptor *desc =
-        (struct jerasure_rs_cauchy_descriptor *) malloc(
-                sizeof(struct jerasure_rs_cauchy_descriptor));
-
+    struct jerasure_rs_cauchy_descriptor *desc = NULL;
+    int k, m, w;
+    int *matrix = NULL;
+    int *bitmatrix = NULL;
+    int **schedule = NULL;
+    
+    desc = (struct jerasure_rs_cauchy_descriptor *)
+           malloc(sizeof(struct jerasure_rs_cauchy_descriptor));
     if (NULL == desc) {
         return NULL;
     }
 
-    desc->k = args->uargs.k;
-    desc->m = args->uargs.m;
-    
+    /* validate the base EC arguments */
+    k = args->uargs.k;
+    m = args->uargs.m;
     if (args->uargs.w <= 0)
         args->uargs.w = DEFAULT_W;
+    w = args->uargs.w;
 
-    /* store w back in args so upper layer can get to it */
-    desc->w = args->uargs.w;
+    /* store the base EC arguments in the descriptor */
+    desc->k = k;
+    desc->m = m;
+    desc->w = w;
 
     /* validate EC arguments */
     {
         long long max_symbols;
-        max_symbols = 1LL << desc->w;
-        if ((desc->k + desc->m) > max_symbols) {
+        max_symbols = 1LL << w;
+        if ((k + m) > max_symbols) {
             goto error;
         }
     }
@@ -265,16 +271,30 @@ static void * jerasure_rs_cauchy_init(struct ec_backend_args *args,
         goto error; 
     } 
 
-    desc->matrix = desc->cauchy_original_coding_matrix(desc->k, desc->m, desc->w);
-    desc->bitmatrix = desc->jerasure_matrix_to_bitmatrix(desc->k, desc->m, desc->w, desc->matrix);
-    desc->schedule = desc->jerasure_smart_bitmatrix_to_schedule(desc->k, desc->m, desc->w, desc->bitmatrix);
+    /* setup the Cauchy matrices and schedules */
+    matrix = desc->cauchy_original_coding_matrix(k, m, w);
+    if (NULL == matrix) {
+        goto error;
+    }
+    bitmatrix = desc->jerasure_matrix_to_bitmatrix(k, m, w, matrix);
+    if (NULL == bitmatrix) {
+        goto error;
+    }
+    schedule = desc->jerasure_smart_bitmatrix_to_schedule(k, m, w, bitmatrix);
+    if (NULL == schedule) {
+        goto error;
+    }
+    desc->matrix = matrix;
+    desc->bitmatrix = bitmatrix;
+    desc->schedule = schedule; 
 
     return desc;
 
 error:
-    if (NULL != desc) {
-        free(desc);
-    }
+    free(matrix);
+    free(bitmatrix);
+    free(schedule);
+    free(desc);
     return NULL;
 }
 
@@ -298,9 +318,12 @@ static int jerasure_rs_cauchy_exit(void *desc)
     struct jerasure_rs_cauchy_descriptor *jerasure_desc = 
         (struct jerasure_rs_cauchy_descriptor*)desc;
 
-    if (NULL != desc) {
-        free(desc);
+    if (jerasure_desc) {
+        free(jerasure_desc->matrix);
+        free(jerasure_desc->bitmatrix);
+        free(jerasure_desc->schedule);
     }
+    free(desc);
 }
 
 struct ec_backend_op_stubs jerasure_rs_cauchy_op_stubs = {
