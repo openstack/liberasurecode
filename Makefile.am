@@ -32,6 +32,7 @@ test: check
 	@./test/alg_sig_test
 	@./test/test_xor_hd_code
 	@./test/liberasurecode_test
+	@./test/libec_slap
 
 VALGRIND_EXEC_COMMAND = $(LIBTOOL_COMMAND) valgrind --tool=memcheck \
 	--error-exitcode=1 --leak-check=yes --track-fds=yes \
@@ -41,6 +42,7 @@ valgrind-test: check
 	@$(VALGRIND_EXEC_COMMAND) ./test/alg_sig_test
 	@$(VALGRIND_EXEC_COMMAND) ./test/liberasurecode_test
 	@$(VALGRIND_EXEC_COMMAND) ./test/test_xor_hd_code
+	@$(VALGRIND_EXEC_COMMAND) ./test/libec_slap
 
 CLEANFILES = cscope.in.out cscope.out cscope.po.out
 
