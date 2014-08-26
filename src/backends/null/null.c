@@ -116,9 +116,11 @@ static void * null_init(struct ec_backend_args *args, void *backend_sohandle)
     if (NULL == xdesc) {
         return NULL;
     }
+    memset(xdesc, 0, sizeof(struct null_descriptor));
 
     xdesc->k = args->uargs.k;
     xdesc->m = args->uargs.m;
+    xdesc->w = args->uargs.w;
 
     if (xdesc->w <= 0)
         xdesc->w = DEFAULT_W;
