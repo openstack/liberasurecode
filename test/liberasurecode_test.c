@@ -386,6 +386,11 @@ static void test_fragments_needed_impl(const char *backend,
         assert(is_valid_fragment == 1);
         i++;
     }
+
+    free(fragments_to_reconstruct);
+    free(fragments_to_exclude);
+    free(fragments_needed);
+    free(new_fragments_needed);
 }
 
 static void test_decode_with_missing_data(const char *backend,
