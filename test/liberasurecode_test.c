@@ -265,6 +265,129 @@ static void reconstruct_test_impl(const char *backend,
     }
 }
 
+static void test_fragments_needed_impl(const char *backend,
+                                      struct ec_args *args)
+{
+    int *fragments_to_reconstruct = NULL;
+    int *fragments_to_exclude = NULL;
+    int *fragments_needed = NULL;
+    int *new_fragments_needed = NULL;
+    int desc = liberasurecode_instance_create(backend, args);
+    int ret = -1;
+    int i = 0, j = 0;
+    int n = args->k + args->m;
+
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf (stderr, "Backend library not available!\n");
+        return;
+    }
+    assert(desc > 0);
+
+    /*
+     * ToDo (KMG): In an effort to make this test "general"
+     * it makes assumptions about how reconstruction equations
+     * are derived.  It assumes the lowest-numbered parity
+     * will be used when reconstructing a single failure.
+     * This is typically true for many RS implementations,
+     * since the first parity is the XOR of all data elements.
+     * This is also the case for our internal flat XOR implementation.
+     *
+     * We will have to do something else for more complicated cases...
+     *
+     * Here is the gist:
+     *
+     * First get all of the data elements connected to the
+     * first parity element.  Select one of the data elements
+     * as the item to reconstruct and select one not in that
+     * set as the missing element.  Elements needed should
+     * be equal to the parity element, plus all other data 
+     * elements connected to it.
+     *
+     * Simple example with XOR code (k=10, m=5):
+     *
+     * p_0 = d_0 + d_1 + d_2
+     * p_1 = d_0 + d_3 + d_5
+     * ...
+     *
+     * Call to fragments_needed(desc, [0, -1], [3, -1], [])
+     * should return: [10, 1, 2]
+     */
+    fragments_to_reconstruct = (int*)malloc(sizeof(int) * args->k);
+    assert(fragments_to_reconstruct != NULL);
+    fragments_to_exclude = (int*)malloc(sizeof(int) * args->k);
+    assert(fragments_to_exclude != NULL);
+    fragments_needed = (int*)malloc(sizeof(int) * args->k);
+    assert(fragments_needed != NULL);
+    new_fragments_needed = (int*)malloc(sizeof(int) * args->k);
+    assert(fragments_needed != NULL);
+
+    // This is the first parity element
+    fragments_to_reconstruct[0] = args->k;
+    fragments_to_reconstruct[1] = -1;
+    fragments_to_exclude[0] = -1;
+
+    ret = liberasurecode_fragments_needed(desc, 
+                                          fragments_to_reconstruct, 
+                                          fragments_to_exclude, 
+                                          fragments_needed);
+    assert(ret > -1);
+    
+    // "Reconstruct" the first data in the parity equation
+    fragments_to_reconstruct[0] = fragments_needed[0];
+    fragments_to_reconstruct[1] = -1;
+
+    fragments_to_exclude[0] = -1;
+    // Find a proper fragment to exlcude
+    for (i = 0; i < n; i++) {
+        j = 1;
+        while (fragments_needed[j] > -1) {
+            if (fragments_needed[j] == i) {
+                break;
+            }
+            j++;
+        }
+        // Found one!
+        if (fragments_needed[j] == -1) {
+            fragments_to_exclude[0] = i;
+            fragments_to_exclude[1] = -1;
+            break;
+        }
+    }
+
+    assert(fragments_to_exclude[0] > -1);
+
+    ret = liberasurecode_fragments_needed(desc, 
+                                          fragments_to_reconstruct, 
+                                          fragments_to_exclude, 
+                                          new_fragments_needed);
+    assert(ret > -1);
+   
+    // Verify that new_fragments_needed contains the
+    // first parity element and all data elements connected
+    // to that parity element sans the data to reconstruct.
+    i = 0;
+    while (new_fragments_needed[i] > -1) {
+        int is_valid_fragment = 0;
+
+        // This is the first parity
+        if (new_fragments_needed[i] == args->k) {
+            is_valid_fragment = 1;
+        } else {
+            // This checks for all of the other data elements
+            j = 1;
+            while (fragments_needed[j] > -1) {
+                if (fragments_needed[j] == new_fragments_needed[i]) {
+                    is_valid_fragment = 1;
+                    break;
+                }
+                j++;
+            }
+        }
+        assert(is_valid_fragment == 1);
+        i++;
+    }
+}
+
 static void test_decode_with_missing_data(const char *backend,
                                           struct ec_args *args)
 {
@@ -298,7 +421,7 @@ static void test_decode_with_missing_parity(const char *backend,
 static void test_decode_with_missing_multi_data(const char *backend,
                                                struct ec_args *args)
 {
-    int max_num_missing = args->hd;
+    int max_num_missing = args->hd - 1;
     int i,j;
     for (i = 0; i < args->k - max_num_missing + 1; i++) {
         int *skip = create_skips_array(args,-1);
@@ -315,7 +438,7 @@ static void test_decode_with_missing_multi_parity(const char *backend,
                                                  struct ec_args *args)
 {
     int i,j;
-    int max_num_missing = args->hd;
+    int max_num_missing = args->hd - 1;
     for (i = args->k; i < args->k + args->m - max_num_missing + 1; i++) {
         int *skip = create_skips_array(args,-1);
         assert(skip != NULL);
@@ -331,7 +454,7 @@ static void test_decode_with_missing_multi_data_parity(const char *backend,
                                                        struct ec_args *args)
 {
     int i,j;
-    int max_num_missing = args->hd;
+    int max_num_missing = args->hd - 1;
     int start = args->k - max_num_missing + 1;
     for (i = start; i < start + max_num_missing -1; i++) {
         int *skip = create_skips_array(args,-1);
@@ -365,6 +488,12 @@ static void test_simple_reconstruct(const char *backend,
     }
 }
 
+static void test_fragments_needed(const char *backend,
+                                  struct ec_args *args)
+{
+    test_fragments_needed_impl(backend, args);
+}
+
 struct ec_args null_args = {
     .k = 8,
     .m = 4,
@@ -374,21 +503,21 @@ struct ec_args null_args = {
 struct ec_args flat_xor_hd_args = {
     .k = 10,
     .m = 6,
-    .hd = 3,
+    .hd = 4,
 };
 
 struct ec_args jerasure_rs_vand_args = {
     .k = 10,
     .m = 4,
     .w = 16,
-    .hd = 3, //EDL Dont know if this is really the HD, check with KG
+    .hd = 5,
 };
 
 struct ec_args jerasure_rs_cauchy_args = {
     .k = 10,
     .m = 4,
     .w = 4,
-    .hd = 3, //EDL Dont know if this is really the HD, check with KG
+    .hd = 5,
 };
 
 struct testcase testcases[] = {
@@ -450,6 +579,10 @@ struct testcase testcases[] = {
         test_simple_reconstruct,
         "flat_xor_hd", &flat_xor_hd_args,
         .skip = false},
+    {"test_fragments_needed_flat_xor_hd",
+        test_fragments_needed, 
+        "flat_xor_hd", &flat_xor_hd_args,
+        .skip = false},
     // Jerasure RS Vand backend tests
     {"simple_encode_jerasure_rs_vand",
         test_simple_encode_decode,
@@ -475,29 +608,37 @@ struct testcase testcases[] = {
         test_simple_reconstruct,
         "jerasure_rs_vand", &jerasure_rs_vand_args,
         .skip = false},
+    {"test_fragments_needed_jerasure_rs_vand",
+        test_fragments_needed, 
+        "jerasure_rs_vand", &jerasure_rs_vand_args,
+        .skip = false},
     // Jerasure RS Cauchy backend tests
-    {"simple_encode_jerasureFlat XOR tests_rs_cauchy",
+    {"simple_encode_jerasure_rs_cauchy",
         test_simple_encode_decode,
         "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
         .skip = false},
-    {"decode_with_missing_data_jerasureFlat XOR tests_rs_cauchy",
+    {"decode_with_missing_data_jerasure_rs_cauchy",
         test_decode_with_missing_data,
         "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
         .skip = false},
-    {"decode_with_missing_multi_data_jerasureFlat XOR tests_rs_cauchy",
+    {"decode_with_missing_multi_data_jerasure_rs_cauchy",
         test_decode_with_missing_multi_data,
         "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
         .skip = false},
-    {"decode_with_missing_multi_parity_jerasureFlat XOR tests_rs_cauchy",
+    {"decode_with_missing_multi_parity_jerasure_rs_cauchy",
         test_decode_with_missing_multi_parity,
         "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
         .skip = false},
-    {"decode_with_missing_multi_data_parity_jerasureFlat XOR tests_rs_cauchy",
+    {"decode_with_missing_multi_data_parity_jerasure_rs_cauchy",
         test_decode_with_missing_multi_data_parity,
         "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
         .skip = false},
-    {"simple_reconstruct_jerasureFlat XOR tests_rs_cauch",
+    {"simple_reconstruct_jerasure_rs_cauchy",
         test_simple_reconstruct,
+        "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
+        .skip = false},
+    {"test_fragments_needed_jerasure_rs_cauchy",
+        test_fragments_needed, 
         "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
         .skip = false},
     { NULL, NULL, NULL, NULL, false },
