@@ -312,13 +312,13 @@ static void test_fragments_needed_impl(const char *backend,
      * Call to fragments_needed(desc, [0, -1], [3, -1], [])
      * should return: [10, 1, 2]
      */
-    fragments_to_reconstruct = (int*)malloc(sizeof(int) * args->k);
+    fragments_to_reconstruct = (int*)malloc(sizeof(int) * n);
     assert(fragments_to_reconstruct != NULL);
-    fragments_to_exclude = (int*)malloc(sizeof(int) * args->k);
+    fragments_to_exclude = (int*)malloc(sizeof(int) * n);
     assert(fragments_to_exclude != NULL);
-    fragments_needed = (int*)malloc(sizeof(int) * args->k);
+    fragments_needed = (int*)malloc(sizeof(int) * n);
     assert(fragments_needed != NULL);
-    new_fragments_needed = (int*)malloc(sizeof(int) * args->k);
+    new_fragments_needed = (int*)malloc(sizeof(int) * n);
     assert(fragments_needed != NULL);
 
     // This is the first parity element
@@ -586,7 +586,7 @@ struct testcase testcases[] = {
     {"test_fragments_needed_flat_xor_hd",
         test_fragments_needed, 
         "flat_xor_hd", &flat_xor_hd_args,
-        .skip = true},
+        .skip = false},
     // Jerasure RS Vand backend tests
     {"simple_encode_jerasure_rs_vand",
         test_simple_encode_decode,
@@ -615,7 +615,7 @@ struct testcase testcases[] = {
     {"test_fragments_needed_jerasure_rs_vand",
         test_fragments_needed, 
         "jerasure_rs_vand", &jerasure_rs_vand_args,
-        .skip = true},
+        .skip = false},
     // Jerasure RS Cauchy backend tests
     {"simple_encode_jerasure_rs_cauchy",
         test_simple_encode_decode,
@@ -644,7 +644,7 @@ struct testcase testcases[] = {
     {"test_fragments_needed_jerasure_rs_cauchy",
         test_fragments_needed, 
         "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
-        .skip = true},
+        .skip = false},
     { NULL, NULL, NULL, NULL, false },
 };
 
