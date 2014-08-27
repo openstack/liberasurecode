@@ -386,7 +386,6 @@ static void test_fragments_needed_impl(const char *backend,
         assert(is_valid_fragment == 1);
         i++;
     }
-
     free(fragments_to_reconstruct);
     free(fragments_to_exclude);
     free(fragments_needed);
@@ -587,7 +586,7 @@ struct testcase testcases[] = {
     {"test_fragments_needed_flat_xor_hd",
         test_fragments_needed, 
         "flat_xor_hd", &flat_xor_hd_args,
-        .skip = false},
+        .skip = true},
     // Jerasure RS Vand backend tests
     {"simple_encode_jerasure_rs_vand",
         test_simple_encode_decode,
@@ -616,7 +615,7 @@ struct testcase testcases[] = {
     {"test_fragments_needed_jerasure_rs_vand",
         test_fragments_needed, 
         "jerasure_rs_vand", &jerasure_rs_vand_args,
-        .skip = false},
+        .skip = true},
     // Jerasure RS Cauchy backend tests
     {"simple_encode_jerasure_rs_cauchy",
         test_simple_encode_decode,
@@ -645,7 +644,7 @@ struct testcase testcases[] = {
     {"test_fragments_needed_jerasure_rs_cauchy",
         test_fragments_needed, 
         "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
-        .skip = false},
+        .skip = true},
     { NULL, NULL, NULL, NULL, false },
 };
 
