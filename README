@@ -1,38 +1,55 @@
-## Introduction
-
+```
 .      .                                              .
 |   o  |                                              |
 |   .  |.-.  .-. .--..-.  .--..  . .--..-. .-..-.  .-.| .-.
 |   |  |   )(.-' |  (   ) `--.|  | |  (.-'(  (   )(   |(.-'
 `--' `-'`-'  `--''   `-'`-`--'`--`-'   `--'`-'`-'  `-'`-`--'
+```
 
-liberasurecode is an Erasure Code API library written in C.  The goal of
-this project is to provide a unified Erasure Coding interface with 
-'pluggable' Erasure Code backends.  
+liberasurecode is an Erasure Code API library written in C with pluggable Erasure Code backends.
 
-As of v0.9.10, liberasurecode supports 'Jerasure' (Reed-Solomon, Cauchy),
-'Flat XOR HD' backends.  A template 'NULL' backend is implemented to help
-future backend writers.
+----
 
-liberasurecode is designed around Dynamically Loaded (DL) libraries to
-realize a true 'plugin' architecture.  This also allows one to build
-liberasurecode indepdendent of the Erasure Code backend libraries.
+Highlights
+==========
 
-liberasurecode is known to work on Linux (Fedora/Debian flavors), Solaris,
-BSD and Darwin/Mac OS X.
+ * Unified Erasure Coding interface for common storage workloads.
 
-liberasurecode is distributed under the terms of the BSD license.
+ * Pluggable Erasure Code backends - As of v0.9.10, liberasurecode supports 'Jerasure' (Reed-Solomon, Cauchy), 'Flat XOR HD' backends.  A template 'NULL' backend is implemented to help future backend writers.  Also on the horizon is the support for - Intel Storage Acceleration Library (ISA-L) EC backend.
 
-## Users of the project
+ * True 'plugin' architecture - liberasurecode uses Dynamically Loaded (DL) libraries to realize a true 'plugin' architecture.  This also allows one to build liberasurecode indepdendent of the Erasure Code backend libraries.
 
-PyECLib - Python EC library:  https://pypi.python.org/pypi/PyECLib
-Openstack Swift Object Store - https://wiki.openstack.org/wiki/Swift
+ * Cross-platform - liberasurecode is known to work on Linux (Fedora/Debian flavors), Solaris, BSD and Darwin/Mac OS X.
 
-## liberasurecode Frontend API
+ * Community support - Developed by Erasure Code authority Kevin Greenan, liberasurecode is an actively maintained open-source project with growing community involvement (Openstack Swift, Ceph, PyECLib).
 
+----
+
+License
+==========
+
+liberasurecode is distributed under the terms of the **BSD** license.
+
+----
+
+Active Users
+====================
+
+ * PyECLib - Python EC library:  https://pypi.python.org/pypi/PyECLib
+ * Openstack Swift Object Store - https://wiki.openstack.org/wiki/Swift
+
+----
+
+liberasurecode API Definition
+=============================
+----
+
+Erasure Coding Backend Definitions
+-----------------------------------
+
+```
 /* =~=*=~==~=*=~==~=*=~= Supported EC backends =~=*=~==~=*=~==~=*=~==~=*=~== */
 
-<code>
 typedef enum {
     EC_BACKEND_NULL                 = 0,
     EC_BACKEND_JERASURE_RS_VAND     = 1,
@@ -41,8 +58,6 @@ typedef enum {
     EC_BACKENDS_MAX,
 } ec_backend_id_t;
 
-#ifndef EC_BACKENDS_SUPPORTED
-#define EC_BACKENDS_SUPPORTED
 /* Supported EC backends */
 static const char *ec_backend_names[EC_BACKENDS_MAX] = {
     "null",
@@ -50,9 +65,6 @@ static const char *ec_backend_names[EC_BACKENDS_MAX] = {
     "jerasure_rs_cauchy",
     "flat_xor_hd",
 };
-#endif // EC_BACKENDS_SUPPORTED
-
-</code>
 
 /* ~=*=~==~=*=~= EC Fragment metadata - supported checksum types ~=*=~==~=*=~ */
 
@@ -64,16 +76,19 @@ typedef enum {
     CHKSUM_TYPES_MAX,
 } ec_checksum_type_t;
 
-#ifndef EC_CHKSUM_TYPES_SUPPORTED
-#define EC_CHKSUM_TYPES_SUPPORTED
-/* Supported EC backends */
+/* Supported checksum types */
 static const char *ec_chksum_types[CHKSUM_TYPES_MAX] = {
     "none",
     "crc32",
     "md5",
 };
-#endif // EC_CHKSUM_TYPES_SUPPORTED
+```
+----
 
+Erasure Coding User Arguments
+-----------------------------
+
+```
 /* =~=*=~==~=*=~== EC Arguments - Common and backend-specific =~=*=~==~=*=~== */
 
 /**
@@ -100,7 +115,14 @@ struct ec_args {
                               * future backend args */
     ec_checksum_type_t ct;  /* fragment checksum type */
 };
+```
 
+---
+
+Erasure Coding API Functions
+----------------------------
+
+```
 /* =~=*=~==~=*=~== liberasurecode frontend API functions =~=*=~==~=~=*=~==~= */
 
 /* liberasurecode frontend API functions */
@@ -347,7 +369,12 @@ int liberasurecode_get_aligned_data_size(int desc, uint64_t data_len);
  * @return minimum data length length, or -error code on error
  */
 int liberasurecode_get_minimum_encode_size(int desc);
+```
+----
 
+Erasure Coding API Error Codes
+------------------------------
+```
 /* ==~=*=~===~=*=~==~=*=~== liberasurecode Error codes =~=*=~==~=~=*=~==~== */
 
 /* Error codes */
@@ -362,8 +389,10 @@ typedef enum {
 /* =~=*=~==~=*=~==~=*=~==~=*=~===~=*=~==~=*=~===~=*=~==~=*=~===~=*=~==~=*=~= */
 ```
 
-## Code organization
+----
 
+Code organization
+=================
 ```
 ├── include
 │   ├── erasurecode
@@ -414,16 +443,18 @@ typedef enum {
 ├── INSTALL
 ├── ChangeLog
 ```
+---
 
-## Build
+Build and Install
+=================
 
 To build the liberasurecode repository, perform the following from the 
 top-level directory:
 
-`$ ./autogen.sh`
-`$ ./configure`
-`$ make`
-`$ make test`
-`$ sudo make install`
-
---
+```
+ $ ./autogen.sh
+ $ ./configure
+ $ make
+ $ make test
+ $ sudo make install
+```
