@@ -1,5 +1,5 @@
 /*
- * <Copyright>
+ * Copyright 2014 Tushar Gohad, Kevin M Greenan, Eric Lambert, Mark Storer
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
