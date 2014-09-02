@@ -354,6 +354,47 @@ static void test_fragments_needed_invalid_args()
     assert(rc < 0);
 }
 
+static void test_get_fragment_metadata_invalid_args() {
+    int rc = -1;
+    char *frag = malloc(1024);
+    fragment_metadata_t metadata;
+
+    assert(frag);
+    memset(frag, 0, 1024);
+    fragment_header_t *fragment_hdr = (fragment_header_t *)frag;
+    fragment_hdr->magic = LIBERASURECODE_FRAG_HEADER_MAGIC;
+
+
+    rc = liberasurecode_get_fragment_metadata(NULL, &metadata);
+    assert(rc < 0);
+
+    rc = liberasurecode_get_fragment_metadata(frag, NULL);
+    assert(rc < 0);
+
+    memset(frag, 0, 1024); //clears magic
+    rc = liberasurecode_get_fragment_metadata(frag, &metadata);
+    assert(rc < 0);
+}
+
+static void test_verify_stripe_metadata_invalid_args() {
+    int rc = -1;
+    int num_frags = 6;
+    int desc = -1;
+    char **frags = malloc(sizeof(char *) * num_frags);
+
+    rc = liberasurecode_verify_stripe_metadata(desc, frags, num_frags);
+    assert(rc < 0);
+
+    desc = liberasurecode_instance_create("null", &null_args);
+    assert(desc > 0);
+
+    rc = liberasurecode_verify_stripe_metadata(desc, NULL, num_frags);
+    assert(rc < 0);
+
+    rc = liberasurecode_verify_stripe_metadata(desc, frags, -1);
+    assert(rc < 0);
+}
+
 static void encode_decode_test_impl(const char *backend,
                                    struct ec_args *args,
                                    int *skip)
@@ -796,6 +837,14 @@ struct testcase testcases[] = {
         test_reconstruct_fragment_invalid_args,
         NULL, NULL,
         .skip = false},
+    {"test_get_fragment_metadata_invalid_args",
+        test_get_fragment_metadata_invalid_args,
+        NULL, NULL,
+        .skip = false},
+    {"test_verify_stripe_metadata_invalid_args",
+        test_verify_stripe_metadata_invalid_args,
+        NULL, NULL,
+        .skip = true}, //EDL, liberasurecode_verify_stripe_metadata is not implemented at the moment
     {"test_fragments_needed_invalid_args",
         test_fragments_needed_invalid_args,
         NULL, NULL,

@@ -960,15 +960,13 @@ out_error:
  * client, but meaningful to the underlying library.  It is used to verify
  * stripes in verify_stripe_metadata().
  *
- * @param desc - liberasurecode descriptor/handle
- *        from liberasurecode_instance_create()
  * @param fragment - fragment pointer
  *
  * @param fragment_metadata - pointer to output fragment metadata struct
  *          (reference passed by the user)
  */
-int liberasurecode_get_fragment_metadata(int desc,
-        char *fragment, fragment_metadata_t *fragment_metadata)
+int liberasurecode_get_fragment_metadata(char *fragment,
+        fragment_metadata_t *fragment_metadata)
 {
     int ret = 0;
     fragment_header_t *fragment_hdr = NULL;
@@ -987,6 +985,12 @@ int liberasurecode_get_fragment_metadata(int desc,
 
     memcpy(fragment_metadata, fragment, sizeof(struct fragment_metadata));
     fragment_hdr = (fragment_header_t *) fragment;
+    if (LIBERASURECODE_FRAG_HEADER_MAGIC != fragment_hdr->magic) {
+        log_error("Invalid fragment, illegal magic value");
+        ret = -2;
+        goto out;
+    }
+
     switch(fragment_hdr->meta.chksum_type) {
         case CHKSUM_CRC32: {
             uint32_t computed_chksum = 0;
