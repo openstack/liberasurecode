@@ -1,5 +1,5 @@
 /* 
- * <Copyright>
+ * Copyright 2014, Tushar Gohad, Kevin Greenan, All rights reserved
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -200,7 +200,8 @@ int liberasurecode_encode(int desc,
  *
  * @return 0 in success; -error otherwise
  */
-int liberasurecode_encode_cleanup(int desc, char **encoded_data, char **encoded_parity);
+int liberasurecode_encode_cleanup(int desc, char **encoded_data,
+        char **encoded_parity);
 
 /**
  * Reconstruct original data from a set of k encoded fragments
