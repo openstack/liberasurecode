@@ -32,6 +32,7 @@ Openstack Swift Object Store - https://wiki.openstack.org/wiki/Swift
 
 /* =~=*=~==~=*=~==~=*=~= Supported EC backends =~=*=~==~=*=~==~=*=~==~=*=~== */
 
+<code>
 typedef enum {
     EC_BACKEND_NULL                 = 0,
     EC_BACKEND_JERASURE_RS_VAND     = 1,
@@ -50,6 +51,8 @@ static const char *ec_backend_names[EC_BACKENDS_MAX] = {
     "flat_xor_hd",
 };
 #endif // EC_BACKENDS_SUPPORTED
+
+</code>
 
 /* ~=*=~==~=*=~= EC Fragment metadata - supported checksum types ~=*=~==~=*=~ */
 
