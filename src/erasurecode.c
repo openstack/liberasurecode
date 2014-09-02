@@ -56,6 +56,9 @@ char *ec_backends_supported_str[EC_BACKENDS_MAX];
 /* Get EC backend by name */
 ec_backend_t liberasurecode_backend_lookup_by_name(const char *name)
 {
+    if (NULL == name)
+        return NULL;
+
     int b = 0;
 
     for (b = 0; ec_backends_supported[b]; ++b) {
@@ -69,6 +72,8 @@ ec_backend_t liberasurecode_backend_lookup_by_name(const char *name)
 /* Name to ID mapping for EC backend */
 ec_backend_id_t liberasurecode_backend_lookup_id(const char *name)
 {
+    if (NULL == name)
+        return -1;
     int b = 0;
 
     for (b = 0; ec_backends_supported[b]; ++b) {
@@ -298,6 +303,8 @@ int liberasurecode_instance_create(const char *backend_name,
     int err = 0;
     ec_backend_t instance = NULL;
     struct ec_backend_args bargs;
+    if (!backend_name || !args)
+        return -1;
 
     ec_backend_id_t id = liberasurecode_backend_lookup_id(backend_name);
     if (-1 == id)
@@ -348,7 +355,7 @@ int liberasurecode_instance_destroy(int desc)
 
     instance = liberasurecode_backend_instance_get_by_desc(desc);
     if (NULL == instance)
-        return EBACKENDNOTAVAIL;
+        return -EBACKENDNOTAVAIL;
 
     /* Call private exit() for the backend */
     instance->common.ops->exit(instance->desc.backend_desc);
@@ -393,17 +400,21 @@ int liberasurecode_encode_cleanup(int desc,
     k = instance->args.uargs.k;
     m = instance->args.uargs.m;
 
-    for (i = 0; i < k; i++) {
-        free(encoded_data[i]);
-    }
+    if (encoded_data) {
+        for (i = 0; i < k; i++) {
+            free(encoded_data[i]);
+        }
 
-    free(encoded_data);
-    
-    for (i = 0; i < m; i++) {
-        free(encoded_parity[i]);
+        free(encoded_data);
     }
+   
+    if (encoded_parity) { 
+        for (i = 0; i < m; i++) {
+            free(encoded_parity[i]);
+        }
     
-    free(encoded_parity);
+        free(encoded_parity);
+    }
 
     return 0;
 }
@@ -436,6 +447,34 @@ int liberasurecode_encode(int desc,
     int blocksize = 0;      /* length of each of k data elements */
     int data_len;           /* data len to write to fragment headers */
     int aligned_data_len;   /* EC algorithm compatible data length */
+
+    if (orig_data == NULL) {
+        log_error("Pointer to data buffer is null!");
+        ret = -1;
+        goto out;
+    }
+
+    if (orig_data_size <= 0) {
+        log_error("Size of data to encode must be a positive value");
+        ret = -1;
+        goto out;
+    }
+
+    if (encoded_data == NULL) {
+        log_error("Pointer to encoded data buffers is null!");
+        return -1;
+    }
+
+    if (encoded_parity == NULL) {
+        log_error("Pointer to encoded parity buffers is null!");
+        return -1;
+    }
+
+    if (fragment_len == NULL) {
+        log_error("Pointer to fragment length is null!");
+        ret = -1;
+        goto out;
+    }
 
     ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
     if (NULL == instance) {
@@ -548,6 +587,24 @@ int liberasurecode_decode(int desc,
     ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
     if (NULL == instance) {
         ret = -EBACKENDNOTAVAIL;
+        goto out;
+    }
+
+    if (NULL == available_fragments) {
+        log_error("Pointer to encoded fragments buffer is null!");
+        ret = -1;
+        goto out;
+    }
+
+    if (NULL == out_data) {
+        log_error("Pointer to decoded data buffer is null!");
+        ret = -1;
+        goto out;
+    }
+
+    if (NULL == out_data_len) {
+        log_error("Pointer to decoded data length variable is null!");
+        ret = -1;
         goto out;
     }
 
@@ -718,6 +775,18 @@ int liberasurecode_reconstruct_fragment(int desc,
         ret = -EBACKENDNOTAVAIL;
         goto out;
     }
+
+    if (NULL == available_fragments) {
+        log_error("Can not reconstruct fragment, available fragments pointer is NULL");
+        ret = -1;
+        goto out;
+    }
+
+    if (NULL == out_fragment) {
+        log_error("Can not reconstruct fragment, output fragment pointer is NULL");
+        ret = -1;
+        goto out;
+    }
     
     k = instance->args.uargs.k;
     m = instance->args.uargs.m;
@@ -853,6 +922,23 @@ int liberasurecode_fragments_needed(int desc,
     ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
     if (NULL == instance) {
         ret = -EBACKENDNOTAVAIL;
+        goto out_error;
+    }
+    if (NULL == fragments_to_reconstruct) {
+        log_error("Unable to determine list of fragments needed, pointer to list of indexes to reconstruct is NULL.");
+        ret = -1;
+        goto out_error;
+    }
+
+    if (NULL == fragments_to_exclude) {
+        log_error("Unable to determine list of fragments needed, pointer to list of fragments to exclude is NULL.");
+        ret = -1;
+        goto out_error;
+    }
+
+    if (NULL == fragments_needed) {
+        log_error("Unable to determine list of fragments needed, pointer to list of fragments to reconstruct is NULL.");
+        ret = -1;
         goto out_error;
     }
 

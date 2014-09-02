@@ -42,6 +42,32 @@ struct testcase {
     bool skip;
 };
 
+struct ec_args null_args = {
+    .k = 8,
+    .m = 4,
+    .priv_args1.null_args.arg1 = 11,
+};
+
+struct ec_args flat_xor_hd_args = {
+    .k = 10,
+    .m = 6,
+    .hd = 4,
+};
+
+struct ec_args jerasure_rs_vand_args = {
+    .k = 10,
+    .m = 4,
+    .w = 16,
+    .hd = 5,
+};
+
+struct ec_args jerasure_rs_cauchy_args = {
+    .k = 10,
+    .m = 4,
+    .w = 4,
+    .hd = 5,
+};
+
 //TODO Make this a but more useful
 char *create_buffer(int size, int fill)
 {
@@ -138,6 +164,196 @@ static void test_create_and_destroy_backend(
     assert(0 == liberasurecode_instance_destroy(desc));
 }
 
+static void test_create_backend_invalid_args()
+{
+    assert(liberasurecode_instance_create(NULL, &null_args) < 0);
+    assert(liberasurecode_instance_create("DOESNOTEXIST", &null_args) == -EBACKENDNOTSUPP);
+    assert(liberasurecode_instance_create("", &null_args)  == -EBACKENDNOTSUPP);
+    assert(liberasurecode_instance_create(" ", &null_args)  == -EBACKENDNOTSUPP);
+    assert(liberasurecode_instance_create("null", NULL) < 0);
+}
+
+static void test_destroy_backend_invalid_args()
+{
+    int desc = -1;
+    assert(liberasurecode_instance_destroy(desc) < 0);
+    desc = 1;
+    assert(liberasurecode_instance_destroy(desc) < 0);
+    desc = liberasurecode_instance_create("null", &null_args);
+    assert(desc > 0);
+    assert(0 == liberasurecode_instance_destroy(desc));
+    assert(liberasurecode_instance_destroy(desc) < 0);
+}
+
+static void test_encode_invalid_args()
+{
+    int rc = 0;
+    int desc = -1;
+    int orig_data_size = 1024 * 1024;
+    char *orig_data = create_buffer(orig_data_size, 'x');
+    char **encoded_data = NULL, **encoded_parity = NULL;
+    uint64_t encoded_fragment_len = 0;
+
+    assert(orig_data != NULL);
+    rc = liberasurecode_encode(desc, orig_data, orig_data_size,
+            &encoded_data, &encoded_parity, &encoded_fragment_len);
+    assert(rc < 0);
+
+    desc = liberasurecode_instance_create("null", &null_args);
+    assert(desc > 0);
+
+    rc = liberasurecode_encode(desc, NULL, orig_data_size,
+            &encoded_data, &encoded_parity, &encoded_fragment_len);
+    assert(rc < 0);
+
+    rc = liberasurecode_encode(desc, orig_data, 0,
+            &encoded_data, &encoded_parity, &encoded_fragment_len);
+    assert(rc < 0);
+
+    rc = liberasurecode_encode(desc, orig_data, orig_data_size,
+            NULL, &encoded_parity, &encoded_fragment_len);
+    assert(rc < 0);
+
+    rc = liberasurecode_encode(desc, orig_data, orig_data_size,
+            &encoded_data, NULL, &encoded_fragment_len);
+    assert(rc < 0);
+
+    rc = liberasurecode_encode(desc, orig_data, orig_data_size,
+            &encoded_data, &encoded_parity, NULL);
+    assert(rc < 0);
+}
+
+static void test_encode_cleanup_invalid_args()
+{
+    int rc = 0;
+    int desc = -1;
+    int orig_data_size = 1024 * 1024;
+    char *orig_data = create_buffer(orig_data_size, 'x');
+    char **encoded_data = NULL, **encoded_parity = NULL;
+    uint64_t encoded_fragment_len = 0;
+
+    desc = liberasurecode_instance_create("null", &null_args);
+    assert(desc > 0);
+
+    rc = liberasurecode_encode(desc, orig_data, orig_data_size,
+            &encoded_data, &encoded_parity, &encoded_fragment_len);
+    assert(rc == 0);
+
+    rc = liberasurecode_encode_cleanup(-1, encoded_data, encoded_parity);
+    assert(rc < 0);
+
+    rc = liberasurecode_encode_cleanup(desc, NULL, NULL);
+    assert(rc == 0);
+}
+
+static void test_decode_invalid_args()
+{
+    int rc = 0;
+    int desc = -1;
+    int orig_data_size = 1024 * 1024;
+    char *orig_data = create_buffer(orig_data_size, 'x');
+    char **encoded_data = NULL, **encoded_parity = NULL;
+    uint64_t encoded_fragment_len = 0;
+    int num_avail_frags = -1;
+    char **avail_frags = NULL;
+    int *skips = create_skips_array(&null_args, -1);
+    char *decoded_data = NULL;
+    uint64_t decoded_data_len = 0;
+
+    desc = liberasurecode_instance_create("null", &null_args);
+    assert(desc > 0);
+    rc = liberasurecode_encode(desc, orig_data, orig_data_size,
+            &encoded_data, &encoded_parity, &encoded_fragment_len);
+    assert(0 == rc);
+
+    num_avail_frags = create_frags_array(&avail_frags, encoded_data,
+                                         encoded_parity, &null_args, skips);
+
+    rc = liberasurecode_decode(-1, avail_frags, num_avail_frags,
+                               encoded_fragment_len, &decoded_data,
+                               &decoded_data_len);
+    assert(rc < 0);
+
+    rc = liberasurecode_decode(desc, NULL, num_avail_frags,
+                               encoded_fragment_len, &decoded_data,
+                               &decoded_data_len);
+    assert(rc < 0);
+
+    rc = liberasurecode_decode(desc, avail_frags, num_avail_frags,
+                               encoded_fragment_len, NULL,
+                               &decoded_data_len);
+    assert(rc < 0);
+
+    rc = liberasurecode_decode(desc, avail_frags, num_avail_frags,
+                               encoded_fragment_len, &decoded_data,
+                               NULL);
+    assert(rc < 0);
+}
+
+static void test_decode_cleanup_invalid_args()
+{
+    int rc = 0;
+    int desc = 1;
+    char *orig_data = create_buffer(1024, 'x');
+
+    rc = liberasurecode_decode_cleanup(desc, orig_data);
+    assert(rc < 0);
+
+    desc = liberasurecode_instance_create("null", &null_args);
+    assert(desc > 0);
+
+    rc = liberasurecode_decode_cleanup(desc, NULL);
+    assert(rc == 0);
+}
+
+static void test_reconstruct_fragment_invalid_args()
+{
+    int rc = -1;
+    int desc = 1;
+    int frag_len = 10;
+    char **avail_frags = malloc(sizeof(char *) * 2);
+    char *out_frag = malloc(frag_len);
+
+    assert(avail_frags);
+    assert(out_frag);
+
+    rc = liberasurecode_reconstruct_fragment(desc, avail_frags, 1, frag_len, 1, out_frag);
+    assert(rc < 0);
+
+    desc = liberasurecode_instance_create("null", &null_args);
+    assert(desc > 0);
+
+    rc = liberasurecode_reconstruct_fragment(desc, NULL, 1, frag_len, 1, out_frag);
+    assert(rc < 0);
+
+    rc = liberasurecode_reconstruct_fragment(desc, avail_frags, 1, frag_len, 1, NULL);
+    assert(rc < 0);
+}
+
+static void test_fragments_needed_invalid_args()
+{
+    int rc = -1;
+    int desc = 1;
+    int frags_to_recon = -1;
+    int frags_to_exclude = -1;
+    int *frags_needed= NULL;
+
+    rc = liberasurecode_fragments_needed(desc, &frags_to_recon, &frags_to_exclude, frags_needed);
+    assert(rc < 0);
+
+    desc = liberasurecode_instance_create("null", &null_args);
+    assert(desc > 0);
+
+    rc = liberasurecode_fragments_needed(desc, NULL, &frags_to_exclude, frags_needed);
+    assert(rc < 0);
+
+    rc = liberasurecode_fragments_needed(desc, &frags_to_recon, NULL, frags_needed);
+    assert(rc < 0);
+
+    rc = liberasurecode_fragments_needed(desc, &frags_to_recon, &frags_to_exclude, NULL);
+    assert(rc < 0);
+}
+
 static void encode_decode_test_impl(const char *backend,
                                    struct ec_args *args,
                                    int *skip)
@@ -199,18 +415,17 @@ static void encode_decode_test_impl(const char *backend,
     assert(decoded_data_len == orig_data_size);
     assert(memcmp(decoded_data, orig_data, orig_data_size) == 0);
 
+    rc = liberasurecode_encode_cleanup(desc, encoded_data, encoded_parity);
+    assert(rc == 0);
+
+    rc = liberasurecode_decode_cleanup(desc, decoded_data);
+    assert(rc == 0);
+
     if (desc) {
         assert(0 == liberasurecode_instance_destroy(desc));
     }
 
     free(orig_data);
-    if (avail_frags != NULL) {
-        int idx = 0;
-        for (idx = 0; idx < num_avail_frags; idx++) {
-            free(avail_frags[idx]);
-        }
-        free(avail_frags);
-    }
 }
 
 static void reconstruct_test_impl(const char *backend,
@@ -498,31 +713,43 @@ static void test_fragments_needed(const char *backend,
     test_fragments_needed_impl(backend, args);
 }
 
-struct ec_args null_args = {
-    .k = 8,
-    .m = 4,
-    .priv_args1.null_args.arg1 = 11,
-};
+static void test_backend_lookup_by_name()
+{
+    const char *null_name = NULL;
+    const char *empty_name = "";
+    const char *white_space_name = " ";
+    const char *missing_name = "1DONT3XIST!";
+    int i =0, num_backends;
+    const char **supported_ec_backends =
+        liberasurecode_supported_backends(&num_backends);
 
-struct ec_args flat_xor_hd_args = {
-    .k = 10,
-    .m = 6,
-    .hd = 4,
-};
+    assert(liberasurecode_backend_lookup_by_name(null_name) == NULL);
+    assert(liberasurecode_backend_lookup_by_name(empty_name) == NULL);
+    assert(liberasurecode_backend_lookup_by_name(white_space_name) == NULL);
+    assert(liberasurecode_backend_lookup_by_name(missing_name) == NULL);
 
-struct ec_args jerasure_rs_vand_args = {
-    .k = 10,
-    .m = 4,
-    .w = 16,
-    .hd = 5,
-};
+    for (i = 0; i < num_backends; i++) {
+        assert(liberasurecode_backend_lookup_by_name(supported_ec_backends[i]) != NULL);
+    }
+}
 
-struct ec_args jerasure_rs_cauchy_args = {
-    .k = 10,
-    .m = 4,
-    .w = 4,
-    .hd = 5,
-};
+static void test_backend_lookup_by_id()
+{
+    const char *null_name = NULL;
+    const char *empty_name = "";
+    const char *white_space_name = " ";
+    const char *missing_name = "1DONT3XIST!";
+    int i =0, num_backends;
+    const char **supported_ec_backends =
+        liberasurecode_supported_backends(&num_backends);
+    assert(liberasurecode_backend_lookup_id(null_name) == -1);
+    assert(liberasurecode_backend_lookup_id(empty_name) == -1);
+    assert(liberasurecode_backend_lookup_id(white_space_name) == -1);
+    assert(liberasurecode_backend_lookup_id(missing_name) == -1);
+    for (i = 0; i < num_backends; i++) {
+        assert(liberasurecode_backend_lookup_id(supported_ec_backends[i]) == i);
+    }
+}
 
 struct testcase testcases[] = {
     {"liberasurecode_supported_backends",
@@ -533,28 +760,60 @@ struct testcase testcases[] = {
         test_liberasurecode_supported_checksum_types,
         NULL, NULL,
         .skip = false},
+    {"look_up_by_name",
+        test_backend_lookup_by_name,
+        NULL, NULL,
+        .skip = false},
+    {"look_up_by_id",
+        test_backend_lookup_by_id,
+        NULL, NULL,
+        .skip = false},
+    {"test_create_backend_invalid_args",
+        test_create_backend_invalid_args,
+        NULL, NULL,
+        .skip = false},
+    {"test_create_backend_invalid_args",
+        test_destroy_backend_invalid_args,
+        NULL, NULL,
+        .skip = false},
+    {"test_encode_invalid_args",
+        test_encode_invalid_args,
+        NULL, NULL,
+        .skip = false},
+    {"test_encode_cleanup_invalid_args",
+        test_encode_cleanup_invalid_args,
+        NULL, NULL,
+        .skip = false},
+    {"test_decode_invalid_args",
+        test_decode_invalid_args,
+        NULL, NULL,
+        .skip = false},
+    {"test_decode_cleanup_invalid_args",
+        test_decode_cleanup_invalid_args,
+        NULL, NULL,
+        .skip = false},
+    {"test_reconstruct_fragment_invalid_args",
+        test_reconstruct_fragment_invalid_args,
+        NULL, NULL,
+        .skip = false},
+    {"test_fragments_needed_invalid_args",
+        test_fragments_needed_invalid_args,
+        NULL, NULL,
+        .skip = false},
+    // NULL backend test
     {"create_and_destroy_backend",
         test_create_and_destroy_backend,
         "null", &null_args,
         .skip = false},
-    {"create_and_destroy_backend",
-        test_create_and_destroy_backend,
-        "flat_xor_hd", &flat_xor_hd_args,
-        .skip = false},
-    {"create_and_destroy_backend",
-        test_create_and_destroy_backend,
-        "jerasure_rs_vand", &jerasure_rs_vand_args,
-        .skip = false},
-    {"create_and_destroy_backend",
-        test_create_and_destroy_backend,
-        "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
-        .skip = false},
-    // NULL backend tests
     {"simple_encode_null",
         test_simple_encode_decode,
         "null", &null_args,
         .skip = false},
     // Flat XOR backend tests
+    {"create_and_destroy_backend",
+        test_create_and_destroy_backend,
+        "flat_xor_hd", &flat_xor_hd_args,
+        .skip = false},
     {"simple_encode_flat_xor_hd",
         test_simple_encode_decode,
         "flat_xor_hd", &flat_xor_hd_args,
@@ -588,6 +847,10 @@ struct testcase testcases[] = {
         "flat_xor_hd", &flat_xor_hd_args,
         .skip = false},
     // Jerasure RS Vand backend tests
+    {"create_and_destroy_backend",
+        test_create_and_destroy_backend,
+        "jerasure_rs_vand", &jerasure_rs_vand_args,
+        .skip = false},
     {"simple_encode_jerasure_rs_vand",
         test_simple_encode_decode,
         "jerasure_rs_vand", &jerasure_rs_vand_args,
@@ -617,6 +880,10 @@ struct testcase testcases[] = {
         "jerasure_rs_vand", &jerasure_rs_vand_args,
         .skip = false},
     // Jerasure RS Cauchy backend tests
+    {"create_and_destroy_backend",
+        test_create_and_destroy_backend,
+        "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
+        .skip = false},
     {"simple_encode_jerasure_rs_cauchy",
         test_simple_encode_decode,
         "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
