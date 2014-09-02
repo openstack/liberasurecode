@@ -23,6 +23,11 @@ BSD and Darwin/Mac OS X.
 
 liberasurecode is distributed under the terms of the BSD license.
 
+## Users of the project
+
+PyECLib - Python EC library:  https://pypi.python.org/pypi/PyECLib
+Openstack Swift Object Store - https://wiki.openstack.org/wiki/Swift
+
 ## liberasurecode Frontend API
 
 /* =~=*=~==~=*=~==~=*=~= Supported EC backends =~=*=~==~=*=~==~=*=~==~=*=~== */
