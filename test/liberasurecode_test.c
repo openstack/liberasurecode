@@ -648,6 +648,49 @@ static void test_fragments_needed_impl(const char *backend,
     free(new_fragments_needed);
 }
 
+static void test_get_fragment_metadata(const char *backend,
+                                       struct ec_args *args)
+{
+    int i = 0;
+    int rc = 0;
+    int desc = -1;
+    int orig_data_size = 1024 * 1024;
+    char *orig_data = NULL;
+    char **encoded_data = NULL, **encoded_parity = NULL;
+    uint64_t encoded_fragment_len = 0;
+    int num_fragments = args-> k + args->m;
+    fragment_metadata_t cur_frag;
+    fragment_metadata_t cmp_frag;
+
+    desc = liberasurecode_instance_create(backend, args);
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf (stderr, "Backend library not available!\n");
+        return;
+    }
+    assert(desc > 0);
+
+    orig_data = create_buffer(orig_data_size, 'x');
+    assert(orig_data != NULL);
+
+    rc = liberasurecode_encode(desc, orig_data, orig_data_size,
+            &encoded_data, &encoded_parity, &encoded_fragment_len);
+    assert(0 == rc);
+
+    memset(&cmp_frag, -1, sizeof(fragment_metadata_t));
+
+    for (i = 0; i < num_fragments; i++) {
+        memset(&cur_frag, -1, sizeof(fragment_metadata_t));
+        if (i < args->k) {
+            rc = liberasurecode_get_fragment_metadata(encoded_data[i], &cur_frag);
+        } else {
+            rc = liberasurecode_get_fragment_metadata(encoded_parity[i - args->k], &cur_frag);
+        }
+        assert(rc == 0);
+        rc = memcmp(&cur_frag, &cmp_frag, sizeof(fragment_metadata_t));
+        assert(rc != 0);
+    }
+}
+
 static void test_decode_with_missing_data(const char *backend,
                                           struct ec_args *args)
 {
@@ -858,6 +901,10 @@ struct testcase testcases[] = {
         test_simple_encode_decode,
         "null", &null_args,
         .skip = false},
+    {"test_get_fragment_metadata",
+        test_get_fragment_metadata,
+        "null", &null_args,
+        .skip = false},
     // Flat XOR backend tests
     {"create_and_destroy_backend",
         test_create_and_destroy_backend,
@@ -895,6 +942,10 @@ struct testcase testcases[] = {
         test_fragments_needed, 
         "flat_xor_hd", &flat_xor_hd_args,
         .skip = false},
+    {"test_get_fragment_metadata_flat_xor_hd",
+        test_get_fragment_metadata,
+        "flat_xor_hd", &flat_xor_hd_args,
+        .skip = false},
     // Jerasure RS Vand backend tests
     {"create_and_destroy_backend",
         test_create_and_destroy_backend,
@@ -928,6 +979,10 @@ struct testcase testcases[] = {
         test_fragments_needed, 
         "jerasure_rs_vand", &jerasure_rs_vand_args,
         .skip = false},
+    {"test_get_fragment_metadata_jerasure_rs_vand",
+        test_get_fragment_metadata,
+        "jerasure_rs_vand", &jerasure_rs_vand_args,
+        .skip = false},
     // Jerasure RS Cauchy backend tests
     {"create_and_destroy_backend",
         test_create_and_destroy_backend,
@@ -959,6 +1014,10 @@ struct testcase testcases[] = {
         .skip = false},
     {"test_fragments_needed_jerasure_rs_cauchy",
         test_fragments_needed, 
+        "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
+        .skip = false},
+    {"test_get_fragment_metadata_jerasure_rs_cauchy",
+        test_get_fragment_metadata,
         "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
         .skip = false},
     { NULL, NULL, NULL, NULL, false },
