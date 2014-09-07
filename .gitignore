@@ -44,3 +44,8 @@ config_liberasurecode.h.in
 .deps
 config_liberasurecode.h
 stamp-h1
+
+# doxygen documentation
+^doc/.*\.doxytag
+^doc/html
+^doc/doxygen.cfg
