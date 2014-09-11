@@ -162,7 +162,6 @@ static int test_hd_code(struct ec_args *args,
     int excluded_idxs[4] = { -1, -1, -1, -1 };
     int ret = 0;
     char *data, **parity;
-    clock_t start_time, end_time;
     int *fragments_needed;
     char **encoded_data = NULL; 
     char **encoded_parity = NULL;
@@ -216,7 +215,6 @@ static int test_hd_code(struct ec_args *args,
     /*
      * Run Encode test
      */
-    start_time = clock();
     for (i=0; i < num_iter-1; i++) {
         rc = liberasurecode_encode(desc, data, blocksize * args->k,
                                    &encoded_data, &encoded_parity,
@@ -232,12 +230,7 @@ static int test_hd_code(struct ec_args *args,
         }
         free(encoded_parity);
     }
-    end_time = clock();
     fprintf(stderr, " Encode: OK\n");
-    /*
-    fprintf(stderr, "Encode: %.2f MB/s\n", 
-            ((double)(num_iter * blocksize * args->k) / 1000 / 1000 )
-            / ((double)(end_time-start_time) / CLOCKS_PER_SEC));*/
 
     for (i=0; i < args->m; i++) {
         memset(parity[i], 0, blocksize);
@@ -304,7 +297,6 @@ static int test_hd_code(struct ec_args *args,
         free(out_data);
     }
 
-    start_time = clock();
     for (i=0; i < num_iter; i++) {
         mask = 0;
         int mi = rand() % (args->k + args->m);
@@ -324,10 +316,6 @@ static int test_hd_code(struct ec_args *args,
         fprintf(stderr," Decode Scenario:");
         print_mask(mask);
     }
-    end_time = clock();
-/*
-    fprintf(stderr, "Decode: %.2f MB/s\n",
-            ((double)(num_iter * blocksize * args->k) / 1000 / 1000 ) / ((double)(end_time-start_time) / CLOCKS_PER_SEC));*/
     for (j = 0; j < args->k; j++) {
         free(encoded_data[j]);    
     }
