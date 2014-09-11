@@ -42,11 +42,11 @@ esac],[debug=false])
 if test x$debug = xtrue ; then
     DEBUG=1
     CXXFLAGS=""
-    CFLAGS="-O0 -ggdb -g3 -Werror -D_GNU_SOURCE=1"
+    CFLAGS="-O0 -ggdb -g3 -Werror -D_GNU_SOURCE=1 -Wall -pedantic -std=c99"
 else
     DEBUG=0
     CXXFLAGS=""
-    CFLAGS="-O2 -g -Werror -D_GNU_SOURCE=1"
+    CFLAGS="-O2 -g -Werror -D_GNU_SOURCE=1 -Wall -pedantic -std=c99"
 fi
 
 AC_ARG_ENABLE([gcov],

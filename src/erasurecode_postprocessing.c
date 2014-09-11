@@ -38,7 +38,7 @@ void add_fragment_metadata(char *fragment,
     set_orig_data_size(fragment, orig_data_size);
     set_fragment_payload_size(fragment, blocksize);
     if (add_chksum) {
-        set_chksum(fragment, blocksize);
+        set_checksum(fragment, blocksize);
     }
 }
 

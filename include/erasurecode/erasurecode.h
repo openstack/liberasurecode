@@ -47,17 +47,6 @@ typedef enum {
     EC_BACKENDS_MAX,
 } ec_backend_id_t;
 
-#ifndef EC_BACKENDS_SUPPORTED
-#define EC_BACKENDS_SUPPORTED
-/* Supported EC backends */
-static const char *ec_backend_names[EC_BACKENDS_MAX] = {
-    "null",
-    "jerasure_rs_vand",
-    "jerasure_rs_cauchy",
-    "flat_xor_hd",
-};
-#endif // EC_BACKENDS_SUPPORTED
-
 /* ~=*=~==~=*=~= EC Fragment metadata - supported checksum types ~=*=~==~=*=~ */
 
 /* Checksum types supported for fragment metadata stored in each fragment */
@@ -67,16 +56,6 @@ typedef enum {
     CHKSUM_MD5                      = 2,
     CHKSUM_TYPES_MAX,
 } ec_checksum_type_t;
-
-#ifndef EC_CHKSUM_TYPES_SUPPORTED
-#define EC_CHKSUM_TYPES_SUPPORTED
-/* Supported EC backends */
-static const char *ec_chksum_types[CHKSUM_TYPES_MAX] = {
-    "none",
-    "crc32",
-    "md5",
-};
-#endif // EC_CHKSUM_TYPES_SUPPORTED
 
 /* =~=*=~==~=*=~== EC Arguments - Common and backend-specific =~=*=~==~=*=~== */
 

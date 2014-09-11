@@ -37,20 +37,27 @@
 struct ec_backend_op_stubs jerasure_rs_vand_ops;
 struct ec_backend jerasure_rs_vand;
 
+typedef int* (*reed_sol_vandermonde_coding_matrix_func)(int, int, int);
+typedef void (*jerasure_matrix_encode_func)(int, int, int, int*, char **, char **, int); 
+typedef int (*jerasure_matrix_decode_func)(int, int, int, int *, int, int*, char **, char **, int);
+typedef int (*jerasure_make_decoding_matrix_func)(int, int, int, int *, int *, int *, int *);
+typedef int * (*jerasure_erasures_to_erased_func)(int, int, int *);
+typedef void (*jerasure_matrix_dotprod_func)(int, int, int *,int *, int,char **, char **, int);
+
 struct jerasure_rs_vand_descriptor {
     /* calls required for init */
-    int * (*reed_sol_vandermonde_coding_matrix)(int, int, int);
+    reed_sol_vandermonde_coding_matrix_func reed_sol_vandermonde_coding_matrix;
  
     /* calls required for encode */
-    void (*jerasure_matrix_encode)(int, int, int, int*, char **, char **, int); 
+    jerasure_matrix_encode_func jerasure_matrix_encode;
     
     /* calls required for decode */
-    int (*jerasure_matrix_decode)(int, int, int, int *, int, int*, char **, char **, int);
+    jerasure_matrix_decode_func jerasure_matrix_decode;
     
     /* calls required for reconstruct */
-    int (*jerasure_make_decoding_matrix)(int, int, int, int *, int *, int *, int *);
-    int * (*jerasure_erasures_to_erased)(int, int, int *);
-    void (*jerasure_matrix_dotprod)(int, int, int *,int *, int,char **, char **, int);
+    jerasure_make_decoding_matrix_func jerasure_make_decoding_matrix;
+    jerasure_erasures_to_erased_func jerasure_erasures_to_erased;
+    jerasure_matrix_dotprod_func jerasure_matrix_dotprod;
 
     /* fields needed to hold state */
     int *matrix;
@@ -161,7 +168,6 @@ static int jerasure_rs_vand_min_fragments(void *desc, int *missing_idxs,
         }
     }
 
-out:
     return ret;
 }
 
@@ -198,39 +204,61 @@ static void * jerasure_rs_vand_init(struct ec_backend_args *args,
         }
      }
 
+     /*
+     * ISO C forbids casting a void* to a function pointer.
+     * Since dlsym return returns a void*, we use this union to
+     * "transform" the void* to a function pointer.
+     */
+    union {
+        reed_sol_vandermonde_coding_matrix_func initp;
+        jerasure_matrix_encode_func encodep;
+        jerasure_matrix_decode_func decodep;
+        jerasure_make_decoding_matrix_func decodematrixp;
+        jerasure_erasures_to_erased_func erasep;
+        jerasure_matrix_dotprod_func dotprodp;
+        void *vptr;
+    } func_handle = {.vptr = NULL};
+
+
     /* fill in function addresses */
-    desc->jerasure_matrix_encode = dlsym( 
-            backend_sohandle, "jerasure_matrix_encode");
+    func_handle.vptr = NULL;
+    func_handle.vptr = dlsym(backend_sohandle, "jerasure_matrix_encode");
+    desc->jerasure_matrix_encode = func_handle.encodep;
     if (NULL == desc->jerasure_matrix_encode) {
         goto error; 
     }
   
-    desc->jerasure_matrix_decode = dlsym(
-            backend_sohandle, "jerasure_matrix_decode");
+    func_handle.vptr = NULL;
+    func_handle.vptr = dlsym(backend_sohandle, "jerasure_matrix_decode");
+    desc->jerasure_matrix_decode = func_handle.decodep;
     if (NULL == desc->jerasure_matrix_decode) {
         goto error; 
     }
   
-    desc->jerasure_make_decoding_matrix = dlsym(
-            backend_sohandle, "jerasure_make_decoding_matrix");
+    func_handle.vptr = NULL;
+    func_handle.vptr = dlsym(backend_sohandle, "jerasure_make_decoding_matrix");
+    desc->jerasure_make_decoding_matrix = func_handle.decodematrixp;
     if (NULL == desc->jerasure_make_decoding_matrix) {
         goto error; 
     }
   
-    desc->jerasure_matrix_dotprod = dlsym(
-            backend_sohandle, "jerasure_matrix_dotprod");
+    func_handle.vptr = NULL;
+    func_handle.vptr = dlsym(backend_sohandle, "jerasure_matrix_dotprod");
+    desc->jerasure_matrix_dotprod = func_handle.dotprodp;
     if (NULL == desc->jerasure_matrix_dotprod) {
         goto error; 
     }
   
-    desc->jerasure_erasures_to_erased = dlsym(
-            backend_sohandle, "jerasure_erasures_to_erased");
+    func_handle.vptr = NULL;
+    func_handle.vptr = dlsym(backend_sohandle, "jerasure_erasures_to_erased");
+    desc->jerasure_erasures_to_erased = func_handle.erasep;
     if (NULL == desc->jerasure_erasures_to_erased) {
         goto error; 
     }
  
-    desc->reed_sol_vandermonde_coding_matrix = dlsym(
-            backend_sohandle, "reed_sol_vandermonde_coding_matrix");
+    func_handle.vptr = NULL;
+    func_handle.vptr = dlsym(backend_sohandle, "reed_sol_vandermonde_coding_matrix");
+    desc->reed_sol_vandermonde_coding_matrix = func_handle.initp;
     if (NULL == desc->reed_sol_vandermonde_coding_matrix) {
         goto error; 
     }
@@ -273,6 +301,8 @@ static int jerasure_rs_vand_exit(void *desc)
     jerasure_desc = (struct jerasure_rs_vand_descriptor*) desc;
 
     free(jerasure_desc);
+
+    return 0;
 }
 
 struct ec_backend_op_stubs jerasure_rs_vand_op_stubs = {

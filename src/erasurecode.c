@@ -31,7 +31,9 @@
 #include "erasurecode_backend.h"
 #include "erasurecode_helpers.h"
 #include "erasurecode_preprocessing.h"
+#include "erasurecode_postprocessing.h"
 #include "erasurecode_stdinc.h"
+#include "erasurecode/alg_sig.h"
 
 /* =~=*=~==~=*=~==~=*=~= Supported EC backends =~=*=~==~=*=~==~=*=~==~=*=~== */
 
@@ -40,6 +42,12 @@ extern struct ec_backend_common backend_null;
 extern struct ec_backend_common backend_flat_xor_hd;
 extern struct ec_backend_common backend_jerasure_rs_vand;
 extern struct ec_backend_common backend_jerasure_rs_cauchy;
+
+static const char *ec_chksum_types[CHKSUM_TYPES_MAX] = {
+    "none",
+    "crc32",
+    "md5",
+};
 
 ec_backend_t ec_backends_supported[] = {
     (ec_backend_t) &backend_null,
@@ -171,9 +179,8 @@ int liberasurecode_backend_instance_unregister(ec_backend_t instance)
     }  else {
         goto exit;
     }
-
-register_out:
     rwlock_unlock(&active_instances_rwlock);
+
 exit:
     return rc;
 }
@@ -192,7 +199,6 @@ static void print_dlerror(const char *caller)
 /* Generic dlopen/dlclose routines */
 int liberasurecode_backend_open(ec_backend_t instance)
 {
-	void *handle = NULL;
     if (instance && NULL != instance->desc.backend_sohandle)
         return 0;
 
@@ -440,13 +446,10 @@ int liberasurecode_encode(int desc,
         char ***encoded_data, char ***encoded_parity,   /* output */
         uint64_t *fragment_len)                         /* output */
 {
-    int i;
     int k, m;
     int ret = 0;            /* return code */
 
     int blocksize = 0;      /* length of each of k data elements */
-    int data_len;           /* data len to write to fragment headers */
-    int aligned_data_len;   /* EC algorithm compatible data length */
 
     if (orig_data == NULL) {
         log_error("Pointer to data buffer is null!");
@@ -541,7 +544,6 @@ out:
  */
 int liberasurecode_decode_cleanup(int desc, char *data)
 {
-    int i;
     ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
     if (NULL == instance) {
         return -EBACKENDNOTAVAIL;
@@ -572,7 +574,7 @@ int liberasurecode_decode(int desc,
     int i, j;
     int ret = 0;
 
-    int k, m;
+    int k = -1, m = -1;
     int orig_data_size = 0;
 
     int blocksize = 0;
@@ -762,13 +764,13 @@ int liberasurecode_reconstruct_fragment(int desc,
     char **parity = NULL;
     int *missing_idxs = NULL;
     char *fragment_ptr = NULL;
-    int k;
-    int m;
+    int k = -1;
+    int m = -1;
     int i;
-    int j;
     uint64_t realloc_bm = 0;
     char **data_segments = NULL;
     char **parity_segments = NULL;
+    int set_chksum = 1;
 
     ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
     if (NULL == instance) {
@@ -863,7 +865,7 @@ int liberasurecode_reconstruct_fragment(int desc,
     }
     init_fragment_header(fragment_ptr);
     add_fragment_metadata(fragment_ptr, destination_idx, orig_data_size,
-                          blocksize);
+                          blocksize, !set_chksum);
 
     /*
      * Copy the reconstructed fragment to the output buffer

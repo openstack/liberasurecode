@@ -67,7 +67,7 @@ void print_mask(unsigned long mask)
     fprintf(stderr,"\n");
 }
 
-void missing_mask_to_array(unsigned long mask, unsigned int *missing)
+void missing_mask_to_array(long mask, int *missing)
 {
     unsigned int i = 0;
     unsigned long pos = 1;
@@ -100,7 +100,6 @@ static int create_frags_array_set(struct frag_array_set *set,
     unsigned int num_frags = 0;
     unsigned long i = 0;
     fragment_header_t *header = NULL;
-    char **ptr = NULL;
     size_t size = (num_data_frags + num_parity_frags) * sizeof(char *);
     char **array = malloc(size);
 
@@ -142,9 +141,9 @@ out:
     return rc;
 }
 
-static void fill_buffer(unsigned char *buf, size_t size, int seed)
+static void fill_buffer(char *buf, size_t size, int seed)
 {
-    size_t i;
+    int i;
     buf[0] = seed;
 
     for (i=1; i < size; i++) {
@@ -169,13 +168,10 @@ static int test_hd_code(struct ec_args *args,
     char **encoded_parity = NULL;
     uint64_t encoded_fragment_len = 0;
     int rc = 0;
-    int num_fragments = args->k + args->m;
-    char **available_frags = NULL;
     char *out_data = NULL;
     uint64_t out_data_len = 0;
     unsigned long mask = 0;
     int desc = -1;
-    unsigned int num_available_frags = 0;
     struct frag_array_set frags; //MOVE ME
 
     srand(time(NULL));
@@ -186,17 +182,17 @@ static int test_hd_code(struct ec_args *args,
 
     fragments_needed = (int*)malloc(args->k*args->m*sizeof(int));
     if (!fragments_needed) {
-        fprintf(stderr, "Could not allocate memory for fragments %d\n", i);
+        fprintf(stderr, "Could not allocate memory for fragments\n");
         exit(2);
     }
     memset(fragments_needed, 0,  args->k*args->m*sizeof(int));
 
     err = posix_memalign((void **) &data, 16, blocksize * args->k);
     if (err != 0 || !data) {
-        fprintf(stderr, "Could not allocate memory for data %d\n", i);
+        fprintf(stderr, "Could not allocate memory for data\n");
         exit(1);
     }
-    fill_buffer(data, blocksize * args->k, i);
+    fill_buffer(data, blocksize * args->k, 0);
 
     parity = (char**)malloc(args->m * sizeof(char*));
     for (i=0; i < args->m; i++) {

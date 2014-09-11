@@ -29,7 +29,7 @@
 #include <xor_code.h>
 #include "test_xor_hd_code.h"
 
-void fill_buffer(unsigned char *buf, int size, int seed)
+void fill_buffer(char *buf, int size, int seed)
 {
   int i;
 
@@ -79,7 +79,7 @@ int test_hd_code(xor_code_t *code_desc, int num_failure_combs, int failure_combs
   parity = (char**)malloc(code_desc->m * sizeof(char*));
   fragments_needed = (int*)malloc(code_desc->k*code_desc->m*sizeof(int));
   if (!fragments_needed) {
-      fprintf(stderr, "Could not allocate memory for fragments %d\n", i);
+      fprintf(stderr, "Could not allocate memory for fragments\n");
       exit(2);
   }
 
@@ -178,15 +178,15 @@ int test_hd_code(xor_code_t *code_desc, int num_failure_combs, int failure_combs
 
     code_desc->decode(code_desc, data, parity, missing_idxs, blocksize, 1);
   
-    if (missing_idxs[0] > -1 && missing_idxs[0] < code_desc->k && check_buffer(data[missing_idx_0], blocksize, missing_idx_0) < 0) {
+    if (missing_idxs[0] > -1 && missing_idxs[0] < code_desc->k && check_buffer((unsigned char *)data[missing_idx_0], blocksize, missing_idx_0) < 0) {
       fprintf(stderr, "Decode did not work: %d (%d %d %d)!\n", missing_idxs[0], missing_idxs[0], missing_idxs[1], missing_idxs[2]);
       exit(2);
     }
-    if (missing_idxs[1] > -1 && missing_idxs[1] < code_desc->k && check_buffer(data[missing_idx_1], blocksize, missing_idx_1) < 0) {
+    if (missing_idxs[1] > -1 && missing_idxs[1] < code_desc->k && check_buffer((unsigned char *)data[missing_idx_1], blocksize, missing_idx_1) < 0) {
       fprintf(stderr, "Decode did not work: %d (%d %d %d)!\n", missing_idxs[1], missing_idxs[0], missing_idxs[1], missing_idxs[2]);
       exit(2);
     }
-    if (missing_idxs[2] > -1 && missing_idxs[2] < code_desc->k && check_buffer(data[missing_idx_2], blocksize, missing_idx_2) < 0) {
+    if (missing_idxs[2] > -1 && missing_idxs[2] < code_desc->k && check_buffer((unsigned char *)data[missing_idx_2], blocksize, missing_idx_2) < 0) {
       fprintf(stderr, "Decode did not work: %d (%d %d %d)!\n", missing_idxs[2], missing_idxs[0], missing_idxs[1], missing_idxs[2]);
       exit(2);
     }

@@ -37,16 +37,17 @@
 struct ec_backend_op_stubs flat_xor_hd_ops;
 struct ec_backend flat_xor_hd;
 
+typedef xor_code_t* (*init_xor_hd_code_func)(int, int, int);
+typedef void (*xor_code_encode_func)(xor_code_t *, char **, char **, int);
+typedef int (*xor_code_decode_func)(xor_code_t *, char **, char **, int *, int, int);
+typedef int (*xor_hd_fragments_needed_func)(xor_code_t *, int *, int *, int *);
+
 struct flat_xor_hd_descriptor {
     xor_code_t *xor_desc;
-
-    xor_code_t* (*init_xor_hd_code)(int k, int m, int hd); 
-    void (*xor_code_encode)(xor_code_t *code_desc, char **data, char **parity,
-            int blocksize); 
-    int (*xor_hd_decode)(xor_code_t *code_desc, char **data, char **parity,
-            int *missing_idxs, int blocksize, int decode_parity);
-    int (*xor_hd_fragments_needed)(xor_code_t *code_desc, int *missing_idxs,
-            int *fragments_to_exclude, int *fragments_needed);
+    init_xor_hd_code_func init_xor_hd_code;
+    xor_code_encode_func  xor_code_encode;
+    xor_code_decode_func xor_code_decode;
+    xor_hd_fragments_needed_func  xor_hd_fragments_needed;
 };
 
 #define DEFAULT_W 32
@@ -59,6 +60,7 @@ static int flat_xor_hd_encode(void *desc,
 
     xor_code_t *xor_desc = (xor_code_t *) xdesc->xor_desc;
     xor_desc->encode(xor_desc, data, parity, blocksize);
+    return 0;
 }
 
 static int flat_xor_hd_decode(void *desc,
@@ -69,7 +71,7 @@ static int flat_xor_hd_decode(void *desc,
         (struct flat_xor_hd_descriptor *) desc;
 
     xor_code_t *xor_desc = (xor_code_t *) xdesc->xor_desc;
-    xor_desc->decode(xor_desc, data, parity, missing_idxs, blocksize, 1);
+    return xor_desc->decode(xor_desc, data, parity, missing_idxs, blocksize, 1);
 }
 
 static int flat_xor_hd_reconstruct(void *desc,
@@ -145,6 +147,7 @@ static int flat_xor_hd_exit(void *desc)
 
     free (bdesc->xor_desc);
     free (bdesc);
+    return 0;
 }
 
 struct ec_backend_op_stubs flat_xor_hd_op_stubs = {

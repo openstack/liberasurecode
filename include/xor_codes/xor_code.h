@@ -54,8 +54,8 @@ typedef struct xor_code_s
   int k;
   int m;
   int hd;
-  int *parity_bms;
-  int *data_bms;
+  unsigned int *parity_bms;
+  unsigned int *data_bms;
   int (*decode)(struct xor_code_s *code_desc, char **data, char **parity, int *missing_idxs, int blocksize, int decode_parity);
   void (*encode)(struct xor_code_s *code_desc, char **data, char **parity, int blocksize);
   int (*fragments_needed)(struct xor_code_s *code_desc, int *missing_idxs, int *fragments_to_exclude, int *fragments_needed);

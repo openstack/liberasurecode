@@ -36,25 +36,27 @@
 struct ec_backend null;
 struct ec_backend_op_stubs null_ops;
 
+typedef void* (*init_null_code_func)(int, int, int);
+typedef int (*null_code_encode_func)(void *, char **, char **, int);
+typedef int (*null_code_decode_func)(void *, char **, char **, int *, int, int);
+typedef int (*null_reconstruct_func)(char  **, int, uint64_t, int, char *);
+typedef int (*null_code_fragments_needed_func)(void *, int *, int *, int *);
+
 struct null_descriptor {
     /* calls required for init */
-    void* (*init_null_code)(int k, int m, int hd); 
+    init_null_code_func init_null_code;
 
     /* calls required for encode */
-    int (*null_code_encode)(void *code_desc, char **data, char **parity,
-            int blocksize); 
+    null_code_encode_func null_code_encode;
 
     /* calls required for decode */
-    int (*null_code_decode)(void *code_desc, char **data, char **parity,
-            int *missing_idxs, int blocksize, int decode_parity);
+    null_code_decode_func null_code_decode;
 
     /* calls required for reconstruct */
-    int (*null_reconstruct)(char **available_fragments, int num_fragments,
-            uint64_t fragment_len, int destination_idx, char* out_fragment);
+    null_reconstruct_func null_reconstruct;
 
     /* set of fragments needed to reconstruct at a minimum */
-    int (*null_code_fragments_needed)(void *code_desc, int *missing_idxs,
-            int *fragments_to_exclude, int *fragments_needed);
+    null_code_fragments_needed_func null_code_fragments_needed;
 
     /* fields needed to hold state */
     int *matrix;
@@ -68,32 +70,24 @@ struct null_descriptor {
 
 static int null_encode(void *desc, char **data, char **parity, int blocksize)
 {
-    struct null_descriptor *xdesc = (struct null_descriptor *) desc;
-
     return 0;
 }
 
 static int null_decode(void *desc, char **data, char **parity,
         int *missing_idxs, int blocksize)
 {
-    struct null_descriptor *xdesc = (struct null_descriptor *) desc;
-
     return 0;
 }
 
 static int null_reconstruct(void *desc, char **data, char **parity,
         int *missing_idxs, int destination_idx, int blocksize)
 {
-    struct null_descriptor *xdesc = (struct null_descriptor *) desc;
-
     return 0;
 }
 
 static int null_min_fragments(void *desc, int *missing_idxs,
         int *fragments_to_exclude, int *fragments_needed)
 {
-    struct null_descriptor *xdesc = (struct null_descriptor *) desc;
-
     return 0;
 }
 
@@ -143,33 +137,52 @@ static void * null_init(struct ec_backend_args *args, void *backend_sohandle)
         }
     }
 
+    /*
+     * ISO C forbids casting a void* to a function pointer.
+     * Since dlsym return returns a void*, we use this union to
+     * "transform" the void* to a function pointer.
+     */
+    union {
+        init_null_code_func initp;
+        null_code_encode_func encodep;
+        null_code_decode_func decodep;
+        null_reconstruct_func reconp;
+        null_code_fragments_needed_func fragsneededp;
+        void *vptr;
+    } func_handle = {.vptr = NULL};
+
     /* fill in function addresses */
-    xdesc->init_null_code = dlsym(
-            backend_sohandle, "null_code_init");
+    func_handle.vptr = NULL;
+    func_handle.vptr = dlsym(backend_sohandle, "null_code_init");
+    xdesc->init_null_code = func_handle.initp;
     if (NULL == xdesc->init_null_code) {
         goto error; 
     }
 
-    xdesc->null_code_encode = dlsym(
-            backend_sohandle, "null_code_encode");
+    func_handle.vptr = NULL;
+    func_handle.vptr = dlsym(backend_sohandle, "null_code_encode");
+    xdesc->null_code_encode = func_handle.encodep;
     if (NULL == xdesc->null_code_encode) {
         goto error; 
     }
 
-    xdesc->null_code_decode = dlsym(
-            backend_sohandle, "null_code_decode");
+    func_handle.vptr = NULL;
+    func_handle.vptr = dlsym(backend_sohandle, "null_code_decode");
+    xdesc->null_code_decode = func_handle.decodep;
     if (NULL == xdesc->null_code_decode) {
         goto error; 
     }
 
-    xdesc->null_reconstruct = dlsym(
-            backend_sohandle, "null_reconstruct");
+    func_handle.vptr = NULL;
+    func_handle.vptr = dlsym(backend_sohandle, "null_reconstruct");
+    xdesc->null_reconstruct = func_handle.reconp;
     if (NULL == xdesc->null_reconstruct) {
         goto error; 
     }
 
-    xdesc->null_code_fragments_needed = dlsym(
-            backend_sohandle, "null_code_fragments_needed");
+    func_handle.vptr = NULL;
+    func_handle.vptr = dlsym(backend_sohandle, "null_code_fragments_needed");
+    xdesc->null_code_fragments_needed = func_handle.fragsneededp;
     if (NULL == xdesc->null_code_fragments_needed) {
         goto error; 
     }
@@ -187,6 +200,7 @@ static int null_exit(void *desc)
     struct null_descriptor *xdesc = (struct null_descriptor *) desc;
 
     free (xdesc);
+    return 0;
 }
 
 struct ec_backend_op_stubs null_op_stubs = {

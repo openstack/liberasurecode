@@ -75,7 +75,6 @@ int check_parity_of_sigs(char **sigs, int num_data, int size)
     ret = 1;
   }
 
-out:
   free(parity_sig);
 
   return ret;

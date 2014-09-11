@@ -31,6 +31,7 @@
 #include "erasurecode_backend.h"
 #include "erasurecode_helpers.h"
 #include "erasurecode_stdinc.h"
+#include "erasurecode/alg_sig.h"
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
@@ -169,7 +170,6 @@ uint64_t get_fragment_size(char *buf)
 int get_aligned_data_size(ec_backend_t instance, int data_len)
 {
     int k = instance->args.uargs.k;
-    int m = instance->args.uargs.m;
     int w = instance->args.uargs.w;
     int word_size = w / 8;
     int alignment_multiple;
@@ -341,7 +341,7 @@ int validate_fragment(char *buf)
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
-inline int set_chksum(char *buf, int blocksize)
+inline int set_checksum(char *buf, int blocksize)
 {
     fragment_header_t* header = (fragment_header_t*) buf;
     char *data = get_data_ptr_from_fragment(buf);

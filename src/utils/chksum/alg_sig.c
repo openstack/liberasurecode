@@ -27,9 +27,24 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#define GALOIS_SINGLE_MULTIPLY "galois_single_multiply"
 
 int valid_gf_w[] = { 8, 16, -1 };
 int valid_pairs[][2] = { { 8, 32}, {16, 32}, {16, 64}, {-1, -1} };
+
+galois_single_multiply_func get_galois_multi_func(void *handle) {
+    /*
+     * ISO C forbids casting a void* to a function pointer.
+     * Since dlsym return returns a void*, we use this union to
+     * "transform" the void* to a function pointer.
+     */
+    union {
+        galois_single_multiply_func fptr;
+        void *vptr;
+    } func_handle = {.vptr = NULL};
+    func_handle.vptr = dlsym(handle,  GALOIS_SINGLE_MULTIPLY);
+    return func_handle.fptr;
+}
 
 void *get_jerasure_sohandle()
 {
@@ -38,7 +53,7 @@ void *get_jerasure_sohandle()
 
 int load_gf_functions(void *sohandle, struct jerasure_mult_routines *routines)
 {
-    routines->galois_single_multiply = dlsym(sohandle, "galois_single_multiply");
+    routines->galois_single_multiply = get_galois_multi_func(sohandle);
     if (NULL == routines->galois_single_multiply) {
       return -1;
     }
@@ -54,7 +69,6 @@ alg_sig_t *init_alg_sig_w8(void *jerasure_sohandle, int sig_len)
     int w = 8;
     int alpha = 2, beta = 4, gamma = 8;
     int num_components = sig_len / w;
-    struct jerasure_mult_routines g_jerasure_mult_routines;
 
     alg_sig_handle = (alg_sig_t *)malloc(sizeof(alg_sig_t));
     if (NULL == alg_sig_handle) {
@@ -226,10 +240,7 @@ void destroy_alg_sig(alg_sig_t* alg_sig_handle)
 static
 int compute_w8_alg_sig_32(alg_sig_t *alg_sig_handle, char *buf, int len, char *sig)
 {
-  int bit_mask;
   int i;
-  int alpha = 2, beta = 4, gamma = 8;
-  int w = 8;
 
   if (len == 0) {
     bzero(sig, 4);

@@ -406,7 +406,6 @@ static void encode_decode_test_impl(const char *backend,
     char *orig_data = NULL;
     char **encoded_data = NULL, **encoded_parity = NULL;
     uint64_t encoded_fragment_len = 0;
-    int num_fragments = args-> k + args->m;
     uint64_t decoded_data_len = 0;
     char *decoded_data = NULL;
     size_t frag_header_size =  sizeof(fragment_header_t);
@@ -438,7 +437,7 @@ static void encode_decode_test_impl(const char *backend,
         assert(metadata.idx == i);
         assert(metadata.size == encoded_fragment_len - frag_header_size);
         assert(metadata.orig_data_size == orig_data_size);
-        unsigned char *data_ptr = frag + frag_header_size;
+        char *data_ptr = frag + frag_header_size;
         int cmp_size = remaining >= metadata.size ? metadata.size : remaining;
         assert(memcmp(data_ptr, orig_data_ptr, cmp_size) == 0); 
         remaining -= cmp_size;
@@ -480,8 +479,6 @@ static void reconstruct_test_impl(const char *backend,
     char **encoded_data = NULL, **encoded_parity = NULL;
     uint64_t encoded_fragment_len = 0;
     int num_fragments = args-> k + args->m;
-    uint64_t decoded_data_len = 0;
-    char *decoded_data = NULL;
     char **avail_frags = NULL;
     int num_avail_frags = 0;
     int i = 0;

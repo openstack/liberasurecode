@@ -37,6 +37,17 @@
 struct ec_backend_op_stubs jerasure_rs_cauchy_ops;
 struct ec_backend jerasure_rs_cauchy;
 
+typedef int* (*cauchy_original_coding_matrix_func)(int, int, int);
+typedef int* (*jerasure_matrix_to_bitmatrix_func)(int, int, int, int *);
+typedef int** (*jerasure_smart_bitmatrix_to_schedule_func)(int, int, int, int *);
+typedef void (*jerasure_bitmatrix_encode_func)(int, int, int, int *, char **, char **, int, int);
+typedef int (*jerasure_bitmatrix_decode_func)(int, int, int, int *, int, int *,char **, char **, int, int);
+typedef int * (*jerasure_erasures_to_erased_func)(int, int, int *);
+typedef int (*jerasure_make_decoding_bitmatrix_func)(int, int, int, int *, int *, int *, int *);
+typedef void (*jerasure_bitmatrix_dotprod_func)(int, int, int *, int *, int,char **, char **, int, int);
+
+
+
 /*
  * ToDo (KMG): Should we make this a parameter, or is that
  * exposing too much b.s. to the client?
@@ -45,22 +56,22 @@ struct ec_backend jerasure_rs_cauchy;
 
 struct jerasure_rs_cauchy_descriptor {
     /* calls required for init */
-    int * (*cauchy_original_coding_matrix)(int, int, int);
-    int * (*jerasure_matrix_to_bitmatrix)(int, int, int, int*);
-    int ** (*jerasure_smart_bitmatrix_to_schedule)(int, int, int, int*);
- 
+    cauchy_original_coding_matrix_func cauchy_original_coding_matrix;
+    jerasure_matrix_to_bitmatrix_func jerasure_matrix_to_bitmatrix;
+    jerasure_smart_bitmatrix_to_schedule_func jerasure_smart_bitmatrix_to_schedule;
+
     /* calls required for encode */
-    void (*jerasure_bitmatrix_encode)(int, int, int, int *, char **, char **, int, int);
+    jerasure_bitmatrix_encode_func jerasure_bitmatrix_encode;
                             
     
     /* calls required for decode */
-    int (*jerasure_bitmatrix_decode)(int, int, int, int *, int, int *,char **, char **, int, int);
+    jerasure_bitmatrix_decode_func jerasure_bitmatrix_decode;
                             
     
     /* calls required for reconstruct */
-    int * (*jerasure_erasures_to_erased)(int, int, int *);
-    int (*jerasure_make_decoding_bitmatrix)(int, int, int, int *, int *, int *, int *);
-    void (*jerasure_bitmatrix_dotprod)(int, int, int *, int *, int,char **, char **, int, int);
+    jerasure_erasures_to_erased_func jerasure_erasures_to_erased;
+    jerasure_make_decoding_bitmatrix_func jerasure_make_decoding_bitmatrix;
+    jerasure_bitmatrix_dotprod_func jerasure_bitmatrix_dotprod;
 
     /* fields needed to hold state */
     int *matrix;
@@ -93,7 +104,7 @@ static int jerasure_rs_cauchy_decode(void *desc, char **data, char **parity,
         (struct jerasure_rs_cauchy_descriptor*)desc;
 
     /* FIXME - make jerasure_matrix_decode return a value */
-    jerasure_desc->jerasure_bitmatrix_decode(jerasure_desc->k, 
+    return jerasure_desc->jerasure_bitmatrix_decode(jerasure_desc->k, 
                                              jerasure_desc->m, 
                                              jerasure_desc->w, 
                                              jerasure_desc->bitmatrix, 
@@ -181,7 +192,6 @@ static int jerasure_rs_cauchy_min_fragments(void *desc, int *missing_idxs,
         }
     }
 
-out:
     return ret;
 }
 
@@ -221,52 +231,77 @@ static void * jerasure_rs_cauchy_init(struct ec_backend_args *args,
             goto error;
         }
     }
+
+    /*
+     * ISO C forbids casting a void* to a function pointer.
+     * Since dlsym return returns a void*, we use this union to
+     * "transform" the void* to a function pointer.
+     */
+    union {
+        cauchy_original_coding_matrix_func  initp;
+        jerasure_matrix_to_bitmatrix_func matrixtobitmatrixp;
+        jerasure_smart_bitmatrix_to_schedule_func matrixschedulep;
+        jerasure_bitmatrix_encode_func encodep;
+        jerasure_bitmatrix_decode_func decodep;
+        jerasure_erasures_to_erased_func erasedp; 
+        jerasure_make_decoding_bitmatrix_func decodematrixp;
+        jerasure_bitmatrix_dotprod_func dotprodp;
+        void *vptr;
+    } func_handle = {.vptr = NULL};
     
     /* fill in function addresses */
-    desc->jerasure_bitmatrix_encode = dlsym(
-            backend_sohandle, "jerasure_bitmatrix_encode");
+    func_handle.vptr = NULL;
+    func_handle.vptr = dlsym(backend_sohandle, "jerasure_bitmatrix_encode");
+    desc->jerasure_bitmatrix_encode = func_handle.encodep;
     if (NULL == desc->jerasure_bitmatrix_encode) {
         goto error; 
     }
   
-    desc->jerasure_bitmatrix_decode = dlsym(
-            backend_sohandle, "jerasure_bitmatrix_decode");
+    func_handle.vptr = NULL;
+    func_handle.vptr = dlsym(backend_sohandle, "jerasure_bitmatrix_decode");
+    desc->jerasure_bitmatrix_decode = func_handle.decodep;
     if (NULL == desc->jerasure_bitmatrix_decode) {
         goto error; 
     }
   
-    desc->cauchy_original_coding_matrix = dlsym(
-            backend_sohandle, "cauchy_original_coding_matrix");
+    func_handle.vptr = NULL;
+    func_handle.vptr = dlsym(backend_sohandle, "cauchy_original_coding_matrix");
+    desc->cauchy_original_coding_matrix = func_handle.initp;
     if (NULL == desc->cauchy_original_coding_matrix) {
         goto error; 
     }
     
-    desc->jerasure_matrix_to_bitmatrix = dlsym(
-            backend_sohandle, "jerasure_matrix_to_bitmatrix");
+    func_handle.vptr = NULL;
+    func_handle.vptr = dlsym(backend_sohandle, "jerasure_matrix_to_bitmatrix");
+    desc->jerasure_matrix_to_bitmatrix = func_handle.matrixtobitmatrixp;
     if (NULL == desc->jerasure_matrix_to_bitmatrix) {
         goto error; 
     }
     
-    desc->jerasure_smart_bitmatrix_to_schedule = dlsym(
-            backend_sohandle, "jerasure_smart_bitmatrix_to_schedule");
+    func_handle.vptr = NULL;
+    func_handle.vptr = dlsym(backend_sohandle, "jerasure_smart_bitmatrix_to_schedule");
+    desc->jerasure_smart_bitmatrix_to_schedule = func_handle.matrixschedulep;
     if (NULL == desc->jerasure_smart_bitmatrix_to_schedule) {
         goto error; 
     }
     
-    desc->jerasure_make_decoding_bitmatrix = dlsym(
-            backend_sohandle, "jerasure_make_decoding_bitmatrix");
+    func_handle.vptr = NULL;
+    func_handle.vptr = dlsym(backend_sohandle, "jerasure_make_decoding_bitmatrix");
+    desc->jerasure_make_decoding_bitmatrix = func_handle.decodematrixp;
     if (NULL == desc->jerasure_make_decoding_bitmatrix) {
         goto error; 
     }
     
-    desc->jerasure_bitmatrix_dotprod = dlsym(
-            backend_sohandle, "jerasure_bitmatrix_dotprod");
+    func_handle.vptr = NULL;
+    func_handle.vptr = dlsym(backend_sohandle, "jerasure_bitmatrix_dotprod");
+    desc->jerasure_bitmatrix_dotprod = func_handle.dotprodp;
     if (NULL == desc->jerasure_bitmatrix_dotprod) {
         goto error; 
     }
   
-    desc->jerasure_erasures_to_erased = dlsym(
-            backend_sohandle, "jerasure_erasures_to_erased");
+    func_handle.vptr = NULL;
+    func_handle.vptr = dlsym(backend_sohandle, "jerasure_erasures_to_erased");
+    desc->jerasure_erasures_to_erased = func_handle.erasedp;
     if (NULL == desc->jerasure_erasures_to_erased) {
         goto error; 
     } 
@@ -324,6 +359,7 @@ static int jerasure_rs_cauchy_exit(void *desc)
         free(jerasure_desc->schedule);
     }
     free(desc);
+    return 0;
 }
 
 struct ec_backend_op_stubs jerasure_rs_cauchy_op_stubs = {

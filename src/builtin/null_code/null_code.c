@@ -26,12 +26,14 @@
  * vi: set noai tw=79 ts=4 sw=4:
  */
 
+#include <stdlib.h>
 #include <stdint.h>
 
 /* calls required for init */
 void* null_code_init(int k, int m, int hd)
 {
     /* add your code here */
+    return NULL;
 }
 
 /* calls required for encode */

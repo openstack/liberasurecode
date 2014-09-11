@@ -25,8 +25,10 @@
 #ifndef _ALG_SIG_H
 #define _ALG_SIG_H
 
+typedef int (*galois_single_multiply_func)(int, int, int);
+
 struct jerasure_mult_routines {
-  int (*galois_single_multiply)(int, int, int);
+  galois_single_multiply_func galois_single_multiply;
 };
 
 #define JERASURE_SONAME "libJerasure.dylib"

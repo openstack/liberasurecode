@@ -58,7 +58,6 @@ static int fragments_needed_two_data(xor_code_t *code_desc, int *missing_data, i
   // Verify that missing_data[2] == -1?
   int data_index = missing_data[0];
   int parity_index = index_of_connected_parity(code_desc, data_index, missing_parity, missing_data);
-  int i;
   int ret;
 
   if (parity_index < 0) {
