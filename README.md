@@ -43,56 +43,23 @@ Backend Support
 ---------------
 
 ``` c
-/* =~=*=~==~=*=~==~=*=~= Supported EC backends =~=*=~==~=*=~==~=*=~==~=*=~== */
 
 typedef enum {
-    EC_BACKEND_NULL                 = 0,
-    EC_BACKEND_JERASURE_RS_VAND     = 1,
-    EC_BACKEND_JERASURE_RS_CAUCHY   = 2,
-    EC_BACKEND_FLAT_XOR_HD          = 3,
+    EC_BACKEND_NULL                 = 0, /* "null" */
+    EC_BACKEND_JERASURE_RS_VAND     = 1, /* "jerasure_rs_vand" */
+    EC_BACKEND_JERASURE_RS_CAUCHY   = 2, /* "jerasure_rs_cauchy" */
+    EC_BACKEND_FLAT_XOR_HD          = 3, /* "flat_xor_hd */
     EC_BACKENDS_MAX,
 } ec_backend_id_t;
 
-/* Supported EC backends */
-static const char *ec_backend_names[EC_BACKENDS_MAX] = {
-    "null",
-    "jerasure_rs_vand",
-    "jerasure_rs_cauchy",
-    "flat_xor_hd",
-};
 ```
 
-----
-
-Erasure Code Fragment Checksum Support
---------------------------------------
-
-``` c
-
-/* ~=*=~==~=*=~= EC Fragment metadata - supported checksum types ~=*=~==~=*=~ */
-
-/* Checksum types supported for fragment metadata stored in each fragment */
-typedef enum {
-    CHKSUM_NONE                     = 0,
-    CHKSUM_CRC32                    = 1,
-    CHKSUM_MD5                      = 2,
-    CHKSUM_TYPES_MAX,
-} ec_checksum_type_t;
-
-/* Supported checksum types */
-static const char *ec_chksum_types[CHKSUM_TYPES_MAX] = {
-    "none",
-    "crc32",
-    "md5",
-};
-```
 ----
 
 User Arguments
 --------------
 
 ``` c
-/* =~=*=~==~=*=~== EC Arguments - Common and backend-specific =~=*=~==~=*=~== */
 
 /**
  * Common and backend-specific args
@@ -118,6 +85,7 @@ struct ec_args {
                               * future backend args */
     ec_checksum_type_t ct;  /* fragment checksum type */
 };
+
 ```
 
 ---
@@ -126,7 +94,6 @@ User-facing API Functions
 -------------------------
 
 ``` c
-/* =~=*=~==~=*=~== liberasurecode frontend API functions =~=*=~==~=~=*=~==~= */
 
 /* liberasurecode frontend API functions */
 
@@ -298,11 +265,29 @@ int liberasurecode_fragments_needed(int desc,
         int *fragments_to_exclude,
         int *fragments_needed);
 
+```
 
-/* ==~=*=~==~=*=~== liberasurecode fragment metadata routines ==~*==~=*=~==~ */
+Erasure Code Fragment Checksum Types Supported
+----------------------------------------------
 
-#define LIBERASURECODE_MAX_CHECKSUM_LEN 8
-typedef struct __attribute__((__packed__))
+``` c
+
+/* Checksum types supported for fragment metadata stored in each fragment */
+typedef enum {
+    CHKSUM_NONE                     = 0, /* "none" (default) */
+    CHKSUM_CRC32                    = 1, /* "crc32" */
+    CHKSUM_MD5                      = 2, /* "md5" */
+    CHKSUM_TYPES_MAX,
+} ec_checksum_type_t;
+
+```
+
+Erasure Code Fragment Checksum API
+----------------------------------
+
+``` c
+
+struct
 fragment_metadata
 {
     uint32_t    idx;                /* 4 */
@@ -313,8 +298,6 @@ fragment_metadata
     uint8_t     chksum_mismatch;    /* 1 */
 } fragment_metadata_t;
 
-#define FRAGSIZE_2_BLOCKSIZE(fragment_size) \
-    (fragment_size - sizeof(fragment_header_t))
 
 /**
  * Get opaque metadata for a fragment.  The metadata is opaque to the
@@ -345,8 +328,6 @@ int liberasurecode_get_fragment_metadata(int desc,
 int liberasurecode_verify_stripe_metadata(int desc,
         char **fragments, int num_fragments);
 
-/* ==~=*=~===~=*=~==~=*=~== liberasurecode Helpers ==~*==~=*=~==~=~=*=~==~= */
-
 /**
  * This computes the aligned size of a buffer passed into 
  * the encode function.  The encode function must pad fragments
@@ -372,6 +353,7 @@ int liberasurecode_get_aligned_data_size(int desc, uint64_t data_len);
  * @return minimum data length length, or -error code on error
  */
 int liberasurecode_get_minimum_encode_size(int desc);
+
 ```
 ----
 
@@ -379,18 +361,15 @@ Error Codes
 -----------
 
 ``` c
-/* ==~=*=~===~=*=~==~=*=~== liberasurecode Error codes =~=*=~==~=~=*=~==~== */
 
 /* Error codes */
 typedef enum {
-    EBACKENDNOTSUPP  = 200,
-    EECMETHODNOTIMPL = 201,
-    EBACKENDINITERR  = 202,
-    EBACKENDINUSE    = 203,
-    EBACKENDNOTAVAIL = 204,
+    EBACKENDNOTSUPP  = 200, /* EC Backend not supported by the library */
+    EECMETHODNOTIMPL = 201, /* EC Backend method not implemented */
+    EBACKENDINITERR  = 202, /* EC Backend could not be initialized */
+    EBACKENDINUSE    = 203, /* EC Backend in use (locked) */
 } LIBERASURECODE_ERROR_CODES;
 
-/* =~=*=~==~=*=~==~=*=~==~=*=~===~=*=~==~=*=~===~=*=~==~=*=~===~=*=~==~=*=~= */
 ```
 ---
 
@@ -413,54 +392,54 @@ top-level directory:
 Code organization
 =================
 ```
-  ├── include
-  │   ├── erasurecode
-  │   │   ├── erasurecode.h            --> liberasurecode frontend API header
-  │   │   └── erasurecode_backend.h    --> liberasurecode backend API header
-  │   └── xor_codes                    --> headers for the built-in XOR codes
-  |
-  ├── src
-  │   ├── erasurecode.c                --> liberasurecode API implementation
-  |   |                                    (frontend + backend)
-  │   ├── backends
-  │   │   └── null
-  │   │       └─── null.c              --> 'null' erasure code backend
-  │   │   └── xor
-  │   │       └─── flat_xor_hd.c       --> 'flat_xor_hd' erasure code backend
-  │   │   └── jerasure                 
-  │   │       ├── jerasure_rs_cauchy.c --> 'jerasure_rs_vand' erasure code backend
-  │   │       └── jerasure_rs_vand.c   --> 'jerasure_rs_cauchy' erasure code backend
-  |   |
-  │   ├── builtin
-  │   │   └── xor_codes                --> XOR HD code backend, built-in erasure
-  |   |       |                            code implementation (shared library)
-  │   │       ├── xor_code.c
-  │   │       └── xor_hd_code.c
-  |   |
-  │   └── utils
-  │       └── chksum                   --> fragment checksum utils for erasure
-  │           ├── alg_sig.c                coded fragments
-  │           └── crc32.c
-  |
-  ├── doc                              --> API Documentation
-  │   ├── Doxyfile
-  │   └── html
-  |
-  └─── test                            --> Test routines
-  │    ├── builtin
-  |    │   └── xor_codes
-  │    ├── liberasurecode_test.c
-  │    └── utils
-  |
-  ├── autogen.sh
-  ├── configure.ac
-  ├── Makefile.am
-  ├── README
-  ├── NEWS
-  ├── COPYING
-  ├── AUTHORS
-  ├── INSTALL
-  └── ChangeLog
+ |-- include
+ |   +-- erasurecode
+ |   |   +-- erasurecode.h            --> liberasurecode frontend API header
+ |   |   +-- erasurecode_backend.h    --> liberasurecode backend API header
+ |   +-- xor_codes                    --> headers for the built-in XOR codes
+ |
+ |-- src
+ |   |-- erasurecode.c                --> liberasurecode API implementation
+ |   |                                    (frontend + backend)
+ |   |-- backends
+ |   |   +-- null
+ |   |       +--- null.c              --> 'null' erasure code backend
+ |   |   +-- xor
+ |   |       +--- flat_xor_hd.c       --> 'flat_xor_hd' erasure code backend
+ |   |   +-- jerasure                 
+ |   |       +-- jerasure_rs_cauchy.c --> 'jerasure_rs_vand' erasure code backend
+ |   |       +-- jerasure_rs_vand.c   --> 'jerasure_rs_cauchy' erasure code backend
+ |   |
+ |   |-- builtin
+ |   |   +-- xor_codes                --> XOR HD code backend, built-in erasure
+ |   |       |                            code implementation (shared library)
+ |   |       +-- xor_code.c
+ |   |       +-- xor_hd_code.c
+ |   |
+ |   +-- utils
+ |       +-- chksum                   --> fragment checksum utils for erasure
+ |           +-- alg_sig.c                coded fragments
+ |           +-- crc32.c
+ |
+ |-- doc                              --> API Documentation
+ |   +-- Doxyfile
+ |   +-- html
+ |
+ |--- test                            --> Test routines
+ |    +-- builtin
+ |    |   +-- xor_codes
+ |    +-- liberasurecode_test.c
+ |    +-- utils
+ |
+ |-- autogen.sh
+ |-- configure.ac
+ |-- Makefile.am
+ |-- README
+ |-- NEWS
+ |-- COPYING
+ |-- AUTHORS
+ |-- INSTALL
+ +-- ChangeLog
 ```
 ---
 
