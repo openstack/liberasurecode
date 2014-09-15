@@ -143,7 +143,7 @@ out:
 
 static void fill_buffer(char *buf, size_t size, int seed)
 {
-    int i;
+    size_t i;
     buf[0] = seed;
 
     for (i=1; i < size; i++) {

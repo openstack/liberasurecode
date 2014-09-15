@@ -39,14 +39,17 @@ struct ec_backend jerasure_rs_cauchy;
 
 typedef int* (*cauchy_original_coding_matrix_func)(int, int, int);
 typedef int* (*jerasure_matrix_to_bitmatrix_func)(int, int, int, int *);
-typedef int** (*jerasure_smart_bitmatrix_to_schedule_func)(int, int, int, int *);
-typedef void (*jerasure_bitmatrix_encode_func)(int, int, int, int *, char **, char **, int, int);
-typedef int (*jerasure_bitmatrix_decode_func)(int, int, int, int *, int, int *,char **, char **, int, int);
+typedef int** (*jerasure_smart_bitmatrix_to_schedule_func)
+    (int, int, int, int *);
+typedef void (*jerasure_bitmatrix_encode_func)
+    (int, int, int, int *, char **, char **, int, int);
+typedef int (*jerasure_bitmatrix_decode_func)
+    (int, int, int, int *, int, int *,char **, char **, int, int);
 typedef int * (*jerasure_erasures_to_erased_func)(int, int, int *);
-typedef int (*jerasure_make_decoding_bitmatrix_func)(int, int, int, int *, int *, int *, int *);
-typedef void (*jerasure_bitmatrix_dotprod_func)(int, int, int *, int *, int,char **, char **, int, int);
-
-
+typedef int (*jerasure_make_decoding_bitmatrix_func)
+    (int, int, int, int *, int *, int *, int *);
+typedef void (*jerasure_bitmatrix_dotprod_func)
+    (int, int, int *, int *, int,char **, char **, int, int);
 
 /*
  * ToDo (KMG): Should we make this a parameter, or is that
@@ -103,7 +106,6 @@ static int jerasure_rs_cauchy_decode(void *desc, char **data, char **parity,
     struct jerasure_rs_cauchy_descriptor *jerasure_desc = 
         (struct jerasure_rs_cauchy_descriptor*)desc;
 
-    /* FIXME - make jerasure_matrix_decode return a value */
     return jerasure_desc->jerasure_bitmatrix_decode(jerasure_desc->k, 
                                              jerasure_desc->m, 
                                              jerasure_desc->w, 
