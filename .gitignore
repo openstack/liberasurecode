@@ -33,6 +33,7 @@ cscope.*out
 # autoconf/automake files
 .dirstamp
 .libs
+aclocal.m4
 autom4te.cache
 config.guess
 config.log
