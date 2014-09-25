@@ -32,13 +32,13 @@
 
 void add_fragment_metadata(char *fragment,
         int idx, uint64_t orig_data_size, int blocksize,
-        int add_chksum)
+        ec_checksum_type_t ct, int add_chksum)
 {
     set_fragment_idx(fragment, idx);
     set_orig_data_size(fragment, orig_data_size);
     set_fragment_payload_size(fragment, blocksize);
     if (add_chksum) {
-        set_checksum(fragment, blocksize);
+        set_checksum(ct, fragment, blocksize);
     }
 }
 
@@ -47,12 +47,13 @@ int finalize_fragments_after_encode(ec_backend_t instance,
         char **encoded_data, char **encoded_parity)
 {
     int i, set_chksum = 1;
+    ec_checksum_type_t ct = instance->args.uargs.ct;
 
     /* finalize data fragments */
     for (i = 0; i < k; i++) {
         char *fragment = get_fragment_ptr_from_data(encoded_data[i]);
         add_fragment_metadata(fragment, i, orig_data_size,
-                blocksize, set_chksum);
+                blocksize, ct, set_chksum);
         encoded_data[i] = fragment;
     }
 
@@ -60,7 +61,7 @@ int finalize_fragments_after_encode(ec_backend_t instance,
     for (i = 0; i < m; i++) {
         char *fragment = get_fragment_ptr_from_data(encoded_parity[i]);
         add_fragment_metadata(fragment, i + k, orig_data_size,
-                blocksize, set_chksum);
+                blocksize, ct, set_chksum);
         encoded_parity[i] = fragment;
     }
 

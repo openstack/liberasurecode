@@ -341,7 +341,7 @@ int validate_fragment(char *buf)
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
-inline int set_checksum(char *buf, int blocksize)
+inline int set_checksum(ec_checksum_type_t ct, char *buf, int blocksize)
 {
     fragment_header_t* header = (fragment_header_t*) buf;
     char *data = get_data_ptr_from_fragment(buf);
@@ -351,6 +351,9 @@ inline int set_checksum(char *buf, int blocksize)
         log_error("Invalid fragment header (set chksum)!\n");
         return -1; 
     }
+
+    header->meta.chksum_type = ct;
+    header->meta.chksum_mismatch = 0;
 
     switch(header->meta.chksum_type) {
         case CHKSUM_CRC32:

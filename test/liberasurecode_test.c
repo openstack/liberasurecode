@@ -1030,7 +1030,7 @@ struct testcase testcases[] = {
     {"test_get_fragment_metadata_flat_xor_hd_crc32",
         test_get_fragment_metadata,
         EC_BACKEND_FLAT_XOR_HD, CHKSUM_CRC32,
-        .skip = true},
+        .skip = false},
     // Jerasure RS Vand backend tests
     {"create_and_destroy_backend",
         test_create_and_destroy_backend,
@@ -1071,7 +1071,7 @@ struct testcase testcases[] = {
     {"test_get_fragment_metadata_jerasure_rs_vand_crc32",
         test_get_fragment_metadata,
         EC_BACKEND_JERASURE_RS_VAND, CHKSUM_CRC32,
-        .skip = true},
+        .skip = false},
     // Jerasure RS Cauchy backend tests
     {"create_and_destroy_backend",
         test_create_and_destroy_backend,
@@ -1109,10 +1109,10 @@ struct testcase testcases[] = {
         test_get_fragment_metadata,
         EC_BACKEND_JERASURE_RS_CAUCHY, CHKSUM_NONE,
         .skip = false},
-    {"test_get_fragment_metadata_jerasure_rs_cauchy",
+    {"test_get_fragment_metadata_jerasure_rs_cauchy_crc32",
         test_get_fragment_metadata,
         EC_BACKEND_JERASURE_RS_CAUCHY, CHKSUM_CRC32,
-        .skip = true},
+        .skip = false},
     { NULL, NULL, 0, 0, false },
 };
 
