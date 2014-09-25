@@ -31,14 +31,19 @@
 #include "erasurecode.h"
 #include "erasurecode_helpers.h"
 #include "erasurecode_backend.h"
+#include "alg_sig.h"
+#define NULL_BACKEND "null"
+#define FLAT_XOR_HD_BACKEND "flat_xor_hd"
+#define JERASURE_RS_VAND_BACKEND "jerasure_rs_vand"
+#define JERASURE_RS_CAUCHY_BACKEND "jerasure_rs_cauchy"
 
 typedef void (*TEST_FUNC)();
 
 struct testcase {
     const char *description;
     TEST_FUNC function;
-    void *arg1;
-    void *arg2;
+    ec_backend_id_t be_id;
+    ec_checksum_type_t ct;
     bool skip;
 };
 
@@ -46,12 +51,14 @@ struct ec_args null_args = {
     .k = 8,
     .m = 4,
     .priv_args1.null_args.arg1 = 11,
+    .ct = CHKSUM_NONE,
 };
 
 struct ec_args flat_xor_hd_args = {
     .k = 10,
     .m = 6,
     .hd = 4,
+    .ct = CHKSUM_NONE,
 };
 
 struct ec_args jerasure_rs_vand_args = {
@@ -59,6 +66,7 @@ struct ec_args jerasure_rs_vand_args = {
     .m = 4,
     .w = 16,
     .hd = 5,
+    .ct = CHKSUM_NONE,
 };
 
 struct ec_args jerasure_rs_cauchy_args = {
@@ -66,9 +74,52 @@ struct ec_args jerasure_rs_cauchy_args = {
     .m = 4,
     .w = 4,
     .hd = 5,
+    .ct = CHKSUM_NONE,
 };
 
-//TODO Make this a but more useful
+char * get_name_from_backend_id(ec_backend_id_t be) {
+    switch(be) {
+        case EC_BACKEND_NULL:
+            return NULL_BACKEND;
+        case EC_BACKEND_JERASURE_RS_VAND:
+            return JERASURE_RS_VAND_BACKEND;
+        case EC_BACKEND_JERASURE_RS_CAUCHY:
+            return JERASURE_RS_CAUCHY_BACKEND;
+        case EC_BACKEND_FLAT_XOR_HD:
+            return FLAT_XOR_HD_BACKEND;
+        default:
+            return "UNKNOWN";
+    }
+}
+
+struct ec_args *create_ec_args(ec_backend_id_t be, ec_checksum_type_t ct)
+{
+    size_t ec_args_size = sizeof(struct ec_args);
+    struct ec_args *template = NULL;
+    switch(be) {
+        case EC_BACKEND_NULL:
+            template = &null_args;
+            break;
+        case EC_BACKEND_JERASURE_RS_VAND:
+            template = &jerasure_rs_vand_args;
+            break;
+        case EC_BACKEND_JERASURE_RS_CAUCHY:
+            template = &jerasure_rs_cauchy_args;
+            break;
+        case EC_BACKEND_FLAT_XOR_HD:
+            template = &flat_xor_hd_args;
+            break;
+        default:
+            return NULL;
+    }
+    struct ec_args *args = malloc(ec_args_size);
+    assert(args);
+    memcpy(args, template, ec_args_size);
+    args->ct = ct;
+    return args;
+}
+
+//TODO Make this a bit more useful
 char *create_buffer(int size, int fill)
 {
     char *buf = malloc(size);
@@ -125,6 +176,33 @@ static int create_frags_array(char ***array,
     }
 out:
     return num_frags;
+}
+
+static void validate_fragment_checksum(struct ec_args *args,
+    fragment_metadata_t *metadata, char *fragment_data)
+{
+    uint32_t chksum = metadata->chksum[0];
+    uint32_t computed = 0;
+    uint32_t size = metadata->size;
+    switch (args->ct) {
+        case CHKSUM_MD5:
+            assert(false); //currently only have support crc32
+            break;
+        case CHKSUM_CRC32:
+            computed = crc32(0, fragment_data, size);
+            break;
+        case CHKSUM_NONE:
+            assert(metadata->chksum_mismatch == 0);
+            break;
+        default:
+            assert(false);
+            break;
+    }
+    if (metadata->chksum_mismatch) {
+        assert(chksum != computed);
+    } else {
+        assert(chksum == computed);
+    }
 }
 
 static void test_liberasurecode_supported_backends()
@@ -645,8 +723,7 @@ static void test_fragments_needed_impl(const char *backend,
     free(new_fragments_needed);
 }
 
-static void test_get_fragment_metadata(const char *backend,
-                                       struct ec_args *args)
+static void test_get_fragment_metadata(char *backend, struct ec_args *args)
 {
     int i = 0;
     int rc = 0;
@@ -654,8 +731,8 @@ static void test_get_fragment_metadata(const char *backend,
     int orig_data_size = 1024 * 1024;
     char *orig_data = NULL;
     char **encoded_data = NULL, **encoded_parity = NULL;
-    uint64_t encoded_fragment_len = 0;
     int num_fragments = args-> k + args->m;
+    uint64_t encoded_fragment_len = 0;
     fragment_metadata_t cur_frag;
     fragment_metadata_t cmp_frag;
 
@@ -676,13 +753,20 @@ static void test_get_fragment_metadata(const char *backend,
     memset(&cmp_frag, -1, sizeof(fragment_metadata_t));
 
     for (i = 0; i < num_fragments; i++) {
+        char * data = NULL;
         memset(&cur_frag, -1, sizeof(fragment_metadata_t));
         if (i < args->k) {
             rc = liberasurecode_get_fragment_metadata(encoded_data[i], &cur_frag);
+            data = get_data_ptr_from_fragment(encoded_data[i]);
         } else {
             rc = liberasurecode_get_fragment_metadata(encoded_parity[i - args->k], &cur_frag);
+            data = get_data_ptr_from_fragment(encoded_parity[i - args->k]);
         }
         assert(rc == 0);
+        assert(cur_frag.orig_data_size == orig_data_size);
+        assert(cur_frag.size != 0);
+        assert(cur_frag.chksum_type == args->ct);
+        validate_fragment_checksum(args, &cur_frag, data);
         rc = memcmp(&cur_frag, &cmp_frag, sizeof(fragment_metadata_t));
         assert(rc != 0);
     }
@@ -835,189 +919,201 @@ static void test_backend_lookup_by_id()
 struct testcase testcases[] = {
     {"liberasurecode_supported_backends",
         test_liberasurecode_supported_backends,
-        NULL, NULL,
+        EC_BACKENDS_MAX, CHKSUM_TYPES_MAX,
         .skip = false},
     {"test_liberasurecode_supported_checksum_types",
         test_liberasurecode_supported_checksum_types,
-        NULL, NULL,
+        EC_BACKENDS_MAX, CHKSUM_TYPES_MAX,
         .skip = false},
     {"look_up_by_name",
         test_backend_lookup_by_name,
-        NULL, NULL,
+        EC_BACKENDS_MAX, CHKSUM_TYPES_MAX,
         .skip = false},
     {"look_up_by_id",
         test_backend_lookup_by_id,
-        NULL, NULL,
+        EC_BACKENDS_MAX, CHKSUM_TYPES_MAX,
         .skip = false},
     {"test_create_backend_invalid_args",
         test_create_backend_invalid_args,
-        NULL, NULL,
+        EC_BACKENDS_MAX, CHKSUM_TYPES_MAX,
         .skip = false},
     {"test_create_backend_invalid_args",
         test_destroy_backend_invalid_args,
-        NULL, NULL,
+        EC_BACKENDS_MAX, CHKSUM_TYPES_MAX,
         .skip = false},
     {"test_encode_invalid_args",
         test_encode_invalid_args,
-        NULL, NULL,
+        EC_BACKENDS_MAX, CHKSUM_TYPES_MAX,
         .skip = false},
     {"test_encode_cleanup_invalid_args",
         test_encode_cleanup_invalid_args,
-        NULL, NULL,
+        EC_BACKENDS_MAX, CHKSUM_TYPES_MAX,
         .skip = false},
     {"test_decode_invalid_args",
         test_decode_invalid_args,
-        NULL, NULL,
+        EC_BACKENDS_MAX, CHKSUM_TYPES_MAX,
         .skip = false},
     {"test_decode_cleanup_invalid_args",
         test_decode_cleanup_invalid_args,
-        NULL, NULL,
+        EC_BACKENDS_MAX, CHKSUM_TYPES_MAX,
         .skip = false},
     {"test_reconstruct_fragment_invalid_args",
         test_reconstruct_fragment_invalid_args,
-        NULL, NULL,
+        EC_BACKENDS_MAX, CHKSUM_TYPES_MAX,
         .skip = false},
     {"test_get_fragment_metadata_invalid_args",
         test_get_fragment_metadata_invalid_args,
-        NULL, NULL,
+        EC_BACKENDS_MAX, CHKSUM_TYPES_MAX,
         .skip = false},
     {"test_verify_stripe_metadata_invalid_args",
         test_verify_stripe_metadata_invalid_args,
-        NULL, NULL,
+        EC_BACKENDS_MAX, CHKSUM_TYPES_MAX,
         .skip = true}, //EDL, liberasurecode_verify_stripe_metadata is not implemented at the moment
     {"test_fragments_needed_invalid_args",
         test_fragments_needed_invalid_args,
-        NULL, NULL,
+        EC_BACKENDS_MAX, CHKSUM_TYPES_MAX,
         .skip = false},
     // NULL backend test
     {"create_and_destroy_backend",
         test_create_and_destroy_backend,
-        "null", &null_args,
+        EC_BACKEND_NULL, CHKSUM_NONE,
         .skip = false},
     {"simple_encode_null",
         test_simple_encode_decode,
-        "null", &null_args,
+        EC_BACKEND_NULL, CHKSUM_NONE,
         .skip = false},
     {"test_get_fragment_metadata",
         test_get_fragment_metadata,
-        "null", &null_args,
+        EC_BACKEND_NULL, CHKSUM_NONE,
         .skip = false},
     // Flat XOR backend tests
     {"create_and_destroy_backend",
         test_create_and_destroy_backend,
-        "flat_xor_hd", &flat_xor_hd_args,
+        EC_BACKEND_FLAT_XOR_HD, CHKSUM_NONE,
         .skip = false},
     {"simple_encode_flat_xor_hd",
         test_simple_encode_decode,
-        "flat_xor_hd", &flat_xor_hd_args,
+        EC_BACKEND_FLAT_XOR_HD, CHKSUM_NONE,
         .skip = false},
     {"decode_with_missing_data_flat_xor_hd",
         test_decode_with_missing_data,
-        "flat_xor_hd", &flat_xor_hd_args,
+        EC_BACKEND_FLAT_XOR_HD, CHKSUM_NONE,
         .skip = false},
     {"decode_with_missing_parity_flat_xor_hd",
         test_decode_with_missing_parity,
-        "flat_xor_hd", &flat_xor_hd_args,
+        EC_BACKEND_FLAT_XOR_HD, CHKSUM_NONE,
         .skip = false},
     {"decode_with_missing_multi_data_flat_xor_hd",
         test_decode_with_missing_multi_data,
-        "flat_xor_hd", &flat_xor_hd_args,
+        EC_BACKEND_FLAT_XOR_HD, CHKSUM_NONE,
         .skip = false},
     {"decode_with_missing_multi_parity_flat_xor_hd",
         test_decode_with_missing_multi_parity,
-        "flat_xor_hd", &flat_xor_hd_args,
+        EC_BACKEND_FLAT_XOR_HD, CHKSUM_NONE,
         .skip = false},
     {"test_decode_with_missing_multi_data_parity_flat_xor_hd",
         test_decode_with_missing_multi_data_parity,
-        "flat_xor_hd", &flat_xor_hd_args,
+        EC_BACKEND_FLAT_XOR_HD, CHKSUM_NONE,
         .skip = false},
     {"simple_reconstruct_flat_xor_hd",
         test_simple_reconstruct,
-        "flat_xor_hd", &flat_xor_hd_args,
+        EC_BACKEND_FLAT_XOR_HD, CHKSUM_NONE,
         .skip = false},
     {"test_fragments_needed_flat_xor_hd",
         test_fragments_needed, 
-        "flat_xor_hd", &flat_xor_hd_args,
+        EC_BACKEND_FLAT_XOR_HD, CHKSUM_NONE,
         .skip = false},
     {"test_get_fragment_metadata_flat_xor_hd",
         test_get_fragment_metadata,
-        "flat_xor_hd", &flat_xor_hd_args,
+        EC_BACKEND_FLAT_XOR_HD, CHKSUM_NONE,
         .skip = false},
+    {"test_get_fragment_metadata_flat_xor_hd_crc32",
+        test_get_fragment_metadata,
+        EC_BACKEND_FLAT_XOR_HD, CHKSUM_CRC32,
+        .skip = true},
     // Jerasure RS Vand backend tests
     {"create_and_destroy_backend",
         test_create_and_destroy_backend,
-        "jerasure_rs_vand", &jerasure_rs_vand_args,
+        EC_BACKEND_JERASURE_RS_VAND, CHKSUM_NONE,
         .skip = false},
     {"simple_encode_jerasure_rs_vand",
         test_simple_encode_decode,
-        "jerasure_rs_vand", &jerasure_rs_vand_args,
+        EC_BACKEND_JERASURE_RS_VAND, CHKSUM_NONE,
         .skip = false},
     {"decode_with_missing_data_jerasure_rs_vand",
         test_decode_with_missing_data,
-        "jerasure_rs_vand", &jerasure_rs_vand_args,
+        EC_BACKEND_JERASURE_RS_VAND, CHKSUM_NONE,
         .skip = false},
     {"decode_with_missing_multi_data_jerasure_rs_vand",
         test_decode_with_missing_multi_data,
-        "jerasure_rs_vand", &jerasure_rs_vand_args,
+        EC_BACKEND_JERASURE_RS_VAND, CHKSUM_NONE,
         .skip = false},
     {"decode_with_missing_multi_parity_jerasure_rs_vand",
         test_decode_with_missing_multi_parity,
-        "jerasure_rs_vand", &jerasure_rs_vand_args,
+        EC_BACKEND_JERASURE_RS_VAND, CHKSUM_NONE,
         .skip = false},
     {"test_decode_with_missing_multi_data_parity_jerasure_rs_vand",
         test_decode_with_missing_multi_data_parity,
-        "jerasure_rs_vand", &jerasure_rs_vand_args,
+        EC_BACKEND_JERASURE_RS_VAND, CHKSUM_NONE,
         .skip = false},
     {"simple_reconstruct_jerasure_rs_vand",
         test_simple_reconstruct,
-        "jerasure_rs_vand", &jerasure_rs_vand_args,
+        EC_BACKEND_JERASURE_RS_VAND, CHKSUM_NONE,
         .skip = false},
     {"test_fragments_needed_jerasure_rs_vand",
         test_fragments_needed, 
-        "jerasure_rs_vand", &jerasure_rs_vand_args,
+        EC_BACKEND_JERASURE_RS_VAND, CHKSUM_NONE,
         .skip = false},
     {"test_get_fragment_metadata_jerasure_rs_vand",
         test_get_fragment_metadata,
-        "jerasure_rs_vand", &jerasure_rs_vand_args,
+        EC_BACKEND_JERASURE_RS_VAND, CHKSUM_NONE,
         .skip = false},
+    {"test_get_fragment_metadata_jerasure_rs_vand_crc32",
+        test_get_fragment_metadata,
+        EC_BACKEND_JERASURE_RS_VAND, CHKSUM_CRC32,
+        .skip = true},
     // Jerasure RS Cauchy backend tests
     {"create_and_destroy_backend",
         test_create_and_destroy_backend,
-        "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
+        EC_BACKEND_JERASURE_RS_CAUCHY, CHKSUM_NONE,
         .skip = false},
     {"simple_encode_jerasure_rs_cauchy",
         test_simple_encode_decode,
-        "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
+        EC_BACKEND_JERASURE_RS_CAUCHY, CHKSUM_NONE,
         .skip = false},
     {"decode_with_missing_data_jerasure_rs_cauchy",
         test_decode_with_missing_data,
-        "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
+        EC_BACKEND_JERASURE_RS_CAUCHY, CHKSUM_NONE,
         .skip = false},
     {"decode_with_missing_multi_data_jerasure_rs_cauchy",
         test_decode_with_missing_multi_data,
-        "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
+        EC_BACKEND_JERASURE_RS_CAUCHY, CHKSUM_NONE,
         .skip = false},
     {"decode_with_missing_multi_parity_jerasure_rs_cauchy",
         test_decode_with_missing_multi_parity,
-        "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
+        EC_BACKEND_JERASURE_RS_CAUCHY, CHKSUM_NONE,
         .skip = false},
     {"decode_with_missing_multi_data_parity_jerasure_rs_cauchy",
         test_decode_with_missing_multi_data_parity,
-        "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
+        EC_BACKEND_JERASURE_RS_CAUCHY, CHKSUM_NONE,
         .skip = false},
     {"simple_reconstruct_jerasure_rs_cauchy",
         test_simple_reconstruct,
-        "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
+        EC_BACKEND_JERASURE_RS_CAUCHY, CHKSUM_NONE,
         .skip = false},
     {"test_fragments_needed_jerasure_rs_cauchy",
         test_fragments_needed, 
-        "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
+        EC_BACKEND_JERASURE_RS_CAUCHY, CHKSUM_NONE,
         .skip = false},
     {"test_get_fragment_metadata_jerasure_rs_cauchy",
         test_get_fragment_metadata,
-        "jerasure_rs_cauchy", &jerasure_rs_cauchy_args,
+        EC_BACKEND_JERASURE_RS_CAUCHY, CHKSUM_NONE,
         .skip = false},
-    { NULL, NULL, NULL, NULL, false },
+    {"test_get_fragment_metadata_jerasure_rs_cauchy",
+        test_get_fragment_metadata,
+        EC_BACKEND_JERASURE_RS_CAUCHY, CHKSUM_CRC32,
+        .skip = true},
+    { NULL, NULL, 0, 0, false },
 };
 
 int main(int argc, char **argv)
@@ -1031,7 +1127,7 @@ int main(int argc, char **argv)
     printf("1..%d\n", num_cases);
 
     for (ii = 0; testcases[ii].description != NULL; ++ii) {
-        const char *testname = (const char *) testcases[ii].arg1;
+        const char *testname = get_name_from_backend_id(testcases[ii].be_id);
         fflush(stdout);
         if (testcases[ii].skip) {
             fprintf(stdout, "ok # SKIP %d - %s: %s\n", ii + 1,
@@ -1039,11 +1135,13 @@ int main(int argc, char **argv)
                     (testname) ? testname : "");
             continue;
         }
-        testcases[ii].function(testcases[ii].arg1, testcases[ii].arg2);
+        struct ec_args *args = create_ec_args(testcases[ii].be_id, testcases[ii].ct);
+        testcases[ii].function(testname, args);
         fprintf(stdout, "ok %d - %s: %s\n", ii + 1,
                 testcases[ii].description,
                 (testname) ? testname : "");
         fflush(stdout);
+        free(args);
     }
     return 0;
 }
