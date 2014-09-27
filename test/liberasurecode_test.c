@@ -907,10 +907,10 @@ static void test_backend_lookup_by_id()
     int i =0, num_backends;
     const char **supported_ec_backends =
         liberasurecode_supported_backends(&num_backends);
-    assert(liberasurecode_backend_lookup_id(null_name) == -1);
-    assert(liberasurecode_backend_lookup_id(empty_name) == -1);
-    assert(liberasurecode_backend_lookup_id(white_space_name) == -1);
-    assert(liberasurecode_backend_lookup_id(missing_name) == -1);
+    assert(liberasurecode_backend_lookup_id(null_name) == EC_BACKENDS_MAX);
+    assert(liberasurecode_backend_lookup_id(empty_name) == EC_BACKENDS_MAX);
+    assert(liberasurecode_backend_lookup_id(white_space_name) == EC_BACKENDS_MAX);
+    assert(liberasurecode_backend_lookup_id(missing_name) == EC_BACKENDS_MAX);
     for (i = 0; i < num_backends; i++) {
         assert(liberasurecode_backend_lookup_id(supported_ec_backends[i]) == i);
     }

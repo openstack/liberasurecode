@@ -81,7 +81,7 @@ ec_backend_t liberasurecode_backend_lookup_by_name(const char *name)
 ec_backend_id_t liberasurecode_backend_lookup_id(const char *name)
 {
     if (NULL == name)
-        return -1;
+        return EC_BACKENDS_MAX;
     int b = 0;
 
     for (b = 0; ec_backends_supported[b]; ++b) {
@@ -90,7 +90,7 @@ ec_backend_id_t liberasurecode_backend_lookup_id(const char *name)
             return backend->common.id;
     }
 
-    return -1;
+    return EC_BACKENDS_MAX;
 }
 
 /* =~=*=~==~=*=~==~=*=~= EC backend instance management =~=*=~==~=*=~==~=*= */
@@ -313,7 +313,7 @@ int liberasurecode_instance_create(const char *backend_name,
         return -1;
 
     ec_backend_id_t id = liberasurecode_backend_lookup_id(backend_name);
-    if (-1 == id)
+    if (EC_BACKENDS_MAX == id)
         return -EBACKENDNOTSUPP;
 
     /* Allocate memory for ec_backend instance */
