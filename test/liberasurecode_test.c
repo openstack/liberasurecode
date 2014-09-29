@@ -36,6 +36,7 @@
 #define FLAT_XOR_HD_BACKEND "flat_xor_hd"
 #define JERASURE_RS_VAND_BACKEND "jerasure_rs_vand"
 #define JERASURE_RS_CAUCHY_BACKEND "jerasure_rs_cauchy"
+#define ISA_L_RS_VAND_BACKEND "isa_l_rs_vand"
 
 typedef void (*TEST_FUNC)();
 
@@ -77,6 +78,13 @@ struct ec_args jerasure_rs_cauchy_args = {
     .ct = CHKSUM_NONE,
 };
 
+struct ec_args isa_l_args = {
+    .k = 10,
+    .m = 4,
+    .w = 8,
+    .hd = 5,
+};
+
 char * get_name_from_backend_id(ec_backend_id_t be) {
     switch(be) {
         case EC_BACKEND_NULL:
@@ -87,6 +95,8 @@ char * get_name_from_backend_id(ec_backend_id_t be) {
             return JERASURE_RS_CAUCHY_BACKEND;
         case EC_BACKEND_FLAT_XOR_HD:
             return FLAT_XOR_HD_BACKEND;
+        case EC_BACKEND_ISA_L_RS_VAND:
+            return ISA_L_RS_VAND_BACKEND;
         default:
             return "UNKNOWN";
     }
@@ -109,6 +119,9 @@ struct ec_args *create_ec_args(ec_backend_id_t be, ec_checksum_type_t ct)
         case EC_BACKEND_FLAT_XOR_HD:
             template = &flat_xor_hd_args;
             break;
+        case EC_BACKEND_ISA_L_RS_VAND:
+            template = &isa_l_args;
+            break;
         default:
             return NULL;
     }
@@ -119,7 +132,6 @@ struct ec_args *create_ec_args(ec_backend_id_t be, ec_checksum_type_t ct)
     return args;
 }
 
-//TODO Make this a bit more useful
 char *create_buffer(int size, int fill)
 {
     char *buf = malloc(size);
@@ -1032,6 +1044,43 @@ struct testcase testcases[] = {
     {"test_get_fragment_metadata_jerasure_rs_cauchy_crc32",
         test_get_fragment_metadata,
         EC_BACKEND_JERASURE_RS_CAUCHY, CHKSUM_CRC32,
+        .skip = false},
+    // ISA-L tests
+    {"create_and_destroy_backend",
+        test_create_and_destroy_backend,
+        EC_BACKEND_ISA_L_RS_VAND, CHKSUM_NONE,
+        .skip = false},
+    {"simple_encode_isa_l",
+        test_simple_encode_decode,
+        EC_BACKEND_ISA_L_RS_VAND, CHKSUM_NONE,
+        .skip = false},
+    {"decode_with_missing_data_isa_l",
+        test_decode_with_missing_data,
+        EC_BACKEND_ISA_L_RS_VAND, CHKSUM_NONE,
+        .skip = false},
+    {"decode_with_missing_multi_data_isa_l",
+        test_decode_with_missing_multi_data,
+        EC_BACKEND_ISA_L_RS_VAND, CHKSUM_NONE,
+        .skip = false},
+    {"decode_with_missing_multi_parity_isa_l",
+        test_decode_with_missing_multi_parity,
+        EC_BACKEND_ISA_L_RS_VAND, CHKSUM_NONE,
+        .skip = false},
+    {"test_decode_with_missing_multi_data_parity_isa_l",
+        test_decode_with_missing_multi_data_parity,
+        EC_BACKEND_ISA_L_RS_VAND, CHKSUM_NONE,
+        .skip = false},
+    {"simple_reconstruct_isa_l",
+        test_simple_reconstruct,
+        EC_BACKEND_ISA_L_RS_VAND, CHKSUM_NONE,
+        .skip = false},
+    {"test_fragments_needed_isa_l",
+        test_fragments_needed, 
+        EC_BACKEND_ISA_L_RS_VAND, CHKSUM_NONE,
+        .skip = false},
+    {"test_get_fragment_metadata_isa_l",
+        test_get_fragment_metadata,
+        EC_BACKEND_ISA_L_RS_VAND, CHKSUM_NONE,
         .skip = false},
     { NULL, NULL, 0, 0, false },
 };

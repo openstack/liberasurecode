@@ -17,7 +17,8 @@ liberasurecode_la_SOURCES = \
 		backends/null/null.c \
 		backends/xor/flat_xor_hd.c \
 		backends/jerasure/jerasure_rs_vand.c \
-		backends/jerasure/jerasure_rs_cauchy.c
+		backends/jerasure/jerasure_rs_cauchy.c \
+    backends/isa-l/isa_l_vand.c
 
 liberasurecode_la_CPPFLAGS = -Werror @GCOV_FLAGS@
 liberasurecode_la_LIBADD = \

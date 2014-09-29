@@ -42,12 +42,14 @@ extern struct ec_backend_common backend_null;
 extern struct ec_backend_common backend_flat_xor_hd;
 extern struct ec_backend_common backend_jerasure_rs_vand;
 extern struct ec_backend_common backend_jerasure_rs_cauchy;
+extern struct ec_backend_common backend_isa_l_rs_vand;
 
 ec_backend_t ec_backends_supported[] = {
     (ec_backend_t) &backend_null,
     (ec_backend_t) &backend_jerasure_rs_vand,
     (ec_backend_t) &backend_jerasure_rs_cauchy,
     (ec_backend_t) &backend_flat_xor_hd,
+    (ec_backend_t) &backend_isa_l_rs_vand,
     NULL,
 };
 
