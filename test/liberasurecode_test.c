@@ -205,35 +205,11 @@ static void validate_fragment_checksum(struct ec_args *args,
     }
 }
 
-static void test_liberasurecode_supported_backends()
-{
-    int i, num_backends;
-    const char **supported_ec_backends =
-        liberasurecode_supported_backends(&num_backends);
-
-    for (i = 0; i < num_backends; i++) {
-        printf("%s\n", supported_ec_backends[i]);
-    }
-}
-
-static void test_liberasurecode_supported_checksum_types()
-{
-    int i;
-    int num_checksum_types;
-    const char **supported_checksum_types =
-        liberasurecode_supported_checksum_types(&num_checksum_types);
-
-    assert(num_checksum_types == CHKSUM_TYPES_MAX);
-    for (i = 0; i < CHKSUM_TYPES_MAX; i++) {
-        printf("%s\n", supported_checksum_types[i]);
-    }
-}
-
 static void test_create_and_destroy_backend(
-        const char *backend,
+        ec_backend_id_t be_id,
         struct ec_args *args)
 {
-    int desc = liberasurecode_instance_create(backend, args);
+    int desc = liberasurecode_instance_create(be_id, args);
     if (-EBACKENDNOTAVAIL == desc) {
         fprintf (stderr, "Backend library not available!\n");
         return;
@@ -244,11 +220,9 @@ static void test_create_and_destroy_backend(
 
 static void test_create_backend_invalid_args()
 {
-    assert(liberasurecode_instance_create(NULL, &null_args) < 0);
-    assert(liberasurecode_instance_create("DOESNOTEXIST", &null_args) == -EBACKENDNOTSUPP);
-    assert(liberasurecode_instance_create("", &null_args)  == -EBACKENDNOTSUPP);
-    assert(liberasurecode_instance_create(" ", &null_args)  == -EBACKENDNOTSUPP);
-    assert(liberasurecode_instance_create("null", NULL) < 0);
+    assert(liberasurecode_instance_create(-1, &null_args) < 0);
+    assert(liberasurecode_instance_create(EC_BACKENDS_MAX, &null_args) < 0);
+    assert(liberasurecode_instance_create(EC_BACKEND_NULL, NULL) < 0);
 }
 
 static void test_destroy_backend_invalid_args()
@@ -257,7 +231,7 @@ static void test_destroy_backend_invalid_args()
     assert(liberasurecode_instance_destroy(desc) < 0);
     desc = 1;
     assert(liberasurecode_instance_destroy(desc) < 0);
-    desc = liberasurecode_instance_create("null", &null_args);
+    desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
     assert(desc > 0);
     assert(0 == liberasurecode_instance_destroy(desc));
     assert(liberasurecode_instance_destroy(desc) < 0);
@@ -277,7 +251,7 @@ static void test_encode_invalid_args()
             &encoded_data, &encoded_parity, &encoded_fragment_len);
     assert(rc < 0);
 
-    desc = liberasurecode_instance_create("null", &null_args);
+    desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
     assert(desc > 0);
 
     rc = liberasurecode_encode(desc, NULL, orig_data_size,
@@ -310,7 +284,7 @@ static void test_encode_cleanup_invalid_args()
     char **encoded_data = NULL, **encoded_parity = NULL;
     uint64_t encoded_fragment_len = 0;
 
-    desc = liberasurecode_instance_create("null", &null_args);
+    desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
     assert(desc > 0);
 
     rc = liberasurecode_encode(desc, orig_data, orig_data_size,
@@ -338,7 +312,7 @@ static void test_decode_invalid_args()
     char *decoded_data = NULL;
     uint64_t decoded_data_len = 0;
 
-    desc = liberasurecode_instance_create("null", &null_args);
+    desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
     assert(desc > 0);
     rc = liberasurecode_encode(desc, orig_data, orig_data_size,
             &encoded_data, &encoded_parity, &encoded_fragment_len);
@@ -377,7 +351,7 @@ static void test_decode_cleanup_invalid_args()
     rc = liberasurecode_decode_cleanup(desc, orig_data);
     assert(rc < 0);
 
-    desc = liberasurecode_instance_create("null", &null_args);
+    desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
     assert(desc > 0);
 
     rc = liberasurecode_decode_cleanup(desc, NULL);
@@ -398,7 +372,7 @@ static void test_reconstruct_fragment_invalid_args()
     rc = liberasurecode_reconstruct_fragment(desc, avail_frags, 1, frag_len, 1, out_frag);
     assert(rc < 0);
 
-    desc = liberasurecode_instance_create("null", &null_args);
+    desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
     assert(desc > 0);
 
     rc = liberasurecode_reconstruct_fragment(desc, NULL, 1, frag_len, 1, out_frag);
@@ -419,7 +393,7 @@ static void test_fragments_needed_invalid_args()
     rc = liberasurecode_fragments_needed(desc, &frags_to_recon, &frags_to_exclude, frags_needed);
     assert(rc < 0);
 
-    desc = liberasurecode_instance_create("null", &null_args);
+    desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
     assert(desc > 0);
 
     rc = liberasurecode_fragments_needed(desc, NULL, &frags_to_exclude, frags_needed);
@@ -463,7 +437,7 @@ static void test_verify_stripe_metadata_invalid_args() {
     rc = liberasurecode_verify_stripe_metadata(desc, frags, num_frags);
     assert(rc < 0);
 
-    desc = liberasurecode_instance_create("null", &null_args);
+    desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
     assert(desc > 0);
 
     rc = liberasurecode_verify_stripe_metadata(desc, NULL, num_frags);
@@ -473,7 +447,7 @@ static void test_verify_stripe_metadata_invalid_args() {
     assert(rc < 0);
 }
 
-static void encode_decode_test_impl(const char *backend,
+static void encode_decode_test_impl(const ec_backend_id_t be_id,
                                    struct ec_args *args,
                                    int *skip)
 {
@@ -492,7 +466,7 @@ static void encode_decode_test_impl(const char *backend,
     char *orig_data_ptr = NULL;
     int remaining = 0;
 
-    desc = liberasurecode_instance_create(backend, args);
+    desc = liberasurecode_instance_create(be_id, args);
     if (-EBACKENDNOTAVAIL == desc) {
         fprintf (stderr, "Backend library not available!\n");
         return;
@@ -546,7 +520,7 @@ static void encode_decode_test_impl(const char *backend,
     free(orig_data);
 }
 
-static void reconstruct_test_impl(const char *backend,
+static void reconstruct_test_impl(const ec_backend_id_t be_id, 
                                  struct ec_args *args,
                                  int *skip)
 {
@@ -562,7 +536,7 @@ static void reconstruct_test_impl(const char *backend,
     int i = 0;
     char *out = NULL;
 
-    desc = liberasurecode_instance_create(backend, args);
+    desc = liberasurecode_instance_create(be_id, args);
     if (-EBACKENDNOTAVAIL == desc) {
         fprintf (stderr, "Backend library not available!\n");
         return;
@@ -596,14 +570,14 @@ static void reconstruct_test_impl(const char *backend,
     }
 }
 
-static void test_fragments_needed_impl(const char *backend,
+static void test_fragments_needed_impl(const ec_backend_id_t be_id, 
                                       struct ec_args *args)
 {
     int *fragments_to_reconstruct = NULL;
     int *fragments_to_exclude = NULL;
     int *fragments_needed = NULL;
     int *new_fragments_needed = NULL;
-    int desc = liberasurecode_instance_create(backend, args);
+    int desc = liberasurecode_instance_create(be_id, args);
     int ret = -1;
     int i = 0, j = 0;
     int n = args->k + args->m;
@@ -723,7 +697,7 @@ static void test_fragments_needed_impl(const char *backend,
     free(new_fragments_needed);
 }
 
-static void test_get_fragment_metadata(char *backend, struct ec_args *args)
+static void test_get_fragment_metadata(const ec_backend_id_t be_id, struct ec_args *args)
 {
     int i = 0;
     int rc = 0;
@@ -736,7 +710,7 @@ static void test_get_fragment_metadata(char *backend, struct ec_args *args)
     fragment_metadata_t cur_frag;
     fragment_metadata_t cmp_frag;
 
-    desc = liberasurecode_instance_create(backend, args);
+    desc = liberasurecode_instance_create(be_id, args);
     if (-EBACKENDNOTAVAIL == desc) {
         fprintf (stderr, "Backend library not available!\n");
         return;
@@ -772,7 +746,7 @@ static void test_get_fragment_metadata(char *backend, struct ec_args *args)
     }
 }
 
-static void test_decode_with_missing_data(const char *backend,
+static void test_decode_with_missing_data(const ec_backend_id_t be_id,
                                           struct ec_args *args)
 {
     int i;
@@ -781,14 +755,14 @@ static void test_decode_with_missing_data(const char *backend,
     for (i = 0; i < args->k; i++)
     {
         skip[i] = 1;
-        encode_decode_test_impl(backend, args, skip);
+        encode_decode_test_impl(be_id, args, skip);
         skip[i] = 0;
     }
     free(skip);
 }
 
-static void test_decode_with_missing_parity(const char *backend,
-                                           struct ec_args *args)
+static void test_decode_with_missing_parity(const ec_backend_id_t be_id,
+                                            struct ec_args *args)
 {
     int i;
     int *skip = create_skips_array(args,args->k);
@@ -796,14 +770,14 @@ static void test_decode_with_missing_parity(const char *backend,
     for (i = args->k; i < args->m; i++)
     {
         skip[i] = 1;
-        encode_decode_test_impl(backend, args, skip);
+        encode_decode_test_impl(be_id, args, skip);
         skip[i] = 0;
     }
     free(skip);
 }
 
-static void test_decode_with_missing_multi_data(const char *backend,
-                                               struct ec_args *args)
+static void test_decode_with_missing_multi_data(const ec_backend_id_t be_id,
+                                                struct ec_args *args)
 {
     int max_num_missing = args->hd - 1;
     int i,j;
@@ -813,13 +787,13 @@ static void test_decode_with_missing_multi_data(const char *backend,
         for (j = i; j < i + max_num_missing; j++) {
             skip[j]=1;
         }
-        encode_decode_test_impl(backend, args, skip);
+        encode_decode_test_impl(be_id, args, skip);
         free(skip);
     }
 }
 
-static void test_decode_with_missing_multi_parity(const char *backend,
-                                                 struct ec_args *args)
+static void test_decode_with_missing_multi_parity(const ec_backend_id_t be_id,
+                                                  struct ec_args *args)
 {
     int i,j;
     int max_num_missing = args->hd - 1;
@@ -829,13 +803,13 @@ static void test_decode_with_missing_multi_parity(const char *backend,
         for (j = i; j < i + max_num_missing; j++) {
             skip[j]=1;
         }
-        encode_decode_test_impl(backend, args, skip);
+        encode_decode_test_impl(be_id, args, skip);
         free(skip);
     }
 }
 
-static void test_decode_with_missing_multi_data_parity(const char *backend,
-                                                       struct ec_args *args)
+static void test_decode_with_missing_multi_data_parity(
+    const ec_backend_id_t be_id, struct ec_args *args)
 {
     int i,j;
     int max_num_missing = args->hd - 1;
@@ -846,93 +820,39 @@ static void test_decode_with_missing_multi_data_parity(const char *backend,
         for (j = i; j < i + max_num_missing; j++) {
             skip[j]=1;
         }
-        encode_decode_test_impl(backend, args, skip);
+        encode_decode_test_impl(be_id, args, skip);
         free(skip);
     }
 }
 
-static void test_simple_encode_decode(const char *backend,
+static void test_simple_encode_decode(const ec_backend_id_t be_id,
                                      struct ec_args *args)
 {
     int *skip = create_skips_array(args,-1);
     assert(skip != NULL);
-    encode_decode_test_impl(backend, args, skip);
+    encode_decode_test_impl(be_id, args, skip);
     free(skip);
 }
 
-static void test_simple_reconstruct(const char *backend,
-                                     struct ec_args *args)
+static void test_simple_reconstruct(const ec_backend_id_t be_id,
+                                    struct ec_args *args)
 {
     int i = 0;
     for (i = 0; i < args->k + args->m; i++) {
         int *skip = create_skips_array(args,i);
         assert(skip != NULL);
-        reconstruct_test_impl(backend, args, skip);
+        reconstruct_test_impl(be_id, args, skip);
         free(skip);
     }
 }
 
-static void test_fragments_needed(const char *backend,
+static void test_fragments_needed(const ec_backend_id_t be_id,
                                   struct ec_args *args)
 {
-    test_fragments_needed_impl(backend, args);
-}
-
-static void test_backend_lookup_by_name()
-{
-    const char *null_name = NULL;
-    const char *empty_name = "";
-    const char *white_space_name = " ";
-    const char *missing_name = "1DONT3XIST!";
-    int i =0, num_backends;
-    const char **supported_ec_backends =
-        liberasurecode_supported_backends(&num_backends);
-
-    assert(liberasurecode_backend_lookup_by_name(null_name) == NULL);
-    assert(liberasurecode_backend_lookup_by_name(empty_name) == NULL);
-    assert(liberasurecode_backend_lookup_by_name(white_space_name) == NULL);
-    assert(liberasurecode_backend_lookup_by_name(missing_name) == NULL);
-
-    for (i = 0; i < num_backends; i++) {
-        assert(liberasurecode_backend_lookup_by_name(supported_ec_backends[i]) != NULL);
-    }
-}
-
-static void test_backend_lookup_by_id()
-{
-    const char *null_name = NULL;
-    const char *empty_name = "";
-    const char *white_space_name = " ";
-    const char *missing_name = "1DONT3XIST!";
-    int i =0, num_backends;
-    const char **supported_ec_backends =
-        liberasurecode_supported_backends(&num_backends);
-    assert(liberasurecode_backend_lookup_id(null_name) == EC_BACKENDS_MAX);
-    assert(liberasurecode_backend_lookup_id(empty_name) == EC_BACKENDS_MAX);
-    assert(liberasurecode_backend_lookup_id(white_space_name) == EC_BACKENDS_MAX);
-    assert(liberasurecode_backend_lookup_id(missing_name) == EC_BACKENDS_MAX);
-    for (i = 0; i < num_backends; i++) {
-        assert(liberasurecode_backend_lookup_id(supported_ec_backends[i]) == i);
-    }
+    test_fragments_needed_impl(be_id, args);
 }
 
 struct testcase testcases[] = {
-    {"liberasurecode_supported_backends",
-        test_liberasurecode_supported_backends,
-        EC_BACKENDS_MAX, CHKSUM_TYPES_MAX,
-        .skip = false},
-    {"test_liberasurecode_supported_checksum_types",
-        test_liberasurecode_supported_checksum_types,
-        EC_BACKENDS_MAX, CHKSUM_TYPES_MAX,
-        .skip = false},
-    {"look_up_by_name",
-        test_backend_lookup_by_name,
-        EC_BACKENDS_MAX, CHKSUM_TYPES_MAX,
-        .skip = false},
-    {"look_up_by_id",
-        test_backend_lookup_by_id,
-        EC_BACKENDS_MAX, CHKSUM_TYPES_MAX,
-        .skip = false},
     {"test_create_backend_invalid_args",
         test_create_backend_invalid_args,
         EC_BACKENDS_MAX, CHKSUM_TYPES_MAX,
@@ -1136,7 +1056,7 @@ int main(int argc, char **argv)
             continue;
         }
         struct ec_args *args = create_ec_args(testcases[ii].be_id, testcases[ii].ct);
-        testcases[ii].function(testname, args);
+        testcases[ii].function(testcases[ii].be_id, args);
         fprintf(stdout, "ok %d - %s: %s\n", ii + 1,
                 testcases[ii].description,
                 (testname) ? testname : "");

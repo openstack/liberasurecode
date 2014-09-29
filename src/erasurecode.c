@@ -43,12 +43,6 @@ extern struct ec_backend_common backend_flat_xor_hd;
 extern struct ec_backend_common backend_jerasure_rs_vand;
 extern struct ec_backend_common backend_jerasure_rs_cauchy;
 
-static const char *ec_chksum_types[CHKSUM_TYPES_MAX] = {
-    "none",
-    "crc32",
-    "md5",
-};
-
 ec_backend_t ec_backends_supported[] = {
     (ec_backend_t) &backend_null,
     (ec_backend_t) &backend_jerasure_rs_vand,
@@ -60,38 +54,6 @@ ec_backend_t ec_backends_supported[] = {
 /* backend list to return to the caller */
 int num_supported_backends = 0;
 char *ec_backends_supported_str[EC_BACKENDS_MAX];
-
-/* Get EC backend by name */
-ec_backend_t liberasurecode_backend_lookup_by_name(const char *name)
-{
-    if (NULL == name)
-        return NULL;
-
-    int b = 0;
-
-    for (b = 0; ec_backends_supported[b]; ++b) {
-        if (!strcmp(ec_backends_supported[b]->common.name, name))
-            return ec_backends_supported[b];
-    }
-
-    return NULL;
-}
-
-/* Name to ID mapping for EC backend */
-ec_backend_id_t liberasurecode_backend_lookup_id(const char *name)
-{
-    if (NULL == name)
-        return EC_BACKENDS_MAX;
-    int b = 0;
-
-    for (b = 0; ec_backends_supported[b]; ++b) {
-        ec_backend_t backend = ec_backends_supported[b];
-        if (backend && !strcmp(backend->common.name, name))
-            return backend->common.id;
-    }
-
-    return EC_BACKENDS_MAX;
-}
 
 /* =~=*=~==~=*=~==~=*=~= EC backend instance management =~=*=~==~=*=~==~=*= */
 
@@ -255,41 +217,11 @@ liberasurecode_exit(void) {
 /* =~=*=~==~=*=~= liberasurecode frontend API implementation =~=*=~==~=*=~== */
 
 /**
- * Returns a list of EC backends implemented/enabled - the user
- * should always rely on the return from this function as this
- * set of backends can be different from the names listed in
- * ec_backend_names above.
- *
- * @param num_backends - pointer to return number of backends in
- *
- * @returns list of EC backends implemented
- */
-const char ** liberasurecode_supported_backends(int *num_backends)
-{
-    *num_backends = num_supported_backends;
-    return (const char **) ec_backends_supported_str;
-}
-
-/**
- * Returns a list of checksum types supported for fragment data, stored in
- * individual fragment headers as part of fragment metadata
- *
- * @param num_checksum_types - pointer to int, size of list returned
- *
- * @returns list of checksum types supported for fragment data
- */
-const char ** liberasurecode_supported_checksum_types(int *num_checksum_types)
-{
-    *num_checksum_types = CHKSUM_TYPES_MAX;
-    return (const char **) ec_chksum_types;
-}
-
-/**
  * Create a liberasurecode instance and return a descriptor 
  * for use with EC operations (encode, decode, reconstruct)
  *
- * @param backend_name - one of the supported backends as
- *        defined by ec_backend_names
+ * @param id - one of the supported backends as
+ *        defined by ec_backend_id_t
  * @param ec_args - arguments to the EC backend
  *        arguments common to all backends
  *          k - number of data fragments
@@ -303,17 +235,16 @@ const char ** liberasurecode_supported_checksum_types(int *num_checksum_types)
  *
  * @returns liberasurecode instance descriptor (int > 0)
  */
-int liberasurecode_instance_create(const char *backend_name,
+int liberasurecode_instance_create(const ec_backend_id_t id,
                                    struct ec_args *args)
 {
     int err = 0;
     ec_backend_t instance = NULL;
     struct ec_backend_args bargs;
-    if (!backend_name || !args)
+    if (!args)
         return -1;
 
-    ec_backend_id_t id = liberasurecode_backend_lookup_id(backend_name);
-    if (EC_BACKENDS_MAX == id)
+    if (id >= EC_BACKENDS_MAX)
         return -EBACKENDNOTSUPP;
 
     /* Allocate memory for ec_backend instance */

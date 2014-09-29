@@ -206,7 +206,7 @@ static int test_hd_code(struct ec_args *args,
     /*
      * Get handle
      */
-    desc = liberasurecode_instance_create("flat_xor_hd", args);
+    desc = liberasurecode_instance_create(EC_BACKEND_FLAT_XOR_HD, args);
     if (desc <= 0) {
         fprintf(stderr, "Could not create libec descriptor\n");
         exit(1);
