@@ -45,8 +45,14 @@ config_liberasurecode.h.in
 .deps
 config_liberasurecode.h
 stamp-h1
+*Makefile.in
+configure
+compile
+cscope.files
+install-sh
+libtool
 
 # doxygen documentation
 ^doc/.*\.doxytag
 ^doc/html
-^doc/doxygen.cfg
+*doxygen.cfg
