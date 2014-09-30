@@ -598,7 +598,7 @@ int liberasurecode_decode(int desc,
      * (realloc_bm).
      *
      */
-    ret = prepare_fragments_for_decode(k, m,
+    ret = prepare_fragments_for_decode(instance, k, m,
                                        data, parity, missing_idxs, 
                                        &orig_data_size, &blocksize,
                                        fragment_len, &realloc_bm);
@@ -765,7 +765,7 @@ int liberasurecode_reconstruct_fragment(int desc,
      * It passes back a bitmap telling us which buffers need to be freed by
      * us (realloc_bm).
      */
-    ret = prepare_fragments_for_decode(k, m, data, parity, missing_idxs,
+    ret = prepare_fragments_for_decode(instance, k, m, data, parity, missing_idxs,
                                        &orig_data_size, &blocksize,
                                        fragment_len, &realloc_bm);
     if (ret < 0) {

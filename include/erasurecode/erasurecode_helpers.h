@@ -118,7 +118,7 @@ void init_fragment_header(char *buf)
 void *alloc_zeroed_buffer(int size);
 void *alloc_and_set_buffer(int size, int value);
 void *check_and_free_buffer(void *buf);
-char *alloc_fragment_buffer(int size);
+char *alloc_fragment_buffer(ec_backend_t instance, int size);
 int free_fragment_buffer(char *buf);
 void *get_aligned_buffer16(int size);
 int get_aligned_data_size(ec_backend_t instance, int data_len);

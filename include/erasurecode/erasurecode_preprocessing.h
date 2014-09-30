@@ -37,6 +37,7 @@ int prepare_fragments_for_encode(
         int *blocksize);
 
 int prepare_fragments_for_decode(
+        ec_backend_t instance,
         int k, int m,
         char **data, char **parity,
         int *missing_idxs,

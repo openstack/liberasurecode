@@ -325,4 +325,5 @@ struct ec_backend_common backend_jerasure_rs_vand = {
 #endif
     .soversion                  = "2.0",
     .ops                        = &jerasure_rs_vand_op_stubs,
+    .metadata_adder             = 0,
 };

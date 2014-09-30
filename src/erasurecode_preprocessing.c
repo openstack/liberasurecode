@@ -49,7 +49,7 @@ int prepare_fragments_for_encode(ec_backend_t instance,
 
     for (i = 0; i < k; i++) {
         int payload_size = data_len > bsize ? bsize : data_len;
-        char *fragment = (char *) alloc_fragment_buffer(bsize);
+        char *fragment = (char *) alloc_fragment_buffer(instance, bsize);
         if (NULL == fragment) {
             ret = -ENOMEM;
             goto out_error;
@@ -67,7 +67,7 @@ int prepare_fragments_for_encode(ec_backend_t instance,
     }
 
     for (i = 0; i < m; i++) {
-        char *fragment = (char *) alloc_fragment_buffer(bsize);
+        char *fragment = (char *) alloc_fragment_buffer(instance, bsize);
         if (NULL == fragment) {
             ret = -ENOMEM;
             goto out_error;
@@ -107,7 +107,7 @@ out_error:
  * case, the caller has to free up in the success case, so it may as well do
  * so in the failure case.
  */
-int prepare_fragments_for_decode(
+int prepare_fragments_for_decode(ec_backend_t instance,
         int k, int m,
         char **data, char **parity,
         int  *missing_idxs,
@@ -135,14 +135,16 @@ int prepare_fragments_for_decode(
          * 'data_list'
          */
         if (NULL == data[i]) {
-            data[i] = alloc_fragment_buffer(fragment_size - sizeof(fragment_header_t));
+            data[i] = alloc_fragment_buffer(instance,
+                    fragment_size - sizeof(fragment_header_t));
             if (NULL == data[i]) {
                 log_error("Could not allocate data buffer!");
                 return -1;
             }
             *realloc_bm = *realloc_bm | (1 << i);
         } else if (!is_addr_aligned((unsigned long)data[i], 16)) {
-            char *tmp_buf = alloc_fragment_buffer(fragment_size - sizeof(fragment_header_t));
+            char *tmp_buf = alloc_fragment_buffer(instance,
+                    fragment_size - sizeof(fragment_header_t));
             memcpy(tmp_buf, data[i], fragment_size);
             data[i] = tmp_buf;
             *realloc_bm = *realloc_bm | (1 << i);
@@ -170,14 +172,16 @@ int prepare_fragments_for_decode(
          * DO NOT FREE: the python GC should free the original when cleaning up 'data_list'
          */
         if (NULL == parity[i]) {
-            parity[i] = alloc_fragment_buffer(fragment_size-sizeof(fragment_header_t));
+            parity[i] = alloc_fragment_buffer(instance,
+                    fragment_size - sizeof(fragment_header_t));
             if (NULL == parity[i]) {
                 log_error("Could not allocate parity buffer!");
                 return -1;
             }
             *realloc_bm = *realloc_bm | (1 << (k + i));
         } else if (!is_addr_aligned((unsigned long)parity[i], 16)) {
-            char *tmp_buf = alloc_fragment_buffer(fragment_size-sizeof(fragment_header_t));
+            char *tmp_buf = alloc_fragment_buffer(instance,
+                    fragment_size - sizeof(fragment_header_t));
             memcpy(tmp_buf, parity[i], fragment_size);
             parity[i] = tmp_buf;
             *realloc_bm = *realloc_bm | (1 << (k + i));

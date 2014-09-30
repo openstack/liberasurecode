@@ -103,14 +103,20 @@ void * check_and_free_buffer(void * buf)
     return NULL;
 }
 
-char *alloc_fragment_buffer(int size)
+char *alloc_fragment_buffer(ec_backend_t instance, int size)
 {
     char *buf;
     fragment_header_t *header = NULL;
 
-    size += sizeof(fragment_header_t);
-    buf = get_aligned_buffer16(size);
+    if (NULL != instance) {
+        /* Account for any custom backend metadata in the fragment size */
+         size += instance->common.metadata_adder;
+    }
 
+    /* liberasurecode metadata */
+    size += sizeof(fragment_header_t);
+
+    buf = get_aligned_buffer16(size);
     if (buf) {
         header = (fragment_header_t *) buf;
         header->magic = LIBERASURECODE_FRAG_HEADER_MAGIC;
