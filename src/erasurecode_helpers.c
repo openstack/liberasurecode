@@ -175,6 +175,9 @@ int get_aligned_data_size(ec_backend_t instance, int data_len)
     int alignment_multiple;
     int aligned_size = 0;
 
+    /* Account for any custom metadata the backend wants to add in data_len */
+    data_len += instance->common.metadata_adder;
+
     /*
      * For Cauchy reed-solomon align to k*word_size*packet_size
      * For Vandermonde reed-solomon and flat-XOR, align to k*word_size

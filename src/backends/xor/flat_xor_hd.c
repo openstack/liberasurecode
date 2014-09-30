@@ -170,5 +170,6 @@ struct ec_backend_common backend_flat_xor_hd = {
 #endif
     .soversion                  = "1.0",
     .ops                        = &flat_xor_hd_op_stubs,
+    .metadata_adder             = 0,
 };
 

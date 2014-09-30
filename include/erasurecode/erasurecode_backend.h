@@ -106,6 +106,10 @@ struct ec_backend_common {
     char                        soversion[MAX_LEN]; /* EC backend shared library version */
 
     struct ec_backend_op_stubs  *ops;               /* EC backend stubs */
+    int                         metadata_adder;     /* EC backend custom metadata adder -
+                                                     * metadata_adder bytes are added to
+                                                     * the fragment size when allocating
+                                                     * data/parity fragment buffers */
 };
 
 /* EC backend definition */

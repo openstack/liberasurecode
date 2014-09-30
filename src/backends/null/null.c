@@ -223,5 +223,6 @@ struct ec_backend_common backend_null = {
 #endif
     .soversion                  = "1.0",
     .ops                        = &null_op_stubs,
+    .metadata_adder             = 0,
 };
 
