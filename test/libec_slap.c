@@ -55,7 +55,7 @@ void print_mask(unsigned long mask)
     unsigned long pos = 1;
 
     if (mask == 0) {
-        fprintf(stderr,"  No Missing fragments\n");
+        fprintf(stderr,"  No Missing fragments");
         return;
     }
     fprintf(stderr,"  Missing fragments = ");
@@ -64,7 +64,6 @@ void print_mask(unsigned long mask)
             fprintf(stderr,"%d ",i);
         }
     }
-    fprintf(stderr,"\n");
 }
 
 void missing_mask_to_array(long mask, int *missing)
@@ -313,8 +312,11 @@ static int test_hd_code(struct ec_args *args,
                                    &out_data_len);
         free(frags.array);
         free(out_data);
-        fprintf(stderr," Decode Scenario:");
+
+        assert(rc == 0);
+        fprintf(stderr," Decode Scenario - ");
         print_mask(mask);
+        fprintf(stderr,": OK\n");
     }
     for (j = 0; j < args->k; j++) {
         free(encoded_data[j]);    
