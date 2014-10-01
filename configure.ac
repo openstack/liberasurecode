@@ -14,9 +14,9 @@ AC_CONFIG_HEADER(include/config_liberasurecode.h)
 dnl Needed when reconfiguring with 'autoreconf -i -s'
 AC_CONFIG_MACRO_DIR([m4])
 
-#AM_MAINTAINER_MODE([disable])
-#m4_ifndef([AM_SILENT_RULES], [m4_define([AM_SILENT_RULES],[])])
-#AM_SILENT_RULES([yes])
+AM_MAINTAINER_MODE([disable])
+m4_ifndef([AM_SILENT_RULES], [m4_define([AM_SILENT_RULES],[])])
+AM_SILENT_RULES([yes])
 
 dnl Compiling with per-target flags requires AM_PROG_CC_C_O.
 AC_PROG_CC
