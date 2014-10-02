@@ -312,11 +312,28 @@ int liberasurecode_get_minimum_encode_size(int desc);
 
 /* Error codes */
 typedef enum {
+    /* Generic */
+    EINSUFFRESOURCES = 100,
+
+    /* Backend registration */
     EBACKENDNOTSUPP  = 200,
     EECMETHODNOTIMPL = 201,
     EBACKENDINITERR  = 202,
     EBACKENDINUSE    = 203,
     EBACKENDNOTAVAIL = 204,
+
+    /* Encoding, decoding, reconstruction */
+    EINCOMPATBACKEND = 300,
+    EINCOMPATFRAGS = 301,
+    EBADALIGN = 302,
+    EINSUFFDATA = 303,
+    EINSUFFFRAGS = 304,
+    EBADFRAGORDER = 305,
+    EBADCHECKSUM = 306,
+
+    /* Metadata */ 
+    EBADMETADATAVER = 600,
+
 } LIBERASURECODE_ERROR_CODES;
 
 /* =~=*=~==~=*=~==~=*=~==~=*=~===~=*=~==~=*=~===~=*=~==~=*=~===~=*=~==~=*=~= */
