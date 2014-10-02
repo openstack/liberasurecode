@@ -31,7 +31,16 @@
 
 #include "erasurecode.h"
 #include "erasurecode_backend.h"
-
+#define NULL_LIB_MAJOR 1
+#define NULL_LIB_MINOR 0
+#define NULL_LIB_REV   0
+#define NULL_LIB_VER_STR "1.0"
+#define NULL_LIB_NAME "null"
+#if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
+#define NULL_SO_NAME "libnullcode.dylib"
+#else
+#define NULL_SO_NAME "libnullcode.so"
+#endif
 /* Forward declarations */
 struct ec_backend null;
 struct ec_backend_op_stubs null_ops;
@@ -203,6 +212,9 @@ static int null_exit(void *desc)
     return 0;
 }
 
+static bool null_is_compatible_with(uint32_t version) {
+    return true;
+}
 struct ec_backend_op_stubs null_op_stubs = {
     .INIT                       = null_init,
     .EXIT                       = null_exit,
@@ -211,18 +223,17 @@ struct ec_backend_op_stubs null_op_stubs = {
     .FRAGSNEEDED                = null_min_fragments,
     .RECONSTRUCT                = null_reconstruct,
     .ELEMENTSIZE                = null_element_size,
+    .ISCOMPATIBLEWITH           = null_is_compatible_with,
 };
 
 struct ec_backend_common backend_null = {
     .id                         = EC_BACKEND_NULL,
-    .name                       = "null",
-#if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
-    .soname                     = "libnullcode.dylib",
-#else
-    .soname                     = "libnullcode.so",
-#endif
-    .soversion                  = "1.0",
+    .name                       = NULL_LIB_NAME,
+    .soname                     = NULL_SO_NAME,
+    .soversion                  = NULL_LIB_VER_STR,
     .ops                        = &null_op_stubs,
     .metadata_adder             = 0,
+    .ec_backend_version         = _VERSION(NULL_LIB_MAJOR, NULL_LIB_MINOR,
+                                           NULL_LIB_REV),
 };
 

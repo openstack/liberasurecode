@@ -33,9 +33,21 @@
 #include "erasurecode_backend.h"
 #include "erasurecode_helpers.h"
 
+#define JERASURE_RS_CAUCHY_LIB_MAJOR 2
+#define JERASURE_RS_CAUCHY_LIB_MINOR 0
+#define JERASURE_RS_CAUCHY_LIB_REV   0
+#define JERASURE_RS_CAUCHY_LIB_VER_STR "2.0"
+#define JERASURE_RS_CAUCHY_LIB_NAME "jerasure_rs_cauchy"
+#if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
+#define JERASURE_RS_CAUCHY_SO_NAME "libJerasure.dylib"
+#else
+#define JERASURE_RS_CAUCHY_SO_NAME "libJerasure.so"
+#endif
+
 /* Forward declarations */
 struct ec_backend_op_stubs jerasure_rs_cauchy_ops;
 struct ec_backend jerasure_rs_cauchy;
+struct ec_backend_common backend_jerasure_rs_cauchy;
 
 typedef int* (*cauchy_original_coding_matrix_func)(int, int, int);
 typedef int* (*jerasure_matrix_to_bitmatrix_func)(int, int, int, int *);
@@ -364,6 +376,15 @@ static int jerasure_rs_cauchy_exit(void *desc)
     return 0;
 }
 
+/*
+ * For the time being, we only claim compatibility with versions that
+ * match exactly
+ */
+static bool jerasure_rs_cauchy_is_compatible_with(uint32_t version) {
+    return version == backend_jerasure_rs_cauchy.ec_backend_version;
+}
+
+
 struct ec_backend_op_stubs jerasure_rs_cauchy_op_stubs = {
     .INIT                       = jerasure_rs_cauchy_init,
     .EXIT                       = jerasure_rs_cauchy_exit,
@@ -372,17 +393,18 @@ struct ec_backend_op_stubs jerasure_rs_cauchy_op_stubs = {
     .FRAGSNEEDED                = jerasure_rs_cauchy_min_fragments,
     .RECONSTRUCT                = jerasure_rs_cauchy_reconstruct,
     .ELEMENTSIZE                = jerasure_rs_cauchy_element_size,
+    .ISCOMPATIBLEWITH           = jerasure_rs_cauchy_is_compatible_with,
+
 };
 
 struct ec_backend_common backend_jerasure_rs_cauchy = {
     .id                         = EC_BACKEND_JERASURE_RS_CAUCHY,
-    .name                       = "jerasure_rs_cauchy",
-#if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
-    .soname                     = "libJerasure.dylib",
-#else
-    .soname                     = "libJerasure.so",
-#endif
-    .soversion                  = "2.0",
+    .name                       = JERASURE_RS_CAUCHY_LIB_NAME,
+    .soname                     = JERASURE_RS_CAUCHY_SO_NAME,
+    .soversion                  = JERASURE_RS_CAUCHY_LIB_VER_STR,
     .ops                        = &jerasure_rs_cauchy_op_stubs,
     .metadata_adder             = 0,
+    .ec_backend_version         = _VERSION(JERASURE_RS_CAUCHY_LIB_MAJOR,
+                                           JERASURE_RS_CAUCHY_LIB_MINOR,
+                                           JERASURE_RS_CAUCHY_LIB_REV),
 };

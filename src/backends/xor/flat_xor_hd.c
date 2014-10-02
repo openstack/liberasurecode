@@ -33,9 +33,22 @@
 #include "erasurecode.h"
 #include "erasurecode_backend.h"
 
+#define FLAT_XOR_LIB_MAJOR 1
+#define FLAT_XOR_LIB_MINOR 0
+#define FLAT_XOR_LIB_REV   0
+#define FLAT_XOR_LIB_VER_STR "1.0"
+#define FLAT_XOR_LIB_NAME "flat_xor_hd"
+#if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
+#define FLAT_XOR_SO_NAME "libXorcode.dylib"
+#else
+#define FLAT_XOR_SO_NAME "libXorcode.so"
+#endif
+#define DEFAULT_W 32
+
 /* Forward declarations */
 struct ec_backend_op_stubs flat_xor_hd_ops;
 struct ec_backend flat_xor_hd;
+struct ec_backend_common backend_flat_xor_hd;
 
 typedef xor_code_t* (*init_xor_hd_code_func)(int, int, int);
 typedef void (*xor_code_encode_func)(xor_code_t *, char **, char **, int);
@@ -49,8 +62,6 @@ struct flat_xor_hd_descriptor {
     xor_code_decode_func xor_code_decode;
     xor_hd_fragments_needed_func  xor_hd_fragments_needed;
 };
-
-#define DEFAULT_W 32
 
 static int flat_xor_hd_encode(void *desc,
                               char **data, char **parity, int blocksize)
@@ -150,6 +161,14 @@ static int flat_xor_hd_exit(void *desc)
     return 0;
 }
 
+/*
+ * For the time being, we only claim compatibility with versions that
+ * match exactly
+ */
+static bool flat_xor_is_compatible_with(uint32_t version) {
+    return version == backend_flat_xor_hd.ec_backend_version;
+}
+
 struct ec_backend_op_stubs flat_xor_hd_op_stubs = {
     .INIT                       = flat_xor_hd_init,
     .EXIT                       = flat_xor_hd_exit,
@@ -158,18 +177,18 @@ struct ec_backend_op_stubs flat_xor_hd_op_stubs = {
     .FRAGSNEEDED                = flat_xor_hd_min_fragments,
     .RECONSTRUCT                = flat_xor_hd_reconstruct,
     .ELEMENTSIZE                = flar_xor_hd_element_size,
+    .ISCOMPATIBLEWITH           = flat_xor_is_compatible_with,
 };
 
 struct ec_backend_common backend_flat_xor_hd = {
     .id                         = EC_BACKEND_FLAT_XOR_HD,
-    .name                       = "flat_xor_hd",
-#if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
-    .soname                     = "libXorcode.dylib",
-#else
-    .soname                     = "libXorcode.so",
-#endif
-    .soversion                  = "1.0",
+    .name                       = FLAT_XOR_LIB_NAME,
+    .soname                     = FLAT_XOR_SO_NAME,
+    .soversion                  = FLAT_XOR_LIB_VER_STR,
     .ops                        = &flat_xor_hd_op_stubs,
     .metadata_adder             = 0,
+    .ec_backend_version         = _VERSION(FLAT_XOR_LIB_MAJOR,
+                                           FLAT_XOR_LIB_MINOR,
+                                           FLAT_XOR_LIB_REV),
 };
 
