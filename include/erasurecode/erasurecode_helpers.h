@@ -45,11 +45,12 @@
 
 typedef struct __attribute__((__packed__)) fragment_header_s
 {
-    fragment_metadata_t meta;   /* 50 bytes */
+    fragment_metadata_t meta;   /* 55 bytes */
     uint32_t            magic;  /*  4 bytes */
+    uint32_t            libec_version; /* 4 bytes */
     // We must be aligned to 16-byte boundaries
     // So, size this array accordingly
-    uint8_t             aligned_padding[10];
+    uint8_t             aligned_padding[1];
 } fragment_header_t;
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
@@ -137,6 +138,8 @@ int get_orig_data_size(char *buf);
 int validate_fragment(char *buf);
 int set_checksum(ec_checksum_type_t ct, char *buf, int blocksize);
 int get_checksum(char *buf);
+int set_libec_version(char *fragment);
+int get_libec_version(char *fragment, uint32_t *ver);
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 

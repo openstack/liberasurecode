@@ -34,9 +34,11 @@ void add_fragment_metadata(char *fragment,
         int idx, uint64_t orig_data_size, int blocksize,
         ec_checksum_type_t ct, int add_chksum)
 {
+    set_libec_version(fragment);
     set_fragment_idx(fragment, idx);
     set_orig_data_size(fragment, orig_data_size);
     set_fragment_payload_size(fragment, blocksize);
+    
     if (add_chksum) {
         set_checksum(ct, fragment, blocksize);
     }

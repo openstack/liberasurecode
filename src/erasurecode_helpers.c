@@ -31,9 +31,22 @@
 #include "erasurecode_backend.h"
 #include "erasurecode_helpers.h"
 #include "erasurecode_stdinc.h"
+#include "erasurecode_version.h"
 #include "erasurecode/alg_sig.h"
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
+
+static bool is_valid_fragment(char *buf)
+{
+    fragment_header_t *header = (fragment_header_t *) buf;
+
+    assert(NULL != header);
+    if (header->magic == LIBERASURECODE_FRAG_HEADER_MAGIC) {
+        return true;
+    }
+
+    return false;
+}
 
 /**
  * Memory Management Methods
@@ -328,17 +341,21 @@ int get_orig_data_size(char *buf)
     return header->meta.orig_data_size;
 }
 
-/* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
-
-int validate_fragment(char *buf)
-{
-    fragment_header_t *header = (fragment_header_t *) buf;
-
-    assert(NULL != header);
-    if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
-        return -1;
+int set_libec_version(char *buf) {
+    if (!is_valid_fragment(buf)) {
+            return -1;
     }
+    fragment_header_t *header = (fragment_header_t *) buf;
+    header->libec_version = (uint32_t)LIBERASURECODE_VERSION;
+    return 0;
+}
 
+int get_libec_version(char *buf, uint32_t *ver) {
+    if (!is_valid_fragment(buf)) {
+            return -1;
+    }
+    fragment_header_t *header = (fragment_header_t *) buf;
+    *ver = header->libec_version;
     return 0;
 }
 

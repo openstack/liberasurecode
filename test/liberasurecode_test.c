@@ -740,13 +740,17 @@ static void test_get_fragment_metadata(const ec_backend_id_t be_id, struct ec_ar
 
     for (i = 0; i < num_fragments; i++) {
         char * data = NULL;
+        uint32_t ver = 0;
+        char *header = NULL;
         memset(&cur_frag, -1, sizeof(fragment_metadata_t));
         if (i < args->k) {
             rc = liberasurecode_get_fragment_metadata(encoded_data[i], &cur_frag);
             data = get_data_ptr_from_fragment(encoded_data[i]);
+            header = encoded_data[i];
         } else {
             rc = liberasurecode_get_fragment_metadata(encoded_parity[i - args->k], &cur_frag);
             data = get_data_ptr_from_fragment(encoded_parity[i - args->k]);
+            header = encoded_parity[i - args->k];
         }
         assert(rc == 0);
         assert(cur_frag.orig_data_size == orig_data_size);
@@ -755,6 +759,9 @@ static void test_get_fragment_metadata(const ec_backend_id_t be_id, struct ec_ar
         validate_fragment_checksum(args, &cur_frag, data);
         rc = memcmp(&cur_frag, &cmp_frag, sizeof(fragment_metadata_t));
         assert(rc != 0);
+        rc = get_libec_version(header, &ver);
+        assert(rc == 0);
+        assert(ver == LIBERASURECODE_VERSION);
     }
 }
 

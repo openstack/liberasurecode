@@ -248,6 +248,8 @@ fragment_metadata
     uint8_t     chksum_type;        /* 1 */
     uint32_t    chksum[LIBERASURECODE_MAX_CHECKSUM_LEN]; /* 32 */
     uint8_t     chksum_mismatch;    /* 1 */
+    uint8_t     backend_id;         /* 1 */
+    uint32_t    backend_version;    /* 4 */
 } fragment_metadata_t;
 
 #define FRAGSIZE_2_BLOCKSIZE(fragment_size) \
