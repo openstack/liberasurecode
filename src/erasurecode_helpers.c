@@ -359,6 +359,42 @@ int get_libec_version(char *buf, uint32_t *ver) {
     return 0;
 }
 
+int set_backend_id(char *buf, ec_backend_id_t id) {
+    if (!is_valid_fragment(buf)) {
+            return -1;
+    }
+    fragment_header_t *header = (fragment_header_t *) buf;
+    header->meta.backend_id = (uint8_t)id;
+    return 0;
+}
+
+int get_backend_id(char *buf, ec_backend_id_t *id) {
+    if (!is_valid_fragment(buf)) {
+            return -1;
+    }
+    fragment_header_t *header = (fragment_header_t *) buf;
+    *id = header->meta.backend_id;
+    return 0;
+}
+
+int set_backend_version(char *buf, uint32_t version) {
+    if (!is_valid_fragment(buf)) {
+            return -1;
+    }
+    fragment_header_t *header = (fragment_header_t *) buf;
+    header->meta.backend_version = version;
+    return 0;
+}
+
+int get_backend_version(char *buf, uint32_t *version) {
+    if (!is_valid_fragment(buf)) {
+            return -1;
+    }
+    fragment_header_t *header = (fragment_header_t *) buf;
+    *version = header->meta.backend_version;
+    return 0;
+}
+
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
 inline int set_checksum(ec_checksum_type_t ct, char *buf, int blocksize)

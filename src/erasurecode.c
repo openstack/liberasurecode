@@ -635,7 +635,8 @@ int liberasurecode_decode(int desc,
             char *fragment_ptr = data[missing_idx];
             init_fragment_header(fragment_ptr);
             add_fragment_metadata(fragment_ptr, missing_idx,
-                    orig_data_size, blocksize, !set_chksum);
+                    orig_data_size, blocksize, instance->args.uargs.ct,
+                    !set_chksum, instance);
         }
         j++;
     }
@@ -798,7 +799,8 @@ int liberasurecode_reconstruct_fragment(int desc,
     }
     init_fragment_header(fragment_ptr);
     add_fragment_metadata(fragment_ptr, destination_idx, orig_data_size,
-                          blocksize, !set_chksum);
+                          blocksize, instance->args.uargs.ct,
+                          !set_chksum, instance);
 
     /*
      * Copy the reconstructed fragment to the output buffer

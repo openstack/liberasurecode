@@ -35,6 +35,6 @@ int finalize_fragments_after_encode(ec_backend_t instance,
 
 void add_fragment_metadata(char *fragment,
         int idx, uint64_t orig_data_size, int blocksize,
-        int add_chksum);
+        ec_checksum_type_t ct, int add_chksum, ec_backend_t instance);
 
 #endif

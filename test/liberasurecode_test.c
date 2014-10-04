@@ -721,6 +721,9 @@ static void test_get_fragment_metadata(const ec_backend_id_t be_id, struct ec_ar
     uint64_t encoded_fragment_len = 0;
     fragment_metadata_t cur_frag;
     fragment_metadata_t cmp_frag;
+    ec_backend_id_t rtv_be_id = -1;
+    uint32_t be_version = 0;
+    ec_backend_t be = NULL;
 
     desc = liberasurecode_instance_create(be_id, args);
     if (-EBACKENDNOTAVAIL == desc) {
@@ -728,6 +731,8 @@ static void test_get_fragment_metadata(const ec_backend_id_t be_id, struct ec_ar
         return;
     }
     assert(desc > 0);
+    be = liberasurecode_backend_instance_get_by_desc(desc);
+    assert(be != NULL);
 
     orig_data = create_buffer(orig_data_size, 'x');
     assert(orig_data != NULL);
@@ -762,6 +767,12 @@ static void test_get_fragment_metadata(const ec_backend_id_t be_id, struct ec_ar
         rc = get_libec_version(header, &ver);
         assert(rc == 0);
         assert(ver == LIBERASURECODE_VERSION);
+        rc = get_backend_id(header, &rtv_be_id);
+        assert(rc == 0);
+        assert(rtv_be_id == be_id);
+        rc = get_backend_version(header, &be_version);
+        assert(rc == 0);
+        assert(be_version == be->common.ec_backend_version);
     }
 }
 

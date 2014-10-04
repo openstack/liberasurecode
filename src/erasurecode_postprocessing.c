@@ -32,12 +32,15 @@
 
 void add_fragment_metadata(char *fragment,
         int idx, uint64_t orig_data_size, int blocksize,
-        ec_checksum_type_t ct, int add_chksum)
+        ec_checksum_type_t ct, int add_chksum, ec_backend_t be)
 {
+    //TODO EDL we are ignoring the return codes here, fix that
     set_libec_version(fragment);
     set_fragment_idx(fragment, idx);
     set_orig_data_size(fragment, orig_data_size);
     set_fragment_payload_size(fragment, blocksize);
+    set_backend_id(fragment, be->common.id);
+    set_backend_version(fragment, be->common.ec_backend_version);
     
     if (add_chksum) {
         set_checksum(ct, fragment, blocksize);
@@ -55,7 +58,7 @@ int finalize_fragments_after_encode(ec_backend_t instance,
     for (i = 0; i < k; i++) {
         char *fragment = get_fragment_ptr_from_data(encoded_data[i]);
         add_fragment_metadata(fragment, i, orig_data_size,
-                blocksize, ct, set_chksum);
+                blocksize, ct, set_chksum, instance);
         encoded_data[i] = fragment;
     }
 
@@ -63,7 +66,7 @@ int finalize_fragments_after_encode(ec_backend_t instance,
     for (i = 0; i < m; i++) {
         char *fragment = get_fragment_ptr_from_data(encoded_parity[i]);
         add_fragment_metadata(fragment, i + k, orig_data_size,
-                blocksize, ct, set_chksum);
+                blocksize, ct, set_chksum, instance);
         encoded_parity[i] = fragment;
     }
 

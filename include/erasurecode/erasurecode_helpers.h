@@ -140,6 +140,10 @@ int set_checksum(ec_checksum_type_t ct, char *buf, int blocksize);
 int get_checksum(char *buf);
 int set_libec_version(char *fragment);
 int get_libec_version(char *fragment, uint32_t *ver);
+int set_backend_id(char *buf, ec_backend_id_t id);
+int get_backend_id(char *buf, ec_backend_id_t *id);
+int set_backend_version(char *buf, uint32_t version);
+int get_backend_version(char *buf, uint32_t *version);
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
