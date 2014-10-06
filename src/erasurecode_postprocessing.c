@@ -30,9 +30,9 @@
 #include "erasurecode_helpers.h"
 #include "erasurecode_stdinc.h"
 
-void add_fragment_metadata(char *fragment,
+void add_fragment_metadata(ec_backend_t be, char *fragment,
         int idx, uint64_t orig_data_size, int blocksize,
-        ec_checksum_type_t ct, int add_chksum, ec_backend_t be)
+        ec_checksum_type_t ct, int add_chksum)
 {
     //TODO EDL we are ignoring the return codes here, fix that
     set_libec_version(fragment);
@@ -57,16 +57,16 @@ int finalize_fragments_after_encode(ec_backend_t instance,
     /* finalize data fragments */
     for (i = 0; i < k; i++) {
         char *fragment = get_fragment_ptr_from_data(encoded_data[i]);
-        add_fragment_metadata(fragment, i, orig_data_size,
-                blocksize, ct, set_chksum, instance);
+        add_fragment_metadata(instance, fragment, i, orig_data_size,
+                blocksize, ct, set_chksum);
         encoded_data[i] = fragment;
     }
 
     /* finalize parity fragments */
     for (i = 0; i < m; i++) {
         char *fragment = get_fragment_ptr_from_data(encoded_parity[i]);
-        add_fragment_metadata(fragment, i + k, orig_data_size,
-                blocksize, ct, set_chksum, instance);
+        add_fragment_metadata(instance, fragment, i + k, orig_data_size,
+                blocksize, ct, set_chksum);
         encoded_parity[i] = fragment;
     }
 

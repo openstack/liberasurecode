@@ -634,9 +634,9 @@ int liberasurecode_decode(int desc,
             /* Generate headers */
             char *fragment_ptr = data[missing_idx];
             init_fragment_header(fragment_ptr);
-            add_fragment_metadata(fragment_ptr, missing_idx,
+            add_fragment_metadata(instance, fragment_ptr, missing_idx,
                     orig_data_size, blocksize, instance->args.uargs.ct,
-                    !set_chksum, instance);
+                    !set_chksum);
         }
         j++;
     }
@@ -798,9 +798,9 @@ int liberasurecode_reconstruct_fragment(int desc,
         fragment_ptr = parity[destination_idx - k];
     }
     init_fragment_header(fragment_ptr);
-    add_fragment_metadata(fragment_ptr, destination_idx, orig_data_size,
-                          blocksize, instance->args.uargs.ct,
-                          !set_chksum, instance);
+    add_fragment_metadata(instance, fragment_ptr, destination_idx,
+                          orig_data_size, blocksize, instance->args.uargs.ct,
+                          !set_chksum);
 
     /*
      * Copy the reconstructed fragment to the output buffer
