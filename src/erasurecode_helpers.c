@@ -341,7 +341,8 @@ int get_orig_data_size(char *buf)
     return header->meta.orig_data_size;
 }
 
-int set_libec_version(char *buf) {
+int set_libec_version(char *buf)
+{
     if (!is_valid_fragment(buf)) {
             return -1;
     }
@@ -350,7 +351,8 @@ int set_libec_version(char *buf) {
     return 0;
 }
 
-int get_libec_version(char *buf, uint32_t *ver) {
+int get_libec_version(char *buf, uint32_t *ver)
+{
     if (!is_valid_fragment(buf)) {
             return -1;
     }
@@ -359,7 +361,8 @@ int get_libec_version(char *buf, uint32_t *ver) {
     return 0;
 }
 
-int set_backend_id(char *buf, ec_backend_id_t id) {
+int set_backend_id(char *buf, ec_backend_id_t id)
+{
     if (!is_valid_fragment(buf)) {
             return -1;
     }
@@ -368,7 +371,8 @@ int set_backend_id(char *buf, ec_backend_id_t id) {
     return 0;
 }
 
-int get_backend_id(char *buf, ec_backend_id_t *id) {
+int get_backend_id(char *buf, ec_backend_id_t *id) 
+{
     if (!is_valid_fragment(buf)) {
             return -1;
     }
@@ -377,7 +381,8 @@ int get_backend_id(char *buf, ec_backend_id_t *id) {
     return 0;
 }
 
-int set_backend_version(char *buf, uint32_t version) {
+int set_backend_version(char *buf, uint32_t version) 
+{
     if (!is_valid_fragment(buf)) {
             return -1;
     }
@@ -386,7 +391,8 @@ int set_backend_version(char *buf, uint32_t version) {
     return 0;
 }
 
-int get_backend_version(char *buf, uint32_t *version) {
+int get_backend_version(char *buf, uint32_t *version) 
+{
     if (!is_valid_fragment(buf)) {
             return -1;
     }
