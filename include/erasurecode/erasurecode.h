@@ -310,30 +310,36 @@ int liberasurecode_get_minimum_encode_size(int desc);
 
 /* ==~=*=~===~=*=~==~=*=~== liberasurecode Error codes =~=*=~==~=~=*=~==~== */
 
-/* Error codes */
+/* Error codes 
+ * TODO: Doxygen compatible comments of error codes
+ */
 typedef enum {
     /* Generic */
-    EINSUFFRESOURCES = 100,
+    ESYSTEM           = 100,
+    EINSUFFMEM        = 101,
+    EINSUFFPERMISSION = 102,
 
     /* Backend registration */
-    EBACKENDNOTSUPP  = 200,
-    EECMETHODNOTIMPL = 201,
-    EBACKENDINITERR  = 202,
-    EBACKENDINUSE    = 203,
-    EBACKENDNOTAVAIL = 204,
+    EBACKEND          = 200,
+    EBACKENDNOTSUPP   = 201,
+    EECMETHODNOTIMPL  = 202,
+    EBACKENDINITERR   = 203,
+    EBACKENDINUSE     = 204,
+    EBACKENDNOTAVAIL  = 205,
 
     /* Encoding, decoding, reconstruction */
-    EINCOMPATBACKEND = 300,
-    EINCOMPATFRAGS = 301,
-    EBADALIGN = 302,
-    EINSUFFDATA = 303,
-    EINSUFFFRAGS = 304,
-    EBADFRAGORDER = 305,
-    EBADCHECKSUM = 306,
+    ECODING           = 300,
+    EINCOMPATBACKEND  = 301,
+    EINCOMPATFRAGS    = 301,
+    EBADALIGN         = 302,
+    EINSUFFDATA       = 303,
+    EINSUFFFRAGS      = 304,
+    EBADFRAGORDER     = 305,
+    EBADCHECKSUM      = 306,
 
     /* Metadata */ 
-    EBADMETADATAVER = 600,
-
+    EMETADATA        = 400,
+    EBADMETADATAVER  = 401,
 } LIBERASURECODE_ERROR_CODES;
 
 /* =~=*=~==~=*=~==~=*=~==~=*=~===~=*=~==~=*=~===~=*=~==~=*=~===~=*=~==~=*=~= */
