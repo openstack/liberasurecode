@@ -42,6 +42,19 @@ AC_CHECK_FUNCS(malloc calloc realloc free openlog)
 #################################################################################
 #                             Debug/coverage Options
 #################################################################################
+AC_ARG_ENABLE([werror],
+[  --disable-werror    Dont treat compilation warnings as failures],
+[case "${enableval}" in
+    yes) werror=true ;;
+    no)  werror=false ;;
+    *) AC_MSG_ERROR([bad value ${enableval} for --disable-werror]) ;;
+esac],[werror=true])
+if test x$werror = xtrue ; then
+	werror_flag="-Werror"
+else
+	werror_flag=""
+fi
+
 AC_ARG_ENABLE([debug],
 [  --enable-debug    Turn on debugging],
 [case "${enableval}" in
@@ -52,11 +65,11 @@ esac],[debug=false])
 if test x$debug = xtrue ; then
     DEBUG=1
     CXXFLAGS=""
-    CFLAGS="-O0 -ggdb -g3 -Werror -D_GNU_SOURCE=1 -Wall -pedantic -std=c99"
+    CFLAGS="-O0 -ggdb -g3 ${werror_flag} -D_GNU_SOURCE=1 -Wall -pedantic -std=c99"
 else
     DEBUG=0
     CXXFLAGS=""
-    CFLAGS="-O2 -g -Werror -D_GNU_SOURCE=1 -Wall -pedantic -std=c99"
+    CFLAGS="-O2 -g ${werror_flag} -D_GNU_SOURCE=1 -Wall -pedantic -std=c99"
 fi
 
 AC_ARG_ENABLE([gcov],
