@@ -96,6 +96,9 @@ struct jerasure_rs_cauchy_descriptor {
     int m;
     int w;
 };
+static void free_rs_cauchy_desc(
+        struct jerasure_rs_cauchy_descriptor *jerasure_desc );
+
 
 static int jerasure_rs_cauchy_encode(void *desc, char **data, char **parity,
         int blocksize)
@@ -215,9 +218,6 @@ static void * jerasure_rs_cauchy_init(struct ec_backend_args *args,
 {
     struct jerasure_rs_cauchy_descriptor *desc = NULL;
     int k, m, w;
-    int *matrix = NULL;
-    int *bitmatrix = NULL;
-    int **schedule = NULL;
     
     desc = (struct jerasure_rs_cauchy_descriptor *)
            malloc(sizeof(struct jerasure_rs_cauchy_descriptor));
@@ -321,29 +321,23 @@ static void * jerasure_rs_cauchy_init(struct ec_backend_args *args,
     } 
 
     /* setup the Cauchy matrices and schedules */
-    matrix = desc->cauchy_original_coding_matrix(k, m, w);
-    if (NULL == matrix) {
+    desc->matrix = desc->cauchy_original_coding_matrix(k, m, w);
+    if (NULL == desc->matrix) {
         goto error;
     }
-    bitmatrix = desc->jerasure_matrix_to_bitmatrix(k, m, w, matrix);
-    if (NULL == bitmatrix) {
+    desc->bitmatrix = desc->jerasure_matrix_to_bitmatrix(k, m, w, desc->matrix);
+    if (NULL == desc->bitmatrix) {
         goto error;
     }
-    schedule = desc->jerasure_smart_bitmatrix_to_schedule(k, m, w, bitmatrix);
-    if (NULL == schedule) {
+    desc->schedule = desc->jerasure_smart_bitmatrix_to_schedule(k, m, w, desc->bitmatrix);
+    if (NULL == desc->schedule) {
         goto error;
     }
-    desc->matrix = matrix;
-    desc->bitmatrix = bitmatrix;
-    desc->schedule = schedule; 
 
     return desc;
 
 error:
-    free(matrix);
-    free(bitmatrix);
-    free(schedule);
-    free(desc);
+    free_rs_cauchy_desc(desc);
     return NULL;
 }
 
@@ -362,17 +356,47 @@ jerasure_rs_cauchy_element_size(void* desc)
     return jerasure_desc->w * PYECC_CAUCHY_PACKETSIZE * 8;
 }
 
+static void free_rs_cauchy_desc(
+        struct jerasure_rs_cauchy_descriptor *jerasure_desc )
+{
+    int i = 0;
+    int **schedule = NULL;
+    bool end_of_array = false;
+
+    if (jerasure_desc == NULL) {
+        return;
+    }
+
+    free(jerasure_desc->matrix);
+    free(jerasure_desc->bitmatrix);
+
+    // NOTE, based on an inspection of the jerasure code used to build the
+    // the schedule array, it appears that the sentinal used to signal the end
+    // of the array is a value of -1 in the first int field in the dereferenced
+    // value. We use this determine when to stop free-ing elements. See the
+    // jerasure_smart_bitmatrix_to_schedule and 
+    // jerasure_dumb_bitmatrix_to_schedule functions in jerasure.c for the
+    // details.
+    schedule = jerasure_desc->schedule;
+    if (schedule != NULL) {
+        while (!end_of_array) {
+            if (schedule[i] == NULL || schedule[i][0] == -1) {
+                end_of_array = true;
+            }
+            free(schedule[i]);
+            i++;
+        }
+    }
+
+    free(schedule);
+    free(jerasure_desc);
+}
+
 static int jerasure_rs_cauchy_exit(void *desc)
 {
     struct jerasure_rs_cauchy_descriptor *jerasure_desc = 
         (struct jerasure_rs_cauchy_descriptor*)desc;
-
-    if (jerasure_desc) {
-        free(jerasure_desc->matrix);
-        free(jerasure_desc->bitmatrix);
-        free(jerasure_desc->schedule);
-    }
-    free(desc);
+    free_rs_cauchy_desc(jerasure_desc);
     return 0;
 }
 
