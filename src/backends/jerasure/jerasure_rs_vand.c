@@ -311,7 +311,7 @@ static int jerasure_rs_vand_exit(void *desc)
     struct jerasure_rs_vand_descriptor *jerasure_desc = NULL;
     
     jerasure_desc = (struct jerasure_rs_vand_descriptor*) desc;
-
+    free(jerasure_desc->matrix);
     free(jerasure_desc);
 
     return 0;

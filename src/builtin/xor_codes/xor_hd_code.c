@@ -182,6 +182,8 @@ static int fragments_needed_one_data_local(xor_code_t *code_desc,
   int *missing_data = get_missing_data(code_desc, fragments_to_exclude);
   int *missing_parity = get_missing_parity(code_desc, fragments_to_exclude);
   int parity_index = index_of_connected_parity(code_desc, fragment_to_reconstruct, missing_parity, missing_data);
+  free(missing_data);
+  free(missing_parity);
 
   if (parity_index < 0) {
     return -1;
