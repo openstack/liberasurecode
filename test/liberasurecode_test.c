@@ -285,6 +285,7 @@ static void test_encode_invalid_args()
     rc = liberasurecode_encode(desc, orig_data, orig_data_size,
             &encoded_data, &encoded_parity, NULL);
     assert(rc < 0);
+    free(orig_data);
 }
 
 static void test_encode_cleanup_invalid_args()
@@ -308,6 +309,10 @@ static void test_encode_cleanup_invalid_args()
 
     rc = liberasurecode_encode_cleanup(desc, NULL, NULL);
     assert(rc == 0);
+
+    rc = liberasurecode_encode_cleanup(desc, encoded_data, encoded_parity);
+    assert(rc == 0);
+    free(orig_data);
 }
 
 static void test_decode_invalid_args()
@@ -352,6 +357,11 @@ static void test_decode_invalid_args()
                                encoded_fragment_len, &decoded_data,
                                NULL);
     assert(rc < 0);
+    free(skips);
+    liberasurecode_encode_cleanup(desc, encoded_data, encoded_parity);
+    free(avail_frags);
+    free(orig_data);
+
 }
 
 static void test_decode_cleanup_invalid_args()
@@ -368,6 +378,8 @@ static void test_decode_cleanup_invalid_args()
 
     rc = liberasurecode_decode_cleanup(desc, NULL);
     assert(rc == 0);
+
+    free(orig_data);
 }
 
 static void test_reconstruct_fragment_invalid_args()
@@ -392,6 +404,8 @@ static void test_reconstruct_fragment_invalid_args()
 
     rc = liberasurecode_reconstruct_fragment(desc, avail_frags, 1, frag_len, 1, NULL);
     assert(rc < 0);
+    free(out_frag);
+    free(avail_frags);
 }
 
 static void test_fragments_needed_invalid_args()
@@ -438,6 +452,8 @@ static void test_get_fragment_metadata_invalid_args() {
     memset(frag, 0, 1024); //clears magic
     rc = liberasurecode_get_fragment_metadata(frag, &metadata);
     assert(rc < 0);
+
+    free(frag);
 }
 
 static void test_verify_stripe_metadata_invalid_args() {
@@ -530,6 +546,7 @@ static void encode_decode_test_impl(const ec_backend_id_t be_id,
     }
 
     free(orig_data);
+    free(avail_frags);
 }
 
 static void reconstruct_test_impl(const ec_backend_id_t be_id, 
@@ -580,6 +597,10 @@ static void reconstruct_test_impl(const ec_backend_id_t be_id,
         assert(rc == 0);
         assert(memcmp(out, cmp, encoded_fragment_len) == 0);
     }
+    free(orig_data);
+    free(out);
+    free(avail_frags);
+    liberasurecode_encode_cleanup(desc, encoded_data, encoded_parity);
 }
 
 static void test_fragments_needed_impl(const ec_backend_id_t be_id, 
@@ -774,6 +795,8 @@ static void test_get_fragment_metadata(const ec_backend_id_t be_id, struct ec_ar
         assert(rc == 0);
         assert(be_version == be->common.ec_backend_version);
     }
+    liberasurecode_encode_cleanup(desc, encoded_data, encoded_parity);
+    free(orig_data);
 }
 
 static void test_decode_with_missing_data(const ec_backend_id_t be_id,
