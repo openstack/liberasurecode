@@ -25,7 +25,9 @@
 #ifndef _ERASURECODE_STDINC_H_
 #define _ERASURECODE_STDINC_H_
 
+#ifndef _EXCLUDE_LIBERASURE_CODE_H_
 #include "config_liberasurecode.h"
+#endif
 #include "erasurecode_log.h"
 
 #ifdef HAVE_SYSLOG_H
