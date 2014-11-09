@@ -10,7 +10,7 @@ Highlights
 
  * Unified Erasure Coding interface for common storage workloads.
 
- * Pluggable Erasure Code backends - As of v0.9.10, liberasurecode supports 'Jerasure' (Reed-Solomon, Cauchy), 'ISA-L' (Intel Storage Acceleration Library), 'Flat XOR HD' backends.  A template 'NULL' backend is implemented to help future backend writers. 
+ * Pluggable Erasure Code backends - As of v1.0-rc1, liberasurecode supports 'Jerasure' (Reed-Solomon, Cauchy), 'ISA-L' (Intel Storage Acceleration Library), 'Flat XOR HD' backends.  A template 'NULL' backend is implemented to help future backend writers. 
 
  * True 'plugin' architecture - liberasurecode uses Dynamically Loaded (DL) libraries to realize a true 'plugin' architecture.  This also allows one to build liberasurecode indepdendent of the Erasure Code backend libraries.
 
@@ -49,6 +49,7 @@ typedef enum {
     EC_BACKEND_JERASURE_RS_VAND     = 1, /* "jerasure_rs_vand" */
     EC_BACKEND_JERASURE_RS_CAUCHY   = 2, /* "jerasure_rs_cauchy" */
     EC_BACKEND_FLAT_XOR_HD          = 3, /* "flat_xor_hd */
+    EC_BACKEND_ISA_L_RS_VAND        = 4, /* "isa_l_rs_vand */
     EC_BACKENDS_MAX,
 } ec_backend_id_t;
 
@@ -272,7 +273,7 @@ fragment_metadata
     uint32_t    size;               /* 4 */
     uint64_t    orig_data_size;     /* 8 */
     uint8_t     chksum_type;        /* 1 */
-    uint32_t    chksum[LIBERASURECODE_MAX_CHECKSUM_LEN]; /* 32 */
+    uint32_t    chksum[LIBERASURECODE_MAX_CHECKSUM_LEN]; /* 16 */
     uint8_t     chksum_mismatch;    /* 1 */
 } fragment_metadata_t;
 
