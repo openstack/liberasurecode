@@ -32,11 +32,11 @@
 #include "erasurecode_helpers.h"
 #include "erasurecode_stdinc.h"
 #include "erasurecode_version.h"
-#include "erasurecode/alg_sig.h"
+#include "alg_sig.h"
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
-static bool is_valid_fragment(char *buf)
+static bool is_fragment(char *buf)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
 
@@ -343,7 +343,7 @@ int get_orig_data_size(char *buf)
 
 int set_libec_version(char *buf)
 {
-    if (!is_valid_fragment(buf)) {
+    if (!is_fragment(buf)) {
             return -1;
     }
     fragment_header_t *header = (fragment_header_t *) buf;
@@ -353,7 +353,7 @@ int set_libec_version(char *buf)
 
 int get_libec_version(char *buf, uint32_t *ver)
 {
-    if (!is_valid_fragment(buf)) {
+    if (!is_fragment(buf)) {
             return -1;
     }
     fragment_header_t *header = (fragment_header_t *) buf;
@@ -363,7 +363,7 @@ int get_libec_version(char *buf, uint32_t *ver)
 
 int set_backend_id(char *buf, ec_backend_id_t id)
 {
-    if (!is_valid_fragment(buf)) {
+    if (!is_fragment(buf)) {
             return -1;
     }
     fragment_header_t *header = (fragment_header_t *) buf;
@@ -373,7 +373,7 @@ int set_backend_id(char *buf, ec_backend_id_t id)
 
 int get_backend_id(char *buf, ec_backend_id_t *id) 
 {
-    if (!is_valid_fragment(buf)) {
+    if (!is_fragment(buf)) {
             return -1;
     }
     fragment_header_t *header = (fragment_header_t *) buf;
@@ -383,7 +383,7 @@ int get_backend_id(char *buf, ec_backend_id_t *id)
 
 int set_backend_version(char *buf, uint32_t version) 
 {
-    if (!is_valid_fragment(buf)) {
+    if (!is_fragment(buf)) {
             return -1;
     }
     fragment_header_t *header = (fragment_header_t *) buf;
@@ -393,7 +393,7 @@ int set_backend_version(char *buf, uint32_t version)
 
 int get_backend_version(char *buf, uint32_t *version) 
 {
-    if (!is_valid_fragment(buf)) {
+    if (!is_fragment(buf)) {
             return -1;
     }
     fragment_header_t *header = (fragment_header_t *) buf;

@@ -85,6 +85,13 @@ struct ec_args isa_l_args = {
     .hd = 5,
 };
 
+typedef enum {
+    LIBEC_VERSION_MISMATCH,
+    MAGIC_MISMATCH,
+    BACKEND_ID_MISMATCH,
+    BACKEND_VERSION_MISMATCH,
+} fragment_mismatch_scenario_t;
+
 char * get_name_from_backend_id(ec_backend_id_t be) {
     switch(be) {
         case EC_BACKEND_NULL:
@@ -463,16 +470,20 @@ static void test_verify_stripe_metadata_invalid_args() {
     char **frags = malloc(sizeof(char *) * num_frags);
 
     rc = liberasurecode_verify_stripe_metadata(desc, frags, num_frags);
-    assert(rc < 0);
+    assert(rc == 1);
 
     desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
     assert(desc > 0);
 
     rc = liberasurecode_verify_stripe_metadata(desc, NULL, num_frags);
-    assert(rc < 0);
+    assert(rc == 1);
 
     rc = liberasurecode_verify_stripe_metadata(desc, frags, -1);
-    assert(rc < 0);
+    assert(rc == 1);
+
+    rc = liberasurecode_verify_stripe_metadata(desc, frags, 0);
+    assert(rc == 1);
+
 }
 
 static void encode_decode_test_impl(const ec_backend_id_t be_id,
@@ -905,6 +916,144 @@ static void test_fragments_needed(const ec_backend_id_t be_id,
     test_fragments_needed_impl(be_id, args);
 }
 
+static void test_verify_stripe_metadata(const ec_backend_id_t be_id, 
+                                        struct ec_args *args)
+{
+    int orig_data_size = 1024;
+    char **encoded_data = NULL, **encoded_parity = NULL;
+    char **avail_frags = NULL;
+    uint64_t encoded_fragment_len = 0;
+    int rc = -1;
+    int num_avail_frags = -1;
+    int *skip = create_skips_array(args,-1);
+    char *orig_data = create_buffer(orig_data_size, 'x');
+    int desc = liberasurecode_instance_create(be_id, args);
+
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf (stderr, "Backend library not available!\n");
+        return;
+    }
+    assert(desc > 0);
+
+    assert(orig_data != NULL);
+    rc = liberasurecode_encode(desc, orig_data, orig_data_size,
+            &encoded_data, &encoded_parity, &encoded_fragment_len);
+    assert(0 == rc);
+
+    num_avail_frags = create_frags_array(&avail_frags, encoded_data,
+            encoded_parity, args, skip);
+
+    rc = liberasurecode_verify_stripe_metadata(desc, avail_frags,
+            num_avail_frags);
+    assert(0 == rc);
+
+    liberasurecode_encode_cleanup(desc, encoded_data, encoded_parity);
+    free(orig_data);
+    free(skip);
+}
+
+static void verify_stripe_metadata_mismatch_impl(const ec_backend_id_t be_id, struct ec_args *args,
+        fragment_mismatch_scenario_t scenario)
+{
+    int orig_data_size = 1024;
+    char **encoded_data = NULL, **encoded_parity = NULL;
+    char **avail_frags = NULL;
+    uint64_t encoded_fragment_len = 0;
+    int rc = -1;
+    int num_avail_frags = -1;
+    int i = 0;
+    uint32_t orig_libec_ver = 0;
+    uint32_t orig_be_ver = 0;
+    uint8_t orig_be_id = 0;
+    int *skip = create_skips_array(args,-1);
+    char *orig_data = create_buffer(orig_data_size, 'x');
+    int desc = liberasurecode_instance_create(be_id, args);
+
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf (stderr, "Backend library not available!\n");
+        return;
+    }
+    assert(desc > 0);
+    assert(orig_data != NULL);
+    rc = liberasurecode_encode(desc, orig_data, orig_data_size,
+            &encoded_data, &encoded_parity, &encoded_fragment_len);
+    assert(0 == rc);
+    num_avail_frags = create_frags_array(&avail_frags, encoded_data,
+            encoded_parity, args, skip);
+    for (i = 0; i < num_avail_frags; i++) {
+        char * cur_frag = avail_frags[i];
+        //corrupt fragment
+        switch (scenario) {
+            case LIBEC_VERSION_MISMATCH:
+                orig_libec_ver = ((fragment_header_t*)cur_frag)->libec_version;
+                ((fragment_header_t*)cur_frag)->libec_version = orig_libec_ver + 1;
+                break;
+            case MAGIC_MISMATCH:
+                ((fragment_header_t*)cur_frag)->magic = 0;
+                break;
+            case BACKEND_ID_MISMATCH:
+                orig_be_id = ((fragment_header_t*)cur_frag)->meta.backend_id;
+                ((fragment_header_t*)cur_frag)->meta.backend_id = orig_be_id + 1;
+                break;
+            case BACKEND_VERSION_MISMATCH:
+                orig_be_ver = ((fragment_header_t*)cur_frag)->meta.backend_version;
+                ((fragment_header_t*)cur_frag)->meta.backend_version = orig_be_ver + 1;
+                break;
+            default:
+                assert(false);
+        }
+        rc = liberasurecode_verify_stripe_metadata(desc, avail_frags,
+                num_avail_frags);
+        assert(rc == 1);
+        //heal fragment
+        switch (scenario) {
+            case LIBEC_VERSION_MISMATCH:
+                ((fragment_header_t*)cur_frag)->libec_version = orig_libec_ver;
+                break;
+            case MAGIC_MISMATCH:
+                ((fragment_header_t*)cur_frag)->magic = LIBERASURECODE_FRAG_HEADER_MAGIC;
+                break;
+            case BACKEND_ID_MISMATCH:
+                ((fragment_header_t*)cur_frag)->meta.backend_id = orig_be_id;
+                break;
+            case BACKEND_VERSION_MISMATCH:
+                ((fragment_header_t*)cur_frag)->meta.backend_version = orig_be_ver;
+                break;
+            default:
+                break;
+        }
+    }
+    liberasurecode_encode_cleanup(desc, encoded_data, encoded_parity);
+    free(orig_data);
+    free(skip);
+}
+static void test_verify_stripe_metadata_libec_mismatch(
+        const ec_backend_id_t be_id, struct ec_args *args)
+{
+    verify_stripe_metadata_mismatch_impl(be_id, args, LIBEC_VERSION_MISMATCH);
+}
+
+static void test_verify_stripe_metadata_magic_mismatch(
+        const ec_backend_id_t be_id, struct ec_args *args)
+{
+    verify_stripe_metadata_mismatch_impl(be_id, args, MAGIC_MISMATCH);
+}
+
+static void test_verify_stripe_metadata_be_id_mismatch(
+        const ec_backend_id_t be_id, struct ec_args *args)
+{
+    verify_stripe_metadata_mismatch_impl(be_id, args, BACKEND_ID_MISMATCH);
+}
+
+static void test_verify_stripe_metadata_be_ver_mismatch(
+        const ec_backend_id_t be_id, struct ec_args *args)
+{
+    verify_stripe_metadata_mismatch_impl(be_id, args, BACKEND_VERSION_MISMATCH);
+}
+
+
+//static void test_verify_str
+
 struct testcase testcases[] = {
     {"test_create_backend_invalid_args",
         test_create_backend_invalid_args,
@@ -941,7 +1090,7 @@ struct testcase testcases[] = {
     {"test_verify_stripe_metadata_invalid_args",
         test_verify_stripe_metadata_invalid_args,
         EC_BACKENDS_MAX, CHKSUM_TYPES_MAX,
-        .skip = true}, //EDL, liberasurecode_verify_stripe_metadata is not implemented at the moment
+        .skip = false},
     {"test_fragments_needed_invalid_args",
         test_fragments_needed_invalid_args,
         EC_BACKENDS_MAX, CHKSUM_TYPES_MAX,
@@ -1004,6 +1153,26 @@ struct testcase testcases[] = {
         test_get_fragment_metadata,
         EC_BACKEND_FLAT_XOR_HD, CHKSUM_CRC32,
         .skip = false},
+    {"test_verify_stripe_metadata",
+        test_verify_stripe_metadata,
+        EC_BACKEND_FLAT_XOR_HD, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata_libec_mismatch",
+        test_verify_stripe_metadata_libec_mismatch,
+        EC_BACKEND_FLAT_XOR_HD, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata_magic_mismatch",
+        test_verify_stripe_metadata_magic_mismatch,
+        EC_BACKEND_FLAT_XOR_HD, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata_be_id_mismatch",
+        test_verify_stripe_metadata_be_id_mismatch,
+        EC_BACKEND_FLAT_XOR_HD, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata_be_ver_mismatch",
+        test_verify_stripe_metadata_be_ver_mismatch,
+        EC_BACKEND_FLAT_XOR_HD, CHKSUM_CRC32,
+        .skip = false},
     // Jerasure RS Vand backend tests
     {"create_and_destroy_backend",
         test_create_and_destroy_backend,
@@ -1043,6 +1212,26 @@ struct testcase testcases[] = {
         .skip = false},
     {"test_get_fragment_metadata_jerasure_rs_vand_crc32",
         test_get_fragment_metadata,
+        EC_BACKEND_JERASURE_RS_VAND, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata",
+        test_verify_stripe_metadata,
+        EC_BACKEND_JERASURE_RS_VAND, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata_libec_mismatch",
+         test_verify_stripe_metadata_libec_mismatch,
+         EC_BACKEND_JERASURE_RS_VAND, CHKSUM_CRC32,
+         .skip = false},
+    {"test_verify_stripe_metadata_magic_mismatch",
+          test_verify_stripe_metadata_magic_mismatch,
+          EC_BACKEND_JERASURE_RS_VAND, CHKSUM_CRC32,
+         .skip = false},
+    {"test_verify_stripe_metadata_be_id_mismatch",
+         test_verify_stripe_metadata_be_id_mismatch,
+         EC_BACKEND_JERASURE_RS_VAND, CHKSUM_CRC32,
+         .skip = false},
+    {"test_verify_stripe_metadata_be_ver_mismatch",
+        test_verify_stripe_metadata_be_ver_mismatch,
         EC_BACKEND_JERASURE_RS_VAND, CHKSUM_CRC32,
         .skip = false},
     // Jerasure RS Cauchy backend tests
@@ -1086,6 +1275,26 @@ struct testcase testcases[] = {
         test_get_fragment_metadata,
         EC_BACKEND_JERASURE_RS_CAUCHY, CHKSUM_CRC32,
         .skip = false},
+    {"test_verify_stripe_metadata",
+        test_verify_stripe_metadata,
+        EC_BACKEND_JERASURE_RS_CAUCHY, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata_libec_mismatch",
+         test_verify_stripe_metadata_libec_mismatch,
+         EC_BACKEND_JERASURE_RS_CAUCHY, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata_magic_mismatch",
+         test_verify_stripe_metadata_magic_mismatch,
+         EC_BACKEND_JERASURE_RS_CAUCHY, CHKSUM_CRC32,
+         .skip = false},
+    {"test_verify_stripe_metadata_be_id_mismatch",
+         test_verify_stripe_metadata_be_id_mismatch,
+         EC_BACKEND_JERASURE_RS_CAUCHY, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata_be_ver_mismatch",
+        test_verify_stripe_metadata_be_ver_mismatch,
+        EC_BACKEND_JERASURE_RS_CAUCHY, CHKSUM_CRC32,
+        .skip = false},
     // ISA-L tests
     {"create_and_destroy_backend",
         test_create_and_destroy_backend,
@@ -1122,6 +1331,26 @@ struct testcase testcases[] = {
     {"test_get_fragment_metadata_isa_l",
         test_get_fragment_metadata,
         EC_BACKEND_ISA_L_RS_VAND, CHKSUM_NONE,
+        .skip = false},
+    {"test_verify_stripe_metadata",
+        test_verify_stripe_metadata,
+        EC_BACKEND_ISA_L_RS_VAND, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata_libec_mismatch",
+        test_verify_stripe_metadata_libec_mismatch,
+        EC_BACKEND_ISA_L_RS_VAND, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata_magic_mismatch",
+        test_verify_stripe_metadata_magic_mismatch,
+        EC_BACKEND_ISA_L_RS_VAND, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata_be_id_mismatch",
+        test_verify_stripe_metadata_be_id_mismatch,
+        EC_BACKEND_ISA_L_RS_VAND, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata_be_ver_mismatch",
+        test_verify_stripe_metadata_be_ver_mismatch,
+        EC_BACKEND_ISA_L_RS_VAND, CHKSUM_CRC32,
         .skip = false},
     { NULL, NULL, 0, 0, false },
 };

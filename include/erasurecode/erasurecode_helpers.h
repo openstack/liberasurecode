@@ -135,9 +135,8 @@ int set_fragment_payload_size(char *buf, int size);
 int get_fragment_payload_size(char *buf);
 int set_orig_data_size(char *buf, int orig_data_size);
 int get_orig_data_size(char *buf);
-int validate_fragment(char *buf);
 int set_checksum(ec_checksum_type_t ct, char *buf, int blocksize);
-int get_checksum(char *buf);
+int get_checksum(char *buf); //TODO implement this
 int set_libec_version(char *fragment);
 int get_libec_version(char *fragment, uint32_t *ver);
 int set_backend_id(char *buf, ec_backend_id_t id);
