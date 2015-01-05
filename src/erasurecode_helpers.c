@@ -116,10 +116,15 @@ void * check_and_free_buffer(void * buf)
     return NULL;
 }
 
-char *alloc_fragment_buffer(int size)
+char *alloc_fragment_buffer(ec_backend_t instance, int size)
 {
     char *buf;
     fragment_header_t *header = NULL;
+
+    if (NULL != instance){
+         /* Account for any custom metadata the backend wants to add in data_len */
+         size += instance->common.metadata_adder;
+    }
 
     size += sizeof(fragment_header_t);
     buf = get_aligned_buffer16(size);
@@ -187,9 +192,6 @@ int get_aligned_data_size(ec_backend_t instance, int data_len)
     int word_size = w / 8;
     int alignment_multiple;
     int aligned_size = 0;
-
-    /* Account for any custom metadata the backend wants to add in data_len */
-    data_len += instance->common.metadata_adder;
 
     /*
      * For Cauchy reed-solomon align to k*word_size*packet_size
