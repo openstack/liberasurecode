@@ -333,6 +333,8 @@ typedef enum {
     EBACKENDINITERR  = 202,
     EBACKENDINUSE    = 203,
     EBACKENDNOTAVAIL = 204,
+    EBADCHKSUM       = 205,
+    EINVALIDPARAMS   = 206,
 } LIBERASURECODE_ERROR_CODES;
 
 /* =~=*=~==~=*=~==~=*=~==~=*=~===~=*=~==~=*=~===~=*=~==~=*=~===~=*=~==~=*=~= */

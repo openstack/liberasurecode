@@ -937,6 +937,8 @@ int liberasurecode_get_fragment_metadata(char *fragment,
             computed_chksum = crc32(0, fragment_data, fragment_size);
             if (stored_chksum != computed_chksum) {
                 fragment_metadata->chksum_mismatch = 1;
+            } else {
+                fragment_metadata->chksum_mismatch = 0;
             }
             break;
         }
@@ -992,23 +994,42 @@ int is_valid_fragment(int desc, char *fragment)
     return 0;
 }
 
+int is_valid_fragment_metadata(int desc, fragment_metadata_t *fragment_metadata)
+{
+    ec_backend_t be = liberasurecode_backend_instance_get_by_desc(desc);
+    if (!be) {
+        log_error("Unable to verify stripe metadata: invalid backend id %d.",
+                desc);
+        return 1;
+    }
+    if (liberasurecode_verify_fragment_metadata(be,
+            fragment_metadata) != 0) {
+        return 1;
+    }
+    if (fragment_metadata->chksum_mismatch == 1) {
+        return -EBADCHKSUM;
+    }
+    return 0;
+}
+
 int liberasurecode_verify_stripe_metadata(int desc,
         char **fragments, int num_fragments)
 {
     int i = 0;
     if (!fragments) {
         log_error("Unable to verify stripe metadata: fragments missing.");
-        return 1;
+        return -EINVALIDPARAMS;
     }
     if (num_fragments <= 0) {
         log_error("Unable to verify stripe metadata: "
                 "number of fragments must be greater than 0.");
-        return 1;
+        return -EINVALIDPARAMS;
     }
 
     for (i = 0; i < num_fragments; i++) {
-        if (is_valid_fragment(desc, fragments[i]) == 1) {
-            return 1;
+        fragment_metadata_t *fragment_metadata = (fragment_metadata_t*)fragments[i];
+        if (is_valid_fragment_metadata(desc, fragment_metadata) == -EBADCHKSUM) {
+            return -EBADCHKSUM;
         }
     }
 
