@@ -55,4 +55,5 @@ libtool
 # doxygen documentation
 ^doc/.*\.doxytag
 ^doc/html
+^doc/latex
 *doxygen.cfg

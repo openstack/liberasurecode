@@ -20,6 +20,12 @@ liberasurecode_la_SOURCES = \
 		backends/jerasure/jerasure_rs_cauchy.c \
     backends/isa-l/isa_l_vand.c
 
+# Install additional header files
+liberasurecodeincludedir = $(includedir)
+liberasurecodeinclude_HEADERS = \
+  ../include/erasurecode/erasurecode.h \
+  ../include/erasurecode/erasurecode_helpers.h
+
 liberasurecode_la_CPPFLAGS = -Werror @GCOV_FLAGS@
 liberasurecode_la_LIBADD = \
 		builtin/xor_codes/libXorcode.la -lpthread -lm @GCOV_LDFLAGS@

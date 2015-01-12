@@ -23,7 +23,7 @@ install-data-local: html
 	else \
 		for i in $$installfiles; do \
 			echo '-- Installing '$$i ; \
-			$(INSTALL_DATA) $$i $(DESTDIR)$(TARGET_DIR); \
+			../install-sh $$i $(DESTDIR)$(TARGET_DIR); \
 		done; \
 	fi)
 
