@@ -16,7 +16,7 @@ clean-local:
 	rm -rf html
 
 install-data-local: html
-	$(mkinstalldirs) $(DESTDIR)$(TARGET_DIR)
+	../install-sh -d $(DESTDIR)$(TARGET_DIR)
 	(installfiles=`echo html/*`; \
 	if test "$$installfiles" = 'html/*'; \
 	then echo '-- Nothing to install' ; \
