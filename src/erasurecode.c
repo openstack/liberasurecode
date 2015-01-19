@@ -1000,11 +1000,14 @@ int is_valid_fragment_metadata(int desc, fragment_metadata_t *fragment_metadata)
     if (!be) {
         log_error("Unable to verify stripe metadata: invalid backend id %d.",
                 desc);
-        return 1;
+        return -EINVALIDPARAMS;
     }
     if (liberasurecode_verify_fragment_metadata(be,
             fragment_metadata) != 0) {
-        return 1;
+        return -EBADHEADER;
+    }
+    if (!be->common.ops->is_compatible_with(fragment_metadata->backend_version))  {
+        return -EBADHEADER;
     }
     if (fragment_metadata->chksum_mismatch == 1) {
         return -EBADCHKSUM;
@@ -1028,8 +1031,9 @@ int liberasurecode_verify_stripe_metadata(int desc,
 
     for (i = 0; i < num_fragments; i++) {
         fragment_metadata_t *fragment_metadata = (fragment_metadata_t*)fragments[i];
-        if (is_valid_fragment_metadata(desc, fragment_metadata) == -EBADCHKSUM) {
-            return -EBADCHKSUM;
+        int ret = is_valid_fragment_metadata(desc, fragment_metadata);
+        if (ret < 0) {
+            return ret;
         }
     }
 

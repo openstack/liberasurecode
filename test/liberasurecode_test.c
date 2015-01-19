@@ -470,19 +470,19 @@ static void test_verify_stripe_metadata_invalid_args() {
     char **frags = malloc(sizeof(char *) * num_frags);
 
     rc = liberasurecode_verify_stripe_metadata(desc, frags, num_frags);
-    assert(rc == 1);
+    assert(rc == -EINVALIDPARAMS);
 
     desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
     assert(desc > 0);
 
     rc = liberasurecode_verify_stripe_metadata(desc, NULL, num_frags);
-    assert(rc == 1);
+    assert(rc == -EINVALIDPARAMS);
 
     rc = liberasurecode_verify_stripe_metadata(desc, frags, -1);
-    assert(rc == 1);
+    assert(rc == -EINVALIDPARAMS);
 
     rc = liberasurecode_verify_stripe_metadata(desc, frags, 0);
-    assert(rc == 1);
+    assert(rc == -EINVALIDPARAMS);
 
 }
 
@@ -952,7 +952,7 @@ static void test_verify_stripe_metadata(const ec_backend_id_t be_id,
     free(skip);
 }
 
-static void verify_stripe_metadata_mismatch_impl(const ec_backend_id_t be_id, struct ec_args *args,
+static void verify_fragment_metadata_mismatch_impl(const ec_backend_id_t be_id, struct ec_args *args,
         fragment_mismatch_scenario_t scenario)
 {
     int orig_data_size = 1024;
@@ -1002,8 +1002,7 @@ static void verify_stripe_metadata_mismatch_impl(const ec_backend_id_t be_id, st
             default:
                 assert(false);
         }
-        rc = liberasurecode_verify_stripe_metadata(desc, avail_frags,
-                num_avail_frags);
+        rc = is_valid_fragment(desc, avail_frags[i]);
         assert(rc == 1);
         //heal fragment
         switch (scenario) {
@@ -1030,25 +1029,25 @@ static void verify_stripe_metadata_mismatch_impl(const ec_backend_id_t be_id, st
 static void test_verify_stripe_metadata_libec_mismatch(
         const ec_backend_id_t be_id, struct ec_args *args)
 {
-    verify_stripe_metadata_mismatch_impl(be_id, args, LIBEC_VERSION_MISMATCH);
+    verify_fragment_metadata_mismatch_impl(be_id, args, LIBEC_VERSION_MISMATCH);
 }
 
 static void test_verify_stripe_metadata_magic_mismatch(
         const ec_backend_id_t be_id, struct ec_args *args)
 {
-    verify_stripe_metadata_mismatch_impl(be_id, args, MAGIC_MISMATCH);
+    verify_fragment_metadata_mismatch_impl(be_id, args, MAGIC_MISMATCH);
 }
 
 static void test_verify_stripe_metadata_be_id_mismatch(
         const ec_backend_id_t be_id, struct ec_args *args)
 {
-    verify_stripe_metadata_mismatch_impl(be_id, args, BACKEND_ID_MISMATCH);
+    verify_fragment_metadata_mismatch_impl(be_id, args, BACKEND_ID_MISMATCH);
 }
 
 static void test_verify_stripe_metadata_be_ver_mismatch(
         const ec_backend_id_t be_id, struct ec_args *args)
 {
-    verify_stripe_metadata_mismatch_impl(be_id, args, BACKEND_VERSION_MISMATCH);
+    verify_fragment_metadata_mismatch_impl(be_id, args, BACKEND_VERSION_MISMATCH);
 }
 
 

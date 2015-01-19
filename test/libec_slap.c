@@ -314,9 +314,7 @@ static int test_hd_code(struct ec_args *args,
         free(out_data);
 
         assert(rc == 0);
-        fprintf(stderr," Decode Scenario - ");
-        print_mask(mask);
-        fprintf(stderr,": OK\n");
+        //print_mask(mask);
     }
     for (j = 0; j < args->k; j++) {
         free(encoded_data[j]);    
