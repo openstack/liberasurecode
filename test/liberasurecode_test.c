@@ -346,23 +346,23 @@ static void test_decode_invalid_args()
                                          encoded_parity, &null_args, skips);
 
     rc = liberasurecode_decode(-1, avail_frags, num_avail_frags,
-                               encoded_fragment_len, &decoded_data,
-                               &decoded_data_len);
+                               encoded_fragment_len, 1,
+                               &decoded_data, &decoded_data_len);
     assert(rc < 0);
 
     rc = liberasurecode_decode(desc, NULL, num_avail_frags,
-                               encoded_fragment_len, &decoded_data,
-                               &decoded_data_len);
+                               encoded_fragment_len, 1,
+                               &decoded_data, &decoded_data_len);
     assert(rc < 0);
 
     rc = liberasurecode_decode(desc, avail_frags, num_avail_frags,
-                               encoded_fragment_len, NULL,
-                               &decoded_data_len);
+                               encoded_fragment_len, 1,
+                               NULL, &decoded_data_len);
     assert(rc < 0);
 
     rc = liberasurecode_decode(desc, avail_frags, num_avail_frags,
-                               encoded_fragment_len, &decoded_data,
-                               NULL);
+                               encoded_fragment_len, 1,
+                               &decoded_data, NULL);
     assert(rc < 0);
     free(skips);
     liberasurecode_encode_cleanup(desc, encoded_data, encoded_parity);
@@ -540,8 +540,8 @@ static void encode_decode_test_impl(const ec_backend_id_t be_id,
     assert(num_avail_frags != -1);
 
     rc = liberasurecode_decode(desc, avail_frags, num_avail_frags,
-                               encoded_fragment_len, &decoded_data,
-                               &decoded_data_len);
+                               encoded_fragment_len, 1,
+                               &decoded_data, &decoded_data_len);
     assert(0 == rc);
     assert(decoded_data_len == orig_data_size);
     assert(memcmp(decoded_data, orig_data, orig_data_size) == 0);
@@ -1002,7 +1002,7 @@ static void verify_fragment_metadata_mismatch_impl(const ec_backend_id_t be_id, 
             default:
                 assert(false);
         }
-        rc = is_valid_fragment(desc, avail_frags[i]);
+        rc = is_invalid_fragment(desc, avail_frags[i]);
         assert(rc == 1);
         //heal fragment
         switch (scenario) {

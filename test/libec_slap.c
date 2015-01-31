@@ -283,8 +283,8 @@ static int test_hd_code(struct ec_args *args,
         create_frags_array_set(&frags,encoded_data, args->k, encoded_parity,
                                args->m, mask);
         rc = liberasurecode_decode(desc, frags.array, frags.num_fragments,
-                                   encoded_fragment_len, &out_data,
-                                   &out_data_len);
+                                   encoded_fragment_len, 1,
+                                   &out_data, &out_data_len);
         assert(rc == 0);
         assert(out_data_len == blocksize * args->k);
         if (memcmp(data, out_data, out_data_len) != 0) {
@@ -308,8 +308,8 @@ static int test_hd_code(struct ec_args *args,
         create_frags_array_set(&frags,encoded_data, args->k, encoded_parity,
                                args->m, mask);
         rc = liberasurecode_decode(desc, frags.array, frags.num_fragments,
-                                   encoded_fragment_len, &out_data,
-                                   &out_data_len);
+                                   encoded_fragment_len, 1,
+                                   &out_data, &out_data_len);
         free(frags.array);
         free(out_data);
 

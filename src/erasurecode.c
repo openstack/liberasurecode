@@ -495,6 +495,7 @@ int liberasurecode_decode_cleanup(int desc, char *data)
  * @param fragments - erasure encoded fragments (> = k)
  * @param num_fragments - number of fragments being passed in
  * @param fragment_len - length of each fragment (assume they are the same)
+ * @param force_metadata_checks - force fragment metadata checks (default: 0)
  * @param out_data - _output_ pointer to decoded data
  * @param out_data_len - _output_ length of decoded output
  * @return 0 on success, -error code otherwise
@@ -502,6 +503,7 @@ int liberasurecode_decode_cleanup(int desc, char *data)
 int liberasurecode_decode(int desc,
         char **available_fragments,                     /* input */
         int num_fragments, uint64_t fragment_len,       /* input */
+        int force_metadata_checks,                      /* input */
         char **out_data, uint64_t *out_data_len)        /* output */
 {
     int i, j;
@@ -546,6 +548,11 @@ int liberasurecode_decode(int desc,
     k = instance->args.uargs.k;
     m = instance->args.uargs.m;
 
+    if (num_fragments < k) {
+        ret = -EINSUFFFRAGS;
+        goto out;
+    }
+
     /*
      * Try to re-assebmle the original data before attempting a decode
      */
@@ -577,6 +584,21 @@ int liberasurecode_decode(int desc,
     if (NULL == missing_idxs) {
         log_error("Could not allocate missing_idxs buffer!");
         goto out;
+    }
+
+    /* If metadata checks requested, check fragment integrity upfront */ 
+    if (force_metadata_checks) {
+        int num_invalid_fragments = 0;
+        for (i = 0; i < num_fragments; ++i) {
+            if (is_invalid_fragment(desc, available_fragments[i])) {
+                ++num_invalid_fragments;
+            }
+        }
+        if (num_invalid_fragments > (k - 1)) {
+            ret = -EINSUFFFRAGS;
+            log_error("Not enough valid fragments available for decode!");
+            goto out;
+        }
     }
     
     /*
@@ -965,13 +987,13 @@ int liberasurecode_verify_fragment_metadata(ec_backend_t be,
     return 0;
 }
 
-int is_valid_fragment(int desc, char *fragment)
+int is_invalid_fragment(int desc, char *fragment)
 {
     uint32_t ver = 0;
     fragment_metadata_t fragment_metadata;
     ec_backend_t be = liberasurecode_backend_instance_get_by_desc(desc);
     if (!be) {
-        log_error("Unable to verify stripe metadata: invalid backend id %d.",
+        log_error("Unable to verify fragment metadata: invalid backend id %d.",
                 desc);
         return 1;
     }
