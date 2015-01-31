@@ -178,17 +178,16 @@ int liberasurecode_encode_cleanup(int desc, char **encoded_data,
  * @param fragments - erasure encoded fragments (> = k)
  * @param num_fragments - number of fragments being passed in
  * @param fragment_len - length of each fragment (assume they are the same)
+ * @param force_metadata_checks - force fragment metadata checks (default: 0)
  * @param out_data - _output_ pointer to decoded data
  * @param out_data_len - _output_ length of decoded output
- *          (both output data pointers are allocated by liberasurecode,
- *           caller invokes liberasurecode_decode_clean() after it has
- *           read decoded data in 'out_data')
  *
  * @return 0 on success, -error code otherwise
  */
 int liberasurecode_decode(int desc,
         char **available_fragments,                     /* input */
         int num_fragments, uint64_t fragment_len,       /* input */
+        int force_metadata_checks,                      /* input */
         char **out_data, uint64_t *out_data_len);       /* output */
 
 /**
