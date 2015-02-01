@@ -52,9 +52,9 @@ typedef enum {
 
 /* Checksum types supported for fragment metadata stored in each fragment */
 typedef enum {
-    CHKSUM_NONE                     = 0,
-    CHKSUM_CRC32                    = 1,
-    CHKSUM_MD5                      = 2,
+    CHKSUM_NONE                     = 1,
+    CHKSUM_CRC32                    = 2,
+    CHKSUM_MD5                      = 3,
     CHKSUM_TYPES_MAX,
 } ec_checksum_type_t;
 
