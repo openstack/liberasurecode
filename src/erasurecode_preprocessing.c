@@ -246,7 +246,7 @@ int get_fragment_partition(
         }
     }
 
-    return (num_missing > m) ? 1 : 0;
+    return (num_missing > m) ? -1 : 0;
 }
 
 int fragments_to_string(int k, int m,
