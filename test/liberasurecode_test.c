@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Eric Lambert, Tushar Gohad, Kevin Greenan
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@
 #define JERASURE_RS_VAND_BACKEND "jerasure_rs_vand"
 #define JERASURE_RS_CAUCHY_BACKEND "jerasure_rs_cauchy"
 #define ISA_L_RS_VAND_BACKEND "isa_l_rs_vand"
+#define SHSS_BACKEND "shss"
 
 typedef void (*TEST_FUNC)();
 
@@ -85,6 +86,15 @@ struct ec_args isa_l_args = {
     .hd = 5,
 };
 
+int priv = 128;
+struct ec_args shss_args = {
+    .k = 6,
+    .m = 3,
+    .hd = 3,
+    .priv_args2 = &priv,
+};
+
+
 typedef enum {
     LIBEC_VERSION_MISMATCH,
     MAGIC_MISMATCH,
@@ -104,6 +114,8 @@ char * get_name_from_backend_id(ec_backend_id_t be) {
             return FLAT_XOR_HD_BACKEND;
         case EC_BACKEND_ISA_L_RS_VAND:
             return ISA_L_RS_VAND_BACKEND;
+        case EC_BACKEND_SHSS:
+            return SHSS_BACKEND;
         default:
             return "UNKNOWN";
     }
@@ -128,6 +140,9 @@ struct ec_args *create_ec_args(ec_backend_id_t be, ec_checksum_type_t ct)
             break;
         case EC_BACKEND_ISA_L_RS_VAND:
             template = &isa_l_args;
+            break;
+        case EC_BACKEND_SHSS:
+            template = &shss_args;
             break;
         default:
             return NULL;
@@ -161,7 +176,7 @@ int *create_skips_array(struct ec_args *args, int skip)
     return buf;
 }
 
-static int create_frags_array(char ***array, 
+static int create_frags_array(char ***array,
                               char **data,
                               char **parity,
                               struct ec_args *args,
@@ -182,7 +197,7 @@ static int create_frags_array(char ***array,
         {
             continue;
         }
-        *ptr++ = data[i]; 
+        *ptr++ = data[i];
         num_frags++;
     }
     //add parity frags
@@ -190,7 +205,7 @@ static int create_frags_array(char ***array,
         if (parity[i] == NULL || skips[i + args->k] == 1) {
             continue;
         }
-        *ptr++ = parity[i]; 
+        *ptr++ = parity[i];
         num_frags++;
     }
 out:
@@ -530,7 +545,7 @@ static void encode_decode_test_impl(const ec_backend_id_t be_id,
         assert(metadata.orig_data_size == orig_data_size);
         char *data_ptr = frag + frag_header_size;
         int cmp_size = remaining >= metadata.size ? metadata.size : remaining;
-        assert(memcmp(data_ptr, orig_data_ptr, cmp_size) == 0); 
+        assert(memcmp(data_ptr, orig_data_ptr, cmp_size) == 0);
         remaining -= cmp_size;
         orig_data_ptr += metadata.size;
     }
@@ -560,7 +575,7 @@ static void encode_decode_test_impl(const ec_backend_id_t be_id,
     free(avail_frags);
 }
 
-static void reconstruct_test_impl(const ec_backend_id_t be_id, 
+static void reconstruct_test_impl(const ec_backend_id_t be_id,
                                  struct ec_args *args,
                                  int *skip)
 {
@@ -614,7 +629,7 @@ static void reconstruct_test_impl(const ec_backend_id_t be_id,
     liberasurecode_encode_cleanup(desc, encoded_data, encoded_parity);
 }
 
-static void test_fragments_needed_impl(const ec_backend_id_t be_id, 
+static void test_fragments_needed_impl(const ec_backend_id_t be_id,
                                       struct ec_args *args)
 {
     int *fragments_to_reconstruct = NULL;
@@ -649,7 +664,7 @@ static void test_fragments_needed_impl(const ec_backend_id_t be_id,
      * first parity element.  Select one of the data elements
      * as the item to reconstruct and select one not in that
      * set as the missing element.  Elements needed should
-     * be equal to the parity element, plus all other data 
+     * be equal to the parity element, plus all other data
      * elements connected to it.
      *
      * Simple example with XOR code (k=10, m=5):
@@ -675,12 +690,12 @@ static void test_fragments_needed_impl(const ec_backend_id_t be_id,
     fragments_to_reconstruct[1] = -1;
     fragments_to_exclude[0] = -1;
 
-    ret = liberasurecode_fragments_needed(desc, 
-                                          fragments_to_reconstruct, 
-                                          fragments_to_exclude, 
+    ret = liberasurecode_fragments_needed(desc,
+                                          fragments_to_reconstruct,
+                                          fragments_to_exclude,
                                           fragments_needed);
     assert(ret > -1);
-    
+
     // "Reconstruct" the first data in the parity equation
     fragments_to_reconstruct[0] = fragments_needed[0];
     fragments_to_reconstruct[1] = -1;
@@ -705,12 +720,12 @@ static void test_fragments_needed_impl(const ec_backend_id_t be_id,
 
     assert(fragments_to_exclude[0] > -1);
 
-    ret = liberasurecode_fragments_needed(desc, 
-                                          fragments_to_reconstruct, 
-                                          fragments_to_exclude, 
+    ret = liberasurecode_fragments_needed(desc,
+                                          fragments_to_reconstruct,
+                                          fragments_to_exclude,
                                           new_fragments_needed);
     assert(ret > -1);
-   
+
     // Verify that new_fragments_needed contains the
     // first parity element and all data elements connected
     // to that parity element sans the data to reconstruct.
@@ -916,7 +931,7 @@ static void test_fragments_needed(const ec_backend_id_t be_id,
     test_fragments_needed_impl(be_id, args);
 }
 
-static void test_verify_stripe_metadata(const ec_backend_id_t be_id, 
+static void test_verify_stripe_metadata(const ec_backend_id_t be_id,
                                         struct ec_args *args)
 {
     int orig_data_size = 1024;
@@ -1141,7 +1156,7 @@ struct testcase testcases[] = {
         EC_BACKEND_FLAT_XOR_HD, CHKSUM_NONE,
         .skip = false},
     {"test_fragments_needed_flat_xor_hd",
-        test_fragments_needed, 
+        test_fragments_needed,
         EC_BACKEND_FLAT_XOR_HD, CHKSUM_NONE,
         .skip = false},
     {"test_get_fragment_metadata_flat_xor_hd",
@@ -1202,7 +1217,7 @@ struct testcase testcases[] = {
         EC_BACKEND_JERASURE_RS_VAND, CHKSUM_NONE,
         .skip = false},
     {"test_fragments_needed_jerasure_rs_vand",
-        test_fragments_needed, 
+        test_fragments_needed,
         EC_BACKEND_JERASURE_RS_VAND, CHKSUM_NONE,
         .skip = false},
     {"test_get_fragment_metadata_jerasure_rs_vand",
@@ -1263,7 +1278,7 @@ struct testcase testcases[] = {
         EC_BACKEND_JERASURE_RS_CAUCHY, CHKSUM_NONE,
         .skip = false},
     {"test_fragments_needed_jerasure_rs_cauchy",
-        test_fragments_needed, 
+        test_fragments_needed,
         EC_BACKEND_JERASURE_RS_CAUCHY, CHKSUM_NONE,
         .skip = false},
     {"test_get_fragment_metadata_jerasure_rs_cauchy",
@@ -1324,7 +1339,7 @@ struct testcase testcases[] = {
         EC_BACKEND_ISA_L_RS_VAND, CHKSUM_NONE,
         .skip = false},
     {"test_fragments_needed_isa_l",
-        test_fragments_needed, 
+        test_fragments_needed,
         EC_BACKEND_ISA_L_RS_VAND, CHKSUM_NONE,
         .skip = false},
     {"test_get_fragment_metadata_isa_l",
@@ -1350,6 +1365,63 @@ struct testcase testcases[] = {
     {"test_verify_stripe_metadata_be_ver_mismatch",
         test_verify_stripe_metadata_be_ver_mismatch,
         EC_BACKEND_ISA_L_RS_VAND, CHKSUM_CRC32,
+        .skip = false},
+    // shss tests
+    {"create_and_destroy_backend",
+        test_create_and_destroy_backend,
+        EC_BACKEND_SHSS, CHKSUM_NONE,
+        .skip = false},
+    {"simple_encode_shss",
+        test_simple_encode_decode,
+        EC_BACKEND_SHSS, CHKSUM_NONE,
+        .skip = false},
+    {"decode_with_missing_data_shss",
+        test_decode_with_missing_data,
+        EC_BACKEND_SHSS, CHKSUM_NONE,
+        .skip = false},
+    {"decode_with_missing_multi_data_shss",
+        test_decode_with_missing_multi_data,
+        EC_BACKEND_SHSS, CHKSUM_NONE,
+        .skip = false},
+    {"decode_with_missing_multi_parity_shss",
+        test_decode_with_missing_multi_parity,
+        EC_BACKEND_SHSS, CHKSUM_NONE,
+        .skip = false},
+    {"test_decode_with_missing_multi_data_parity_shss",
+        test_decode_with_missing_multi_data_parity,
+        EC_BACKEND_SHSS, CHKSUM_NONE,
+        .skip = false},
+    {"simple_reconstruct_shss",
+        test_simple_reconstruct,
+        EC_BACKEND_SHSS, CHKSUM_NONE,
+        .skip = false},
+    {"test_fragments_needed_shss",
+        test_fragments_needed,
+        EC_BACKEND_SHSS, CHKSUM_NONE,
+        .skip = false},
+    {"test_get_fragment_metadata_shss",
+        test_get_fragment_metadata,
+        EC_BACKEND_SHSS, CHKSUM_NONE,
+        .skip = false},
+    {"test_verify_stripe_metadata",
+        test_verify_stripe_metadata,
+        EC_BACKEND_SHSS, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata_libec_mismatch",
+        test_verify_stripe_metadata_libec_mismatch,
+        EC_BACKEND_SHSS, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata_magic_mismatch",
+        test_verify_stripe_metadata_magic_mismatch,
+        EC_BACKEND_SHSS, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata_be_id_mismatch",
+        test_verify_stripe_metadata_be_id_mismatch,
+        EC_BACKEND_SHSS, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata_be_ver_mismatch",
+        test_verify_stripe_metadata_be_ver_mismatch,
+        EC_BACKEND_SHSS, CHKSUM_CRC32,
         .skip = false},
     { NULL, NULL, 0, 0, false },
 };
