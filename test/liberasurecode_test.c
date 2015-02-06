@@ -213,6 +213,12 @@ out:
     return num_frags;
 }
 
+static int encode_failure_stub(void *desc, char **data,
+                               char **parity, int blocksize)
+{
+    return -1;
+}
+
 static void validate_fragment_checksum(struct ec_args *args,
     fragment_metadata_t *metadata, char *fragment_data)
 {
@@ -280,6 +286,8 @@ static void test_encode_invalid_args()
     char *orig_data = create_buffer(orig_data_size, 'x');
     char **encoded_data = NULL, **encoded_parity = NULL;
     uint64_t encoded_fragment_len = 0;
+    ec_backend_t instance = NULL;
+    int (*orig_encode_func)(void *, char **, char **, int);
 
     assert(orig_data != NULL);
     rc = liberasurecode_encode(desc, orig_data, orig_data_size,
@@ -308,6 +316,15 @@ static void test_encode_invalid_args()
     rc = liberasurecode_encode(desc, orig_data, orig_data_size,
             &encoded_data, &encoded_parity, NULL);
     assert(rc < 0);
+
+    instance = liberasurecode_backend_instance_get_by_desc(desc);
+    orig_encode_func = instance->common.ops->encode;
+    instance->common.ops->encode = encode_failure_stub;
+    rc = liberasurecode_encode(desc, orig_data, orig_data_size,
+            &encoded_data, &encoded_parity, &encoded_fragment_len);
+    assert(rc < 0);
+    instance->common.ops->encode = orig_encode_func;
+
     free(orig_data);
 }
 

@@ -126,6 +126,8 @@ int get_aligned_data_size(ec_backend_t instance, int data_len);
 char *get_data_ptr_from_fragment(char *buf);
 int get_data_ptr_array_from_fragments(char **data_array, char **fragments,
         int num_fragments);
+int get_fragment_ptr_array_from_data(char **frag_array, char **data,
+        int num_data);
 char *get_fragment_ptr_from_data_novalidate(char *buf);
 char *get_fragment_ptr_from_data(char *buf);
 uint64_t get_fragment_size(char *buf);
