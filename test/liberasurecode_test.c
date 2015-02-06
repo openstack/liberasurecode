@@ -592,8 +592,11 @@ static void encode_decode_test_impl(const ec_backend_id_t be_id,
     int num_avail_frags = 0;
     char *orig_data_ptr = NULL;
     int remaining = 0;
+    ec_backend_t be = NULL;
 
     desc = liberasurecode_instance_create(be_id, args);
+    be = liberasurecode_backend_instance_get_by_desc(desc);
+
     if (-EBACKENDNOTAVAIL == desc) {
         fprintf (stderr, "Backend library not available!\n");
         return;
@@ -614,7 +617,7 @@ static void encode_decode_test_impl(const ec_backend_id_t be_id,
         assert(header != NULL);
         fragment_metadata_t metadata = header->meta;
         assert(metadata.idx == i);
-        assert(metadata.size == encoded_fragment_len - frag_header_size);
+        assert(metadata.size == encoded_fragment_len - frag_header_size - be->common.metadata_adder);
         assert(metadata.orig_data_size == orig_data_size);
         char *data_ptr = frag + frag_header_size;
         int cmp_size = remaining >= metadata.size ? metadata.size : remaining;

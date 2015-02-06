@@ -116,15 +116,10 @@ void * check_and_free_buffer(void * buf)
     return NULL;
 }
 
-char *alloc_fragment_buffer(ec_backend_t instance, int size)
+char *alloc_fragment_buffer(int size)
 {
     char *buf;
     fragment_header_t *header = NULL;
-
-    if (NULL != instance){
-         /* Account for any custom metadata the backend wants to add in data_len */
-         size += instance->common.metadata_adder;
-    }
 
     size += sizeof(fragment_header_t);
     buf = get_aligned_buffer16(size);
@@ -168,13 +163,11 @@ int free_fragment_buffer(char *buf)
  */
 uint64_t get_fragment_size(char *buf)
 {
-    fragment_header_t *header = NULL;
 
     if (NULL == buf)
         return -1;
 
-    header = (fragment_header_t *) buf;
-    return (header->meta.size + sizeof(fragment_header_t));
+    return get_fragment_buffer_size(buf) + sizeof(fragment_header_t);
  }
 
 /**
@@ -329,6 +322,47 @@ int get_fragment_payload_size(char *buf)
     }
 
     return header->meta.size;
+}
+
+int set_fragment_adder_size(char *buf, int size)
+{
+    fragment_header_t *header = (fragment_header_t *) buf;
+
+    assert(NULL != header);
+    if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
+        log_error("Invalid fragment header (size check)!");
+        return -1;
+    }
+
+    header->meta.frag_adder_size = size;
+
+    return 0;
+}
+
+int get_fragment_adder_size(char *buf)
+{
+    fragment_header_t *header = (fragment_header_t *) buf;
+
+    assert(NULL != header);
+    if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
+        log_error("Invalid fragment header (get size)!");
+        return -1;
+    }
+
+    return header->meta.frag_adder_size;
+}
+
+int get_fragment_buffer_size(char *buf)
+{
+    fragment_header_t *header = (fragment_header_t *) buf;
+
+    assert(NULL != header);
+    if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
+        log_error("Invalid fragment header (get size)!");
+        return -1;
+    }
+
+    return header->meta.size + header->meta.frag_adder_size;
 }
 
 int set_orig_data_size(char *buf, int orig_data_size)
