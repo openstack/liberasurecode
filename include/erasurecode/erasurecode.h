@@ -247,6 +247,7 @@ fragment_metadata
 {
     uint32_t    idx;                /* 4 */
     uint32_t    size;               /* 4 */
+    uint32_t    frag_adder_size;    /* 4 */
     uint64_t    orig_data_size;     /* 8 */
     uint8_t     chksum_type;        /* 1 */
     uint32_t    chksum[LIBERASURECODE_MAX_CHECKSUM_LEN]; /* 32 */

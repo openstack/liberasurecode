@@ -45,12 +45,12 @@
 
 typedef struct __attribute__((__packed__)) fragment_header_s
 {
-    fragment_metadata_t meta;   /* 55 bytes */
+    fragment_metadata_t meta;   /* 59 bytes */
     uint32_t            magic;  /*  4 bytes */
     uint32_t            libec_version; /* 4 bytes */
     // We must be aligned to 16-byte boundaries
     // So, size this array accordingly
-    uint8_t             aligned_padding[1];
+    uint8_t             aligned_padding[13];
 } fragment_header_t;
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
@@ -119,7 +119,7 @@ void init_fragment_header(char *buf)
 void *alloc_zeroed_buffer(int size);
 void *alloc_and_set_buffer(int size, int value);
 void *check_and_free_buffer(void *buf);
-char *alloc_fragment_buffer(ec_backend_t instance, int size);
+char *alloc_fragment_buffer(int size);
 int free_fragment_buffer(char *buf);
 void *get_aligned_buffer16(int size);
 int get_aligned_data_size(ec_backend_t instance, int data_len);
@@ -135,6 +135,9 @@ int set_fragment_idx(char *buf, int idx);
 int get_fragment_idx(char *buf);
 int set_fragment_payload_size(char *buf, int size);
 int get_fragment_payload_size(char *buf);
+int set_fragment_adder_size(char *buf, int size);
+int get_fragment_adder_size(char *buf);
+int get_fragment_buffer_size(char *buf);
 int set_orig_data_size(char *buf, int orig_data_size);
 int get_orig_data_size(char *buf);
 int set_checksum(ec_checksum_type_t ct, char *buf, int blocksize);
