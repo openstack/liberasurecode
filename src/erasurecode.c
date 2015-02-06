@@ -333,6 +333,7 @@ int liberasurecode_encode_cleanup(int desc,
                                   char **encoded_parity)
 {
     int i, k, m;
+
     ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
     if (NULL == instance) {
         return -EBACKENDNOTAVAIL;
@@ -353,7 +354,6 @@ int liberasurecode_encode_cleanup(int desc,
         for (i = 0; i < m; i++) {
             free(encoded_parity[i]);
         }
-
         free(encoded_parity);
     }
 
@@ -441,6 +441,9 @@ int liberasurecode_encode(int desc,
     ret = prepare_fragments_for_encode(instance, k, m, orig_data, orig_data_size,
                                        *encoded_data, *encoded_parity, &blocksize);
     if (ret < 0) {
+        // ensure encoded_data/parity point the head of fragment_ptr
+        get_fragment_ptr_array_from_data(*encoded_data, *encoded_data, k);
+        get_fragment_ptr_array_from_data(*encoded_parity, *encoded_parity, m);
         goto out;
     }
 
@@ -448,6 +451,9 @@ int liberasurecode_encode(int desc,
     ret = instance->common.ops->encode(instance->desc.backend_desc,
                                        *encoded_data, *encoded_parity, blocksize);
     if (ret < 0) {
+        // ensure encoded_data/parity point the head of fragment_ptr
+        get_fragment_ptr_array_from_data(*encoded_data, *encoded_data, k);
+        get_fragment_ptr_array_from_data(*encoded_parity, *encoded_parity, m);
         goto out;
     }
 
@@ -455,6 +461,7 @@ int liberasurecode_encode(int desc,
                                           *encoded_data, *encoded_parity);
 
     *fragment_len = get_fragment_size((*encoded_data)[0]);
+
 out:
     if (ret) {
         /* Cleanup the allocations we have done */

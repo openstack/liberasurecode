@@ -232,6 +232,22 @@ int get_data_ptr_array_from_fragments(char **data_array, char **fragments,
     return num;
 }
 
+int get_fragment_ptr_array_from_data(char **frag_array, char **data,
+                                     int num_data)
+{
+    int i = 0, num = 0;
+    for (i = 0; i < num_data; i++) {
+        char *data_ptr = frag_array[i];
+        if (data_ptr == NULL) {
+            data[i] = NULL;
+            continue;
+        }
+        data[i] = get_fragment_ptr_from_data(data_ptr);
+        num++;
+    }
+    return num;
+}
+
 char *get_fragment_ptr_from_data_novalidate(char *buf)
 {
     buf -= sizeof(fragment_header_t);
