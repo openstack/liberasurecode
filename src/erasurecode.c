@@ -822,7 +822,7 @@ int liberasurecode_reconstruct_fragment(int desc,
     init_fragment_header(fragment_ptr);
     add_fragment_metadata(instance, fragment_ptr, destination_idx,
                           orig_data_size, blocksize, instance->args.uargs.ct,
-                          !set_chksum);
+                          set_chksum);
 
     /*
      * Copy the reconstructed fragment to the output buffer
