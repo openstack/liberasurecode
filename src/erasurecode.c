@@ -341,7 +341,7 @@ int liberasurecode_encode_cleanup(int desc,
 
     if (encoded_data) {
         for (i = 0; i < k; i++) {
-            free_fragment_buffer(encoded_data[i]);
+            free(encoded_data[i]);
         }
 
         free(encoded_data);
@@ -349,7 +349,7 @@ int liberasurecode_encode_cleanup(int desc,
    
     if (encoded_parity) { 
         for (i = 0; i < m; i++) {
-            free_fragment_buffer(encoded_parity[i]);
+            free(encoded_parity[i]);
         }
     
         free(encoded_parity);
