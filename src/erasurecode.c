@@ -594,7 +594,7 @@ int liberasurecode_decode(int desc,
                 ++num_invalid_fragments;
             }
         }
-        if (num_invalid_fragments > (k - 1)) {
+        if ((num_fragments - num_invalid_fragments) < k) {
             ret = -EINSUFFFRAGS;
             log_error("Not enough valid fragments available for decode!");
             goto out;
