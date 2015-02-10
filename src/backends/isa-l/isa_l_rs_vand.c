@@ -1,5 +1,6 @@
-/* 
+/*
  * Copyright 2014 Kevin M Greenan
+ * Copyright 2014 Tushar Gohad
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -34,14 +35,14 @@
 #include "erasurecode_helpers.h"
 
 #define ISA_L_RS_VAND_LIB_MAJOR 2
-#define ISA_L_RS_VAND_LIB_MINOR 0
+#define ISA_L_RS_VAND_LIB_MINOR 13
 #define ISA_L_RS_VAND_LIB_REV   0
-#define ISA_L_RS_VAND_LIB_VER_STR "2.0"
+#define ISA_L_RS_VAND_LIB_VER_STR "2.13"
 #define ISA_L_RS_VAND_LIB_NAME "isa_l_rs_vand"
 #if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
-#define ISA_L_RS_VAND_SO_NAME "isa-l.dylib"
+#define ISA_L_RS_VAND_SO_NAME "libisal.dylib"
 #else
-#define ISA_L_RS_VAND_SO_NAME "isa-l.so"
+#define ISA_L_RS_VAND_SO_NAME "libisal.so"
 #endif
 
 /* Forward declarations */
@@ -59,16 +60,16 @@ struct isa_l_rs_vand_descriptor {
     /* calls required for init */
     ec_init_tables_func ec_init_tables;
     gf_gen_rs_matrix_func gf_gen_rs_matrix;
- 
+
     /* calls required for encode */
-    ec_encode_data_func ec_encode_data; 
-    
+    ec_encode_data_func ec_encode_data;
+
     /* calls required for decode and reconstruct */
     gf_invert_matrix_func gf_invert_matrix;
 
     /* multiplication function used by ISA-L */
     gf_mul_func gf_mul;
-     
+
     /* fields needed to hold state */
     unsigned char *matrix;
     int k;
@@ -79,7 +80,7 @@ struct isa_l_rs_vand_descriptor {
 static int isa_l_rs_vand_encode(void *desc, char **data, char **parity,
         int blocksize)
 {
-    struct isa_l_rs_vand_descriptor *isa_l_desc = 
+    struct isa_l_rs_vand_descriptor *isa_l_desc =
         (struct isa_l_rs_vand_descriptor*) desc;
 
     unsigned char *g_tbls = NULL;
@@ -107,7 +108,7 @@ static unsigned char* isa_l_get_decode_matrix(int k, int m, unsigned char *encod
     int n = k + m;
     unsigned char *decode_matrix = malloc(sizeof(unsigned char) * k * k);
     uint64_t missing_bm = convert_list_to_bitmap(missing_idxs);
- 
+
     while (i < k && l < n) {
         if (((1 << l) & missing_bm) == 0) {
             for (j = 0; j < k; j++) {
@@ -116,7 +117,7 @@ static unsigned char* isa_l_get_decode_matrix(int k, int m, unsigned char *encod
             i++;
         }
         l++;
-    } 
+    }
 
     if (i != k) {
         free(decode_matrix);
@@ -137,8 +138,8 @@ static int get_num_missing_elements(int *missing_idxs)
     return i;
 }
 
-static void mult_and_xor_row(unsigned char *to_row, 
-                             unsigned char *from_row, 
+static void mult_and_xor_row(unsigned char *to_row,
+                             unsigned char *from_row,
                              unsigned char val,
                              int num_elems,
                              gf_mul_func gf_mul)
@@ -151,13 +152,13 @@ static void mult_and_xor_row(unsigned char *to_row,
 }
 
 /*
- * TODO: Add in missing parity rows and adjust the inverse_rows to 
+ * TODO: Add in missing parity rows and adjust the inverse_rows to
  * be used for parity.
  */
 static unsigned char* get_inverse_rows(int k,
-                                       int m, 
-                                       unsigned char *decode_inverse, 
-                                       unsigned char* encode_matrix, 
+                                       int m,
+                                       unsigned char *decode_inverse,
+                                       unsigned char* encode_matrix,
                                        int *missing_idxs,
                                        gf_mul_func gf_mul)
 {
@@ -179,7 +180,7 @@ static unsigned char* get_inverse_rows(int k,
      * Fill in rows for missing data
      */
     for (i = 0; i < k; i++) {
-        if ((1 << i) & missing_bm) { 
+        if ((1 << i) & missing_bm) {
             for (j = 0; j < k; j++) {
                 inverse_rows[(l * k) + j] = decode_inverse[(i * k) + j];
             }
@@ -216,7 +217,7 @@ static unsigned char* get_inverse_rows(int k,
                                      &inverse_rows[d_idx_unavail * k],
                                      encode_matrix[(i * k) + j],
                                      k,
-                                     gf_mul); 
+                                     gf_mul);
                     d_idx_unavail++;
                 }
             }
@@ -229,7 +230,7 @@ static unsigned char* get_inverse_rows(int k,
 static int isa_l_rs_vand_decode(void *desc, char **data, char **parity,
         int *missing_idxs, int blocksize)
 {
-    struct isa_l_rs_vand_descriptor *isa_l_desc = 
+    struct isa_l_rs_vand_descriptor *isa_l_desc =
         (struct isa_l_rs_vand_descriptor*)desc;
 
     unsigned char *g_tbls = NULL;
@@ -254,7 +255,7 @@ static int isa_l_rs_vand_decode(void *desc, char **data, char **parity,
     }
 
     decode_inverse = (unsigned char*)malloc(sizeof(unsigned char) * k * k);
-    
+
     if (NULL == decode_inverse) {
         goto out;
     }
@@ -283,8 +284,8 @@ static int isa_l_rs_vand_decode(void *desc, char **data, char **parity,
     for (i = 0; i < n; i++) {
         if (missing_bm & (1 << i)) {
             continue;
-        } 
-        if (j == k) { 
+        }
+        if (j == k) {
             break;
         }
         if (i < k) {
@@ -294,7 +295,7 @@ static int isa_l_rs_vand_decode(void *desc, char **data, char **parity,
         }
         j++;
     }
- 
+
     // Grab pointers to memory needed for missing data fragments
     j = 0;
     for (i = 0; i < k; i++) {
@@ -331,7 +332,7 @@ out:
 static int isa_l_rs_vand_reconstruct(void *desc, char **data, char **parity,
         int *missing_idxs, int destination_idx, int blocksize)
 {
-    struct isa_l_rs_vand_descriptor *isa_l_desc = 
+    struct isa_l_rs_vand_descriptor *isa_l_desc =
         (struct isa_l_rs_vand_descriptor*) desc;
     unsigned char *g_tbls = NULL;
     unsigned char *decode_matrix = NULL;
@@ -356,9 +357,9 @@ static int isa_l_rs_vand_reconstruct(void *desc, char **data, char **parity,
     if (NULL == decode_matrix) {
         goto out;
     }
-    
+
     decode_inverse = (unsigned char*)malloc(sizeof(unsigned char) * k * k);
-    
+
     if (NULL == decode_inverse) {
         goto out;
     }
@@ -388,7 +389,7 @@ static int isa_l_rs_vand_reconstruct(void *desc, char **data, char **parity,
     for (i = 0; i < n; i++) {
         if (missing_bm & (1 << i)) {
             continue;
-        } 
+        }
         if (j == k) {
           break;
         }
@@ -399,7 +400,7 @@ static int isa_l_rs_vand_reconstruct(void *desc, char **data, char **parity,
         }
         j++;
     }
-    
+
     /**
      * Copy pointer of buffer to reconstruct
      */
@@ -441,7 +442,7 @@ out:
 static int isa_l_rs_vand_min_fragments(void *desc, int *missing_idxs,
         int *fragments_to_exclude, int *fragments_needed)
 {
-    struct isa_l_rs_vand_descriptor *isa_l_desc = 
+    struct isa_l_rs_vand_descriptor *isa_l_desc =
         (struct isa_l_rs_vand_descriptor*)desc;
 
     uint64_t exclude_bm = convert_list_to_bitmap(fragments_to_exclude);
@@ -470,7 +471,7 @@ static void * isa_l_rs_vand_init(struct ec_backend_args *args,
         void *backend_sohandle)
 {
     struct isa_l_rs_vand_descriptor *desc = NULL;
-    
+
     desc = (struct isa_l_rs_vand_descriptor *)
            malloc(sizeof(struct isa_l_rs_vand_descriptor));
     if (NULL == desc) {
@@ -508,37 +509,37 @@ static void * isa_l_rs_vand_init(struct ec_backend_args *args,
     func_handle.vptr = dlsym(backend_sohandle, "ec_encode_data");
     desc->ec_encode_data = func_handle.encodep;
     if (NULL == desc->ec_encode_data) {
-        goto error; 
+        goto error;
     }
-  
+
     func_handle.vptr = NULL;
     func_handle.vptr = dlsym(backend_sohandle, "ec_init_tables");
     desc->ec_init_tables = func_handle.init_tablesp;
     if (NULL == desc->ec_init_tables) {
-        goto error; 
+        goto error;
     }
-    
+
     func_handle.vptr = NULL;
     func_handle.vptr = dlsym(backend_sohandle, "gf_gen_rs_matrix");
     desc->gf_gen_rs_matrix = func_handle.gen_matrixp;
     if (NULL == desc->gf_gen_rs_matrix) {
-        goto error; 
+        goto error;
     }
-    
+
     func_handle.vptr = NULL;
     func_handle.vptr = dlsym(backend_sohandle, "gf_invert_matrix");
     desc->gf_invert_matrix = func_handle.invert_matrixp;
     if (NULL == desc->gf_invert_matrix) {
-        goto error; 
+        goto error;
     }
-    
+
     func_handle.vptr = NULL;
     func_handle.vptr = dlsym(backend_sohandle, "gf_mul");
     desc->gf_mul = func_handle.gf_mulp;
     if (NULL == desc->gf_mul) {
-        goto error; 
+        goto error;
     }
-  
+
     desc->matrix = malloc(sizeof(char) * desc->k * (desc->k + desc->m));
     if (NULL == desc->matrix) {
         goto error;
@@ -553,14 +554,14 @@ static void * isa_l_rs_vand_init(struct ec_backend_args *args,
 
 error:
     free(desc);
-    
+
     return NULL;
 }
 
 /**
- * Return the element-size, which is the number of bits stored 
+ * Return the element-size, which is the number of bits stored
  * on a given device, per codeword.  This is always 8 in ISA-L
- * 
+ *
  * Returns the size in bits!
  */
 static int
@@ -572,7 +573,7 @@ isa_l_rs_vand_element_size(void* desc)
 static int isa_l_rs_vand_exit(void *desc)
 {
     struct isa_l_rs_vand_descriptor *isa_l_desc = NULL;
-    
+
     isa_l_desc = (struct isa_l_rs_vand_descriptor*) desc;
 
     free(isa_l_desc);

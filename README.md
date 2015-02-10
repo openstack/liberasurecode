@@ -387,6 +387,8 @@ Code organization
  |   |   +-- jerasure                 
  |   |       +-- jerasure_rs_cauchy.c --> 'jerasure_rs_vand' erasure code backend
  |   |       +-- jerasure_rs_vand.c   --> 'jerasure_rs_cauchy' erasure code backend
+ |   |   +-- isa-l
+ |   |       +-- isa_l_rs_vand.c      --> 'isa_l_rs_vand' erasure code backend
  |   |
  |   |-- builtin
  |   |   +-- xor_codes                --> XOR HD code backend, built-in erasure
