@@ -328,6 +328,8 @@ int liberasurecode_get_aligned_data_size(int desc, uint64_t data_len);
  */
 int liberasurecode_get_minimum_encode_size(int desc);
 
+int liberasurecode_get_fragment_size(int desc, int size);
+
 /* ==~=*=~===~=*=~==~=*=~== liberasurecode Error codes =~=*=~==~=~=*=~==~== */
 
 /* Error codes */

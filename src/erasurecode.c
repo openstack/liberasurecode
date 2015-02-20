@@ -1121,6 +1121,16 @@ int liberasurecode_get_minimum_encode_size(int desc)
     return liberasurecode_get_aligned_data_size(desc, 1);
 }
 
+int liberasurecode_get_fragment_size(int desc, int orig_data_size)
+{
+    ec_backend_t instance = liberasurecode_backend_instance_get_by_desc(desc);
+    // TODO: Create a common function to calculate fragment size also for preprocessing
+    int aligned_data_len = get_aligned_data_size(instance, orig_data_size);
+    int size = (aligned_data_len / instance->args.uargs.k) + instance->common.metadata_adder;
+
+    return size;
+}
+
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=* misc *=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
 #if 0
