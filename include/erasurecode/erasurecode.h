@@ -328,6 +328,18 @@ int liberasurecode_get_aligned_data_size(int desc, uint64_t data_len);
  */
 int liberasurecode_get_minimum_encode_size(int desc);
 
+/**
+ * This will return the fragment size, which is each fragment data
+ * length the backend will allocate when encoding.
+ *
+ * @param desc - liberasurecode descriptor/handle
+ *        from liberasurecode_instance_create()
+ * @param data_len - original data length in bytes
+ *
+ * @return fragment size
+ */
+int liberasurecode_get_fragment_size(int desc, int data_len);
+
 /* ==~=*=~===~=*=~==~=*=~== liberasurecode Error codes =~=*=~==~=~=*=~==~== */
 
 /* Error codes */
