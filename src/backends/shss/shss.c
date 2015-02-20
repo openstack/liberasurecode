@@ -31,7 +31,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <alloca.h>
 
 #include "erasurecode.h"
 #include "erasurecode_helpers.h"
@@ -224,18 +223,24 @@ static int shss_element_size(void* desc)
 
 static void * shss_init(struct ec_backend_args *args, void *backend_sohandle)
 {
-    static struct shss_descriptor xdesc;
+    struct shss_descriptor *desc = NULL;
 
-    xdesc.k = args->uargs.k;
-    xdesc.m = args->uargs.m;
-    xdesc.n = args->uargs.k + args->uargs.m;
-    xdesc.w = DEFAULT_W;
+    desc = (struct shss_descriptor *)
+           malloc(sizeof(struct shss_descriptor));
+    if (NULL == desc) {
+        return NULL;
+    }
+
+    desc->k = args->uargs.k;
+    desc->m = args->uargs.m;
+    desc->n = args->uargs.k + args->uargs.m;
+    desc->w = DEFAULT_W;
     args->uargs.w = DEFAULT_W;
 
     /* Sample on how to pass extra args to the backend */
     // TODO: Need discussion how to pass extra args.
     int *priv = (int *)args->uargs.priv_args2;
-    xdesc.aes_bit_length = priv[0]; // AES bit number
+    desc->aes_bit_length = priv[0]; // AES bit number
 
     union {
         shss_encode_func encodep;
@@ -246,33 +251,38 @@ static void * shss_init(struct ec_backend_args *args, void *backend_sohandle)
 
     func_handle.vptr = NULL;
     func_handle.vptr = dlsym(backend_sohandle, "ssencode");
-    xdesc.ssencode = func_handle.encodep;
-    if (NULL == xdesc.ssencode) {
+    desc->ssencode = func_handle.encodep;
+    if (NULL == desc->ssencode) {
         goto error;
     }
 
     func_handle.vptr = NULL;
     func_handle.vptr = dlsym(backend_sohandle, "ssdecode");
-    xdesc.ssdecode = func_handle.decodep;
-    if (NULL == xdesc.ssdecode) {
+    desc->ssdecode = func_handle.decodep;
+    if (NULL == desc->ssdecode) {
         goto error;
     }
 
     func_handle.vptr = NULL;
     func_handle.vptr = dlsym(backend_sohandle, "ssreconst");
-    xdesc.ssreconst = func_handle.reconp;
-    if (NULL == xdesc.ssreconst) {
+    desc->ssreconst = func_handle.reconp;
+    if (NULL == desc->ssreconst) {
         goto error;
     }
 
-    return (void *)&xdesc;
+    return desc;
 
 error:
+    free(desc);
+
     return NULL;
 }
 
 static int shss_exit(void *desc)
 {
+    if (desc != NULL) {
+        free(desc);
+    }
     return 0;
 }
 
