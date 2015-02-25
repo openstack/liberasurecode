@@ -14,6 +14,7 @@ Highlights
 
    - 'Jerasure' - Erasure Coding library that supports Reed-Solomon, Cauchy backends [1]
    - 'ISA-L' - Intel Storage Acceleration Library - SIMD accelerated Erasure Coding backends [2]
+   - 'SHSS' - NTT Lab Japan's hybrid Erasure Coding backend [4]
    - 'Flat XOR HD' - built-in to liberasurecode, based on [3]
    - 'NULL' template backend implemented to help future backend writers
 
@@ -386,14 +387,16 @@ Code organization
  |   |                                    (frontend + backend)
  |   |-- backends
  |   |   +-- null
- |   |       +--- null.c              --> 'null' erasure code backend
+ |   |       +--- null.c              --> 'null' erasure code backend (template backend)
  |   |   +-- xor
- |   |       +--- flat_xor_hd.c       --> 'flat_xor_hd' erasure code backend
+ |   |       +--- flat_xor_hd.c       --> 'flat_xor_hd' erasure code backend (built-in)
  |   |   +-- jerasure                 
- |   |       +-- jerasure_rs_cauchy.c --> 'jerasure_rs_vand' erasure code backend
- |   |       +-- jerasure_rs_vand.c   --> 'jerasure_rs_cauchy' erasure code backend
+ |   |       +-- jerasure_rs_cauchy.c --> 'jerasure_rs_vand' erasure code backend (jerasure.org)
+ |   |       +-- jerasure_rs_vand.c   --> 'jerasure_rs_cauchy' erasure code backend (jerasure.org)
  |   |   +-- isa-l
- |   |       +-- isa_l_rs_vand.c      --> 'isa_l_rs_vand' erasure code backend
+ |   |       +-- isa_l_rs_vand.c      --> 'isa_l_rs_vand' erasure code backend (Intel)
+ |   |   +-- shss
+ |   |       +-- shss.c               --> 'shss' erasure code backend (NTT Labs)
  |   |
  |   |-- builtin
  |   |   +-- xor_codes                --> XOR HD code backend, built-in erasure
@@ -436,3 +439,6 @@ References
  [2] Intel(R) Storage Acceleration Library (Open Source Version), https://01.org/intel%C2%AE-storage-acceleration-library-open-source-version
 
  [3] Greenan, Kevin M et al, "Flat XOR-based erasure codes in storage systems", http://www.kaymgee.com/Kevin_Greenan/Publications_files/greenan-msst10.pdf
+
+ [4] Kota Tsuyuzaki <tsuyuzaki.kota@lab.ntt.co.jp>, Ryuta Kon <kon.ryuta@po.ntts.co.jp>, "NTT SHSS Erasure Coding backend"
+
