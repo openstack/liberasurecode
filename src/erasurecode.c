@@ -43,6 +43,7 @@ extern struct ec_backend_common backend_flat_xor_hd;
 extern struct ec_backend_common backend_jerasure_rs_vand;
 extern struct ec_backend_common backend_jerasure_rs_cauchy;
 extern struct ec_backend_common backend_isa_l_rs_vand;
+extern struct ec_backend_common backend_shss;
 
 ec_backend_t ec_backends_supported[] = {
     (ec_backend_t) &backend_null,
@@ -50,6 +51,7 @@ ec_backend_t ec_backends_supported[] = {
     (ec_backend_t) &backend_jerasure_rs_cauchy,
     (ec_backend_t) &backend_flat_xor_hd,
     (ec_backend_t) &backend_isa_l_rs_vand,
+    (ec_backend_t) &backend_shss,
     NULL,
 };
 
@@ -136,7 +138,7 @@ exit:
 int liberasurecode_backend_instance_unregister(ec_backend_t instance)
 {
     int rc = 0;  /* return call value */
-    
+
     rc = rwlock_wrlock(&active_instances_rwlock);
     if (rc == 0) {
         SLIST_REMOVE(&active_instances, instance, ec_backend, link);
@@ -196,7 +198,7 @@ void __attribute__ ((constructor))
 liberasurecode_init(void) {
     /* init logging */
     openlog("liberasurecode", LOG_PID | LOG_CONS, LOG_USER);
-    
+
     /* populate supported backends list as a string */
     {
         int i;
@@ -219,7 +221,7 @@ liberasurecode_exit(void) {
 /* =~=*=~==~=*=~= liberasurecode frontend API implementation =~=*=~==~=*=~== */
 
 /**
- * Create a liberasurecode instance and return a descriptor 
+ * Create a liberasurecode instance and return a descriptor
  * for use with EC operations (encode, decode, reconstruct)
  *
  * @param id - one of the supported backends as
@@ -313,9 +315,9 @@ int liberasurecode_instance_destroy(int desc)
 
 /**
  * Cleanup structures allocated by librasurecode_encode
- * 
+ *
  * The caller has no context, so cannot safely free memory
- * allocated by liberasurecode, so it must pass the 
+ * allocated by liberasurecode, so it must pass the
  * deallocation responsibility back to liberasurecode.
  *
  * @param desc - liberasurecode descriptor/handle
@@ -346,12 +348,12 @@ int liberasurecode_encode_cleanup(int desc,
 
         free(encoded_data);
     }
-   
-    if (encoded_parity) { 
+
+    if (encoded_parity) {
         for (i = 0; i < m; i++) {
             free(encoded_parity[i]);
         }
-    
+
         free(encoded_parity);
     }
 
@@ -471,7 +473,7 @@ out:
  *
  * @param desc - liberasurecode descriptor/handle
  *        from liberasurecode_instance_create()
- * @param data - (char *) buffer of data decoded by 
+ * @param data - (char *) buffer of data decoded by
  *        librasurecode_decode
  * @return 0 in success; -error otherwise
  */
@@ -560,7 +562,9 @@ int liberasurecode_decode(int desc,
                               available_fragments, num_fragments,
                               out_data, out_data_len);
 
-    if (ret == 0) {
+    /* shss (ntt_backend) must force to decode */
+    // TODO: Add a frag and function to handle whether the backend want to decode or not.
+    if (ret == 0 && instance->common.id != 5) {
         /* We were able to get the original data without decoding! */
         goto out;
     }
@@ -573,20 +577,20 @@ int liberasurecode_decode(int desc,
         log_error("Could not allocate data buffer!");
         goto out;
     }
-    
+
     parity = alloc_zeroed_buffer(sizeof(char*) * m);
     if (NULL == parity) {
         log_error("Could not allocate parity buffer!");
         goto out;
     }
-    
+
     missing_idxs = alloc_and_set_buffer(sizeof(char*) * k, -1);
     if (NULL == missing_idxs) {
         log_error("Could not allocate missing_idxs buffer!");
         goto out;
     }
 
-    /* If metadata checks requested, check fragment integrity upfront */ 
+    /* If metadata checks requested, check fragment integrity upfront */
     if (force_metadata_checks) {
         int num_invalid_fragments = 0;
         for (i = 0; i < num_fragments; ++i) {
@@ -600,7 +604,7 @@ int liberasurecode_decode(int desc,
             goto out;
         }
     }
-    
+
     /*
      * Separate the fragments into data and parity.  Also determine which
      * pieces are missing.
@@ -621,7 +625,7 @@ int liberasurecode_decode(int desc,
      *
      */
     ret = prepare_fragments_for_decode(k, m,
-                                       data, parity, missing_idxs, 
+                                       data, parity, missing_idxs,
                                        &orig_data_size, &blocksize,
                                        fragment_len, &realloc_bm);
     if (ret < 0) {
@@ -638,20 +642,20 @@ int liberasurecode_decode(int desc,
     ret = instance->common.ops->decode(instance->desc.backend_desc,
                                        data_segments, parity_segments,
                                        missing_idxs, blocksize);
-    
+
     if (ret < 0) {
         log_error("Encountered error in backend decode function!");
         goto out;
     }
 
     /*
-     * Need to fill in the missing data headers so we can generate 
+     * Need to fill in the missing data headers so we can generate
      * the original string.
      */
     j = 0;
-    while (missing_idxs[j] >= 0) { 
+    while (missing_idxs[j] >= 0) {
         int set_chksum = 1;
-        int missing_idx = missing_idxs[j]; 
+        int missing_idx = missing_idxs[j];
         if (missing_idx < k) {
             /* Generate headers */
             char *fragment_ptr = data[missing_idx];
@@ -662,7 +666,7 @@ int liberasurecode_decode(int desc,
         }
         j++;
     }
-    
+
     /* Try to generate the original string */
     ret = fragments_to_string(k, m, data, k, out_data, out_data_len);
 
@@ -745,10 +749,10 @@ int liberasurecode_reconstruct_fragment(int desc,
         ret = -1;
         goto out;
     }
-    
+
     k = instance->args.uargs.k;
     m = instance->args.uargs.m;
-    
+
     /*
      * Allocate arrays for data, parity and missing_idxs
      */
@@ -757,19 +761,19 @@ int liberasurecode_reconstruct_fragment(int desc,
         log_error("Could not allocate data buffer!");
         goto out;
     }
-    
+
     parity = alloc_zeroed_buffer(sizeof(char*) * m);
     if (NULL == parity) {
         log_error("Could not allocate parity buffer!");
         goto out;
     }
-    
+
     missing_idxs = alloc_and_set_buffer(sizeof(int*) * k, -1);
     if (NULL == missing_idxs) {
         log_error("Could not allocate missing_idxs buffer!");
         goto out;
     }
-    
+
     /*
      * Separate the fragments into data and parity.  Also determine which
      * pieces are missing.
@@ -863,7 +867,7 @@ out:
  * @desc: liberasurecode instance descriptor (obtained with
  *        liberasurecode_instance_create)
  * @fragments_to_reconstruct list of indexes to reconstruct
- * @fragments_to_exclude list of indexes to exclude from 
+ * @fragments_to_exclude list of indexes to exclude from
           reconstruction equation
  * @fragments_needed list of fragments needed to reconstruct
           fragments in fragments_to_reconstruct
@@ -872,7 +876,7 @@ out:
  *        from (in 'fragments_needed')
  */
 int liberasurecode_fragments_needed(int desc,
-                                    int *fragments_to_reconstruct, 
+                                    int *fragments_to_reconstruct,
                                     int *fragments_to_exclude,
                                     int *fragments_needed)
 {
@@ -1065,10 +1069,10 @@ int liberasurecode_verify_stripe_metadata(int desc,
 /* =~=*=~==~=*=~==~=*=~==~=*=~===~=*=~==~=*=~===~=*=~==~=*=~===~=*=~==~=*=~= */
 
 /**
- * This computes the aligned size of a buffer passed into 
+ * This computes the aligned size of a buffer passed into
  * the encode function.  The encode function must pad fragments
  * to be algined with the word size (w) and the last fragment also
- * needs to be aligned.  This computes the sum of the algined fragment 
+ * needs to be aligned.  This computes the sum of the algined fragment
  * sizes for a given buffer to encode.
  */
 int liberasurecode_get_aligned_data_size(int desc, uint64_t data_len)
@@ -1083,7 +1087,7 @@ int liberasurecode_get_aligned_data_size(int desc, uint64_t data_len)
         ret = -EBACKENDNOTAVAIL;
         goto out;
     }
-    
+
     k = instance->args.uargs.k;
 
     word_size = instance->common.ops->element_size(
@@ -1091,7 +1095,7 @@ int liberasurecode_get_aligned_data_size(int desc, uint64_t data_len)
 
     alignment_multiple = k * word_size;
 
-    ret = (int) ceill( (double) 
+    ret = (int) ceill( (double)
             data_len / alignment_multiple) * alignment_multiple;
 
 out:

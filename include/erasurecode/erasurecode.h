@@ -45,6 +45,7 @@ typedef enum {
     EC_BACKEND_JERASURE_RS_CAUCHY   = 2,
     EC_BACKEND_FLAT_XOR_HD          = 3,
     EC_BACKEND_ISA_L_RS_VAND        = 4,
+    EC_BACKEND_SHSS                 = 5,
     EC_BACKENDS_MAX,
 } ec_backend_id_t;
 
