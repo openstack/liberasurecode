@@ -10,7 +10,12 @@ Highlights
 
  * Unified Erasure Coding interface for common storage workloads.
 
- * Pluggable Erasure Code backends - As of v1.0-rc1, liberasurecode supports 'Jerasure' (Reed-Solomon, Cauchy), 'ISA-L' (Intel Storage Acceleration Library), 'Flat XOR HD' backends.  A template 'NULL' backend is implemented to help future backend writers. 
+ * Pluggable Erasure Code backends - As of v1.0-rc1, liberasurecode supports the following backends:
+
+   - 'Jerasure' - Erasure Coding library that supports Reed-Solomon, Cauchy backends [1]
+   - 'ISA-L' - Intel Storage Acceleration Library - SIMD accelerated Erasure Coding backends [2]
+   - 'Flat XOR HD' - built-in to liberasurecode, based on [3]
+   - 'NULL' template backend implemented to help future backend writers
 
  * True 'plugin' architecture - liberasurecode uses Dynamically Loaded (DL) libraries to realize a true 'plugin' architecture.  This also allows one to build liberasurecode indepdendent of the Erasure Code backend libraries.
 
@@ -422,3 +427,12 @@ Code organization
  +-- ChangeLog
 ```
 ---
+
+References
+==========
+
+ [1] Jerasure, C library that supports erasure coding in storage applications, http://jerasure.org
+
+ [2] Intel(R) Storage Acceleration Library (Open Source Version), https://01.org/intel%C2%AE-storage-acceleration-library-open-source-version
+
+ [3] Greenan, Kevin M et al, "Flat XOR-based erasure codes in storage systems", http://www.kaymgee.com/Kevin_Greenan/Publications_files/greenan-msst10.pdf
