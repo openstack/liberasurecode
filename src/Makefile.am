@@ -19,7 +19,7 @@ liberasurecode_la_SOURCES = \
 		backends/xor/flat_xor_hd.c \
 		backends/jerasure/jerasure_rs_vand.c \
 		backends/jerasure/jerasure_rs_cauchy.c \
-		backends/isa-l/isa_l_vand.c \
+		backends/isa-l/isa_l_rs_vand.c \
 		backends/shss/shss.c
 
 # Install additional header files
