@@ -39,6 +39,7 @@
 /* Forward declarations */
 struct ec_backend shss;
 struct ec_backend_op_stubs shss_ops;
+struct ec_backend_common backend_shss;
 
 typedef int (*shss_encode_func)(char **, size_t, int, int, int, int, long long *);
 typedef int (*shss_decode_func)(char **, size_t, int *, int, int, int, int, int, long long *);
@@ -66,18 +67,7 @@ struct shss_descriptor {
 #define SHSS_SO_NAME "libshss.so"
 #endif
 #define DEFAULT_W 128
-
-/* TODO:
-   metadata_adder is still in discussion. shss needs to a fixed value to allocate extra bytes
-   for *each* fragment. However, current liberasurecode calculates the extra bytes as
-   "(alined_data_size + metadata_adder) / k" so that shss has to define the METADATA as a big value
-   to alloc enough memory for the maximum number of k even if k is smaller than the maximum value.
-
-   i.e. (shss specification is)
-   Enough Extra Bytes (for *each* fragment): 32
-   The Maximum Number: 20 (k=20)
-*/
-#define METADATA 32 * 20
+#define METADATA 32
 
 static int shss_encode(void *desc, char **data, char **parity,
         int blocksize)
@@ -286,6 +276,10 @@ static int shss_exit(void *desc)
     return 0;
 }
 
+static bool shss_is_compatible_with(uint32_t version) {
+    return version == backend_shss.ec_backend_version;
+}
+
 struct ec_backend_op_stubs shss_op_stubs = {
     .INIT                       = shss_init,
     .EXIT                       = shss_exit,
@@ -294,6 +288,7 @@ struct ec_backend_op_stubs shss_op_stubs = {
     .FRAGSNEEDED                = shss_fragments_needed,
     .RECONSTRUCT                = shss_reconstruct,
     .ELEMENTSIZE                = shss_element_size,
+    .ISCOMPATIBLEWITH           = shss_is_compatible_with,
 };
 
 struct ec_backend_common backend_shss = {

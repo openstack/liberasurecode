@@ -621,7 +621,10 @@ static void encode_decode_test_impl(const ec_backend_id_t be_id,
         assert(metadata.orig_data_size == orig_data_size);
         char *data_ptr = frag + frag_header_size;
         int cmp_size = remaining >= metadata.size ? metadata.size : remaining;
-        assert(memcmp(data_ptr, orig_data_ptr, cmp_size) == 0);
+        // shss doesn't keep original data on data fragments
+        if (be_id != 5) {
+            assert(memcmp(data_ptr, orig_data_ptr, cmp_size) == 0);
+        }
         remaining -= cmp_size;
         orig_data_ptr += metadata.size;
     }
@@ -629,7 +632,6 @@ static void encode_decode_test_impl(const ec_backend_id_t be_id,
     num_avail_frags = create_frags_array(&avail_frags, encoded_data,
                                          encoded_parity, args, skip);
     assert(num_avail_frags != -1);
-
     rc = liberasurecode_decode(desc, avail_frags, num_avail_frags,
                                encoded_fragment_len, 1,
                                &decoded_data, &decoded_data_len);
