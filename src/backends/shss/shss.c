@@ -229,8 +229,13 @@ static void * shss_init(struct ec_backend_args *args, void *backend_sohandle)
 
     /* Sample on how to pass extra args to the backend */
     // TODO: Need discussion how to pass extra args.
+    // tentatively we could pass with priv_args2 as the bit_length
     int *priv = (int *)args->uargs.priv_args2;
-    desc->aes_bit_length = priv[0]; // AES bit number
+    if(priv != NULL){
+        desc->aes_bit_length = priv[0]; // AES bit number
+    }else{
+        desc->aes_bit_length = 128;
+    }
 
     union {
         shss_encode_func encodep;
