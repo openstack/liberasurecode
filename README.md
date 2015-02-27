@@ -55,8 +55,9 @@ typedef enum {
     EC_BACKEND_NULL                 = 0, /* "null" */
     EC_BACKEND_JERASURE_RS_VAND     = 1, /* "jerasure_rs_vand" */
     EC_BACKEND_JERASURE_RS_CAUCHY   = 2, /* "jerasure_rs_cauchy" */
-    EC_BACKEND_FLAT_XOR_HD          = 3, /* "flat_xor_hd */
-    EC_BACKEND_ISA_L_RS_VAND        = 4, /* "isa_l_rs_vand */
+    EC_BACKEND_FLAT_XOR_HD          = 3, /* "flat_xor_hd" */
+    EC_BACKEND_ISA_L_RS_VAND        = 4, /* "isa_l_rs_vand" */
+    EC_BACKEND_SHSS                 = 5, /* "shss" */
     EC_BACKENDS_MAX,
 } ec_backend_id_t;
 
