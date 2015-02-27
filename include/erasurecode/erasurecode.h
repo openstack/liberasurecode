@@ -336,7 +336,7 @@ int liberasurecode_get_minimum_encode_size(int desc);
  *        from liberasurecode_instance_create()
  * @param data_len - original data length in bytes
  *
- * @return fragment size
+ * @return fragment size - sizeof(fragment_header) + size + frag_adder_size
  */
 int liberasurecode_get_fragment_size(int desc, int data_len);
 
