@@ -163,13 +163,11 @@ int free_fragment_buffer(char *buf)
  */
 uint64_t get_fragment_size(char *buf)
 {
-    fragment_header_t *header = NULL;
 
     if (NULL == buf)
         return -1;
 
-    header = (fragment_header_t *) buf;
-    return (header->meta.size + sizeof(fragment_header_t));
+    return get_fragment_buffer_size(buf) + sizeof(fragment_header_t);
  }
 
 /**
@@ -187,9 +185,6 @@ int get_aligned_data_size(ec_backend_t instance, int data_len)
     int word_size = w / 8;
     int alignment_multiple;
     int aligned_size = 0;
-
-    /* Account for any custom metadata the backend wants to add in data_len */
-    data_len += instance->common.metadata_adder;
 
     /*
      * For Cauchy reed-solomon align to k*word_size*packet_size
@@ -227,6 +222,22 @@ int get_data_ptr_array_from_fragments(char **data_array, char **fragments,
             continue;
         }
         data_array[i] = get_data_ptr_from_fragment(frag);
+        num++;
+    }
+    return num;
+}
+
+int get_fragment_ptr_array_from_data(char **frag_array, char **data,
+                                     int num_data)
+{
+    int i = 0, num = 0;
+    for (i = 0; i < num_data; i++) {
+        char *data_ptr = frag_array[i];
+        if (data_ptr == NULL) {
+            data[i] = NULL;
+            continue;
+        }
+        data[i] = get_fragment_ptr_from_data(data_ptr);
         num++;
     }
     return num;
@@ -311,6 +322,47 @@ int get_fragment_payload_size(char *buf)
     }
 
     return header->meta.size;
+}
+
+int set_fragment_adder_size(char *buf, int size)
+{
+    fragment_header_t *header = (fragment_header_t *) buf;
+
+    assert(NULL != header);
+    if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
+        log_error("Invalid fragment header (set adder size)!");
+        return -1;
+    }
+
+    header->meta.frag_adder_size = size;
+
+    return 0;
+}
+
+int get_fragment_adder_size(char *buf)
+{
+    fragment_header_t *header = (fragment_header_t *) buf;
+
+    assert(NULL != header);
+    if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
+        log_error("Invalid fragment header (get adder size)!");
+        return -1;
+    }
+
+    return header->meta.frag_adder_size;
+}
+
+int get_fragment_buffer_size(char *buf)
+{
+    fragment_header_t *header = (fragment_header_t *) buf;
+
+    assert(NULL != header);
+    if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
+        log_error("Invalid fragment header (get size)!");
+        return -1;
+    }
+
+    return header->meta.size + header->meta.frag_adder_size;
 }
 
 int set_orig_data_size(char *buf, int orig_data_size)

@@ -31,7 +31,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <alloca.h>
 
 #include "erasurecode.h"
 #include "erasurecode_helpers.h"
@@ -40,6 +39,7 @@
 /* Forward declarations */
 struct ec_backend shss;
 struct ec_backend_op_stubs shss_ops;
+struct ec_backend_common backend_shss;
 
 typedef int (*shss_encode_func)(char **, size_t, int, int, int, int, long long *);
 typedef int (*shss_decode_func)(char **, size_t, int *, int, int, int, int, int, long long *);
@@ -67,18 +67,7 @@ struct shss_descriptor {
 #define SHSS_SO_NAME "libshss.so"
 #endif
 #define DEFAULT_W 128
-
-/* TODO:
-   metadata_adder is still in discussion. shss needs to a fixed value to allocate extra bytes
-   for *each* fragment. However, current liberasurecode calculates the extra bytes as
-   "(alined_data_size + metadata_adder) / k" so that shss has to define the METADATA as a big value
-   to alloc enough memory for the maximum number of k even if k is smaller than the maximum value.
-
-   i.e. (shss specification is)
-   Enough Extra Bytes (for *each* fragment): 32
-   The Maximum Number: 20 (k=20)
-*/
-#define METADATA 32 * 20
+#define METADATA 32
 
 static int shss_encode(void *desc, char **data, char **parity,
         int blocksize)
@@ -224,18 +213,29 @@ static int shss_element_size(void* desc)
 
 static void * shss_init(struct ec_backend_args *args, void *backend_sohandle)
 {
-    static struct shss_descriptor xdesc;
+    struct shss_descriptor *desc = NULL;
 
-    xdesc.k = args->uargs.k;
-    xdesc.m = args->uargs.m;
-    xdesc.n = args->uargs.k + args->uargs.m;
-    xdesc.w = DEFAULT_W;
+    desc = (struct shss_descriptor *)
+           malloc(sizeof(struct shss_descriptor));
+    if (NULL == desc) {
+        return NULL;
+    }
+
+    desc->k = args->uargs.k;
+    desc->m = args->uargs.m;
+    desc->n = args->uargs.k + args->uargs.m;
+    desc->w = DEFAULT_W;
     args->uargs.w = DEFAULT_W;
 
     /* Sample on how to pass extra args to the backend */
     // TODO: Need discussion how to pass extra args.
+    // tentatively we could pass with priv_args2 as the bit_length
     int *priv = (int *)args->uargs.priv_args2;
-    xdesc.aes_bit_length = priv[0]; // AES bit number
+    if(priv != NULL){
+        desc->aes_bit_length = priv[0]; // AES bit number
+    }else{
+        desc->aes_bit_length = 128;
+    }
 
     union {
         shss_encode_func encodep;
@@ -246,34 +246,43 @@ static void * shss_init(struct ec_backend_args *args, void *backend_sohandle)
 
     func_handle.vptr = NULL;
     func_handle.vptr = dlsym(backend_sohandle, "ssencode");
-    xdesc.ssencode = func_handle.encodep;
-    if (NULL == xdesc.ssencode) {
+    desc->ssencode = func_handle.encodep;
+    if (NULL == desc->ssencode) {
         goto error;
     }
 
     func_handle.vptr = NULL;
     func_handle.vptr = dlsym(backend_sohandle, "ssdecode");
-    xdesc.ssdecode = func_handle.decodep;
-    if (NULL == xdesc.ssdecode) {
+    desc->ssdecode = func_handle.decodep;
+    if (NULL == desc->ssdecode) {
         goto error;
     }
 
     func_handle.vptr = NULL;
     func_handle.vptr = dlsym(backend_sohandle, "ssreconst");
-    xdesc.ssreconst = func_handle.reconp;
-    if (NULL == xdesc.ssreconst) {
+    desc->ssreconst = func_handle.reconp;
+    if (NULL == desc->ssreconst) {
         goto error;
     }
 
-    return (void *)&xdesc;
+    return desc;
 
 error:
+    free(desc);
+
     return NULL;
 }
 
 static int shss_exit(void *desc)
 {
+    if (desc != NULL) {
+        free(desc);
+    }
     return 0;
+}
+
+static bool shss_is_compatible_with(uint32_t version) {
+    return version == backend_shss.ec_backend_version;
 }
 
 struct ec_backend_op_stubs shss_op_stubs = {
@@ -284,6 +293,7 @@ struct ec_backend_op_stubs shss_op_stubs = {
     .FRAGSNEEDED                = shss_fragments_needed,
     .RECONSTRUCT                = shss_reconstruct,
     .ELEMENTSIZE                = shss_element_size,
+    .ISCOMPATIBLEWITH           = shss_is_compatible_with,
 };
 
 struct ec_backend_common backend_shss = {

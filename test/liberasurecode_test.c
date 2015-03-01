@@ -30,6 +30,7 @@
 #include <stdbool.h>
 #include "erasurecode.h"
 #include "erasurecode_helpers.h"
+#include "erasurecode_preprocessing.h"
 #include "erasurecode_backend.h"
 #include "alg_sig.h"
 #define NULL_BACKEND "null"
@@ -212,6 +213,12 @@ out:
     return num_frags;
 }
 
+static int encode_failure_stub(void *desc, char **data,
+                               char **parity, int blocksize)
+{
+    return -1;
+}
+
 static void validate_fragment_checksum(struct ec_args *args,
     fragment_metadata_t *metadata, char *fragment_data)
 {
@@ -279,6 +286,8 @@ static void test_encode_invalid_args()
     char *orig_data = create_buffer(orig_data_size, 'x');
     char **encoded_data = NULL, **encoded_parity = NULL;
     uint64_t encoded_fragment_len = 0;
+    ec_backend_t instance = NULL;
+    int (*orig_encode_func)(void *, char **, char **, int);
 
     assert(orig_data != NULL);
     rc = liberasurecode_encode(desc, orig_data, orig_data_size,
@@ -307,6 +316,15 @@ static void test_encode_invalid_args()
     rc = liberasurecode_encode(desc, orig_data, orig_data_size,
             &encoded_data, &encoded_parity, NULL);
     assert(rc < 0);
+
+    instance = liberasurecode_backend_instance_get_by_desc(desc);
+    orig_encode_func = instance->common.ops->encode;
+    instance->common.ops->encode = encode_failure_stub;
+    rc = liberasurecode_encode(desc, orig_data, orig_data_size,
+            &encoded_data, &encoded_parity, &encoded_fragment_len);
+    assert(rc < 0);
+    instance->common.ops->encode = orig_encode_func;
+
     free(orig_data);
 }
 
@@ -501,6 +519,61 @@ static void test_verify_stripe_metadata_invalid_args() {
 
 }
 
+static void test_get_fragment_partition()
+{
+    int i;
+    int rc = 0;
+    int desc = -1;
+    int orig_data_size = 1024 * 1024;
+    char *orig_data = create_buffer(orig_data_size, 'x');
+    char **encoded_data = NULL, **encoded_parity = NULL;
+    uint64_t encoded_fragment_len = 0;
+    int num_avail_frags = -1;
+    char **avail_frags = NULL;
+    int *skips = create_skips_array(&null_args, -1);
+    int *missing;
+
+    desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
+    assert(desc > 0);
+    rc = liberasurecode_encode(desc, orig_data, orig_data_size,
+            &encoded_data, &encoded_parity, &encoded_fragment_len);
+    assert(0 == rc);
+
+    missing = alloc_and_set_buffer(sizeof(char*) * null_args.k, -1);
+
+    for(i = 0; i < null_args.m; i++) skips[i] = 1;
+    num_avail_frags = create_frags_array(&avail_frags, encoded_data,
+                                         encoded_parity, &null_args, skips);
+
+    rc = get_fragment_partition(null_args.k, null_args.m, avail_frags, num_avail_frags,
+                                encoded_data, encoded_parity, missing);
+    assert(0 == rc);
+
+    for(i = 0; i < null_args.m; i++) assert(missing[i] == i);
+    assert(missing[++i] == -1);
+
+    free(missing);
+
+    for(i = 0; i < null_args.m + 1; i++) skips[i] = 1;
+    num_avail_frags = create_frags_array(&avail_frags, encoded_data,
+                                         encoded_parity, &null_args, skips);
+
+    missing = alloc_and_set_buffer(sizeof(char*) * null_args.k, -1);
+    rc = get_fragment_partition(null_args.k, null_args.m, avail_frags, num_avail_frags,
+                                encoded_data, encoded_parity, missing);
+
+    for(i = 0; i < null_args.m + 1; i++) assert(missing[i] == i);
+    assert(missing[++i] == -1);
+
+    assert(rc < 0);
+
+    free(missing);
+    free(skips);
+    liberasurecode_encode_cleanup(desc, encoded_data, encoded_parity);
+    free(avail_frags);
+    free(orig_data);
+}
+
 static void encode_decode_test_impl(const ec_backend_id_t be_id,
                                    struct ec_args *args,
                                    int *skip)
@@ -519,8 +592,11 @@ static void encode_decode_test_impl(const ec_backend_id_t be_id,
     int num_avail_frags = 0;
     char *orig_data_ptr = NULL;
     int remaining = 0;
+    ec_backend_t be = NULL;
 
     desc = liberasurecode_instance_create(be_id, args);
+    be = liberasurecode_backend_instance_get_by_desc(desc);
+
     if (-EBACKENDNOTAVAIL == desc) {
         fprintf (stderr, "Backend library not available!\n");
         return;
@@ -541,11 +617,14 @@ static void encode_decode_test_impl(const ec_backend_id_t be_id,
         assert(header != NULL);
         fragment_metadata_t metadata = header->meta;
         assert(metadata.idx == i);
-        assert(metadata.size == encoded_fragment_len - frag_header_size);
+        assert(metadata.size == encoded_fragment_len - frag_header_size - be->common.metadata_adder);
         assert(metadata.orig_data_size == orig_data_size);
         char *data_ptr = frag + frag_header_size;
         int cmp_size = remaining >= metadata.size ? metadata.size : remaining;
-        assert(memcmp(data_ptr, orig_data_ptr, cmp_size) == 0);
+        // shss doesn't keep original data on data fragments
+        if (be_id != 5) {
+            assert(memcmp(data_ptr, orig_data_ptr, cmp_size) == 0);
+        }
         remaining -= cmp_size;
         orig_data_ptr += metadata.size;
     }
@@ -553,7 +632,6 @@ static void encode_decode_test_impl(const ec_backend_id_t be_id,
     num_avail_frags = create_frags_array(&avail_frags, encoded_data,
                                          encoded_parity, args, skip);
     assert(num_avail_frags != -1);
-
     rc = liberasurecode_decode(desc, avail_frags, num_avail_frags,
                                encoded_fragment_len, 1,
                                &decoded_data, &decoded_data_len);
@@ -1107,6 +1185,10 @@ struct testcase testcases[] = {
         .skip = false},
     {"test_fragments_needed_invalid_args",
         test_fragments_needed_invalid_args,
+        EC_BACKENDS_MAX, CHKSUM_TYPES_MAX,
+        .skip = false},
+    {"test_get_fragment_partition",
+        test_get_fragment_partition,
         EC_BACKENDS_MAX, CHKSUM_TYPES_MAX,
         .skip = false},
     // NULL backend test

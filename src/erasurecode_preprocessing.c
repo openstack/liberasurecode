@@ -40,16 +40,17 @@ int prepare_fragments_for_encode(ec_backend_t instance,
     int i, ret = 0;
     int data_len;           /* data len to write to fragment headers */
     int aligned_data_len;   /* EC algorithm compatible data length */
-    int bsize = 0;
+    int buffer_size, payload_size = 0;
 
     /* Calculate data sizes, aligned_data_len guaranteed to be divisible by k*/
     data_len = orig_data_size;
     aligned_data_len = get_aligned_data_size(instance, orig_data_size);
-    *blocksize = bsize = (aligned_data_len / k);
+    *blocksize = payload_size = (aligned_data_len / k);
+    buffer_size = payload_size + instance->common.metadata_adder;
 
     for (i = 0; i < k; i++) {
-        int payload_size = data_len > bsize ? bsize : data_len;
-        char *fragment = (char *) alloc_fragment_buffer(bsize);
+        int copy_size = data_len > payload_size ? payload_size : data_len;
+        char *fragment = (char *) alloc_fragment_buffer(buffer_size);
         if (NULL == fragment) {
             ret = -ENOMEM;
             goto out_error;
@@ -59,15 +60,15 @@ int prepare_fragments_for_encode(ec_backend_t instance,
         encoded_data[i] = get_data_ptr_from_fragment(fragment);
       
         if (data_len > 0) {
-            memcpy(encoded_data[i], orig_data, payload_size);
+            memcpy(encoded_data[i], orig_data, copy_size);
         }
 
-        orig_data += payload_size;
-        data_len -= payload_size;
+        orig_data += copy_size;
+        data_len -= copy_size;
     }
 
     for (i = 0; i < m; i++) {
-        char *fragment = (char *) alloc_fragment_buffer(bsize);
+        char *fragment = (char *) alloc_fragment_buffer(buffer_size);
         if (NULL == fragment) {
             ret = -ENOMEM;
             goto out_error;
@@ -245,8 +246,9 @@ int get_fragment_partition(
             num_missing++;
         }
     }
-
-    return (num_missing > m) ? 1 : 0;
+    // TODO: In general, it is possible to reconstruct one or more fragments
+    // when more than m fragments are missing (e.g. flat XOR codes)
+    return (num_missing > m) ? -1 : 0;
 }
 
 int fragments_to_string(int k, int m,

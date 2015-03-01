@@ -480,7 +480,9 @@ static void * isa_l_rs_vand_init(struct ec_backend_args *args,
 
     desc->k = args->uargs.k;
     desc->m = args->uargs.m;
-    desc->w = ISA_L_W;
+    if (args->uargs.w <= 0)
+        args->uargs.w = ISA_L_W;
+    desc->w = args->uargs.w;
 
     /* validate EC arguments */
     {
