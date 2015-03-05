@@ -247,7 +247,7 @@ fragment_metadata
 {
     uint32_t    idx;                /* 4 */
     uint32_t    size;               /* 4 */
-    uint32_t    frag_adder_size;    /* 4 */
+    uint32_t    frag_backend_metadata_size;    /* 4 */
     uint64_t    orig_data_size;     /* 8 */
     uint8_t     chksum_type;        /* 1 */
     uint32_t    chksum[LIBERASURECODE_MAX_CHECKSUM_LEN]; /* 32 */
@@ -336,7 +336,8 @@ int liberasurecode_get_minimum_encode_size(int desc);
  *        from liberasurecode_instance_create()
  * @param data_len - original data length in bytes
  *
- * @return fragment size
+ * @return fragment size - sizeof(fragment_header) + size
+ *                         + frag_backend_metadata_size
  */
 int liberasurecode_get_fragment_size(int desc, int data_len);
 

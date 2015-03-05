@@ -55,8 +55,9 @@ typedef enum {
     EC_BACKEND_NULL                 = 0, /* "null" */
     EC_BACKEND_JERASURE_RS_VAND     = 1, /* "jerasure_rs_vand" */
     EC_BACKEND_JERASURE_RS_CAUCHY   = 2, /* "jerasure_rs_cauchy" */
-    EC_BACKEND_FLAT_XOR_HD          = 3, /* "flat_xor_hd */
-    EC_BACKEND_ISA_L_RS_VAND        = 4, /* "isa_l_rs_vand */
+    EC_BACKEND_FLAT_XOR_HD          = 3, /* "flat_xor_hd" */
+    EC_BACKEND_ISA_L_RS_VAND        = 4, /* "isa_l_rs_vand" */
+    EC_BACKEND_SHSS                 = 5, /* "shss" */
     EC_BACKENDS_MAX,
 } ec_backend_id_t;
 
@@ -275,7 +276,8 @@ struct
 fragment_metadata
 {
     uint32_t    idx;                /* 4 */
-    uint32_t    size;               /* 4 */
+    uint32_t    size;               /* 4 (raw data bytes size of each fragment used for encode/fragment_to_string) */
+    uint32_t    frag_backend_metadata_size;    /* 4 (extra metadata bytes size of backend specification) */
     uint64_t    orig_data_size;     /* 8 */
     uint8_t     chksum_type;        /* 1 */
     uint32_t    chksum[LIBERASURECODE_MAX_CHECKSUM_LEN]; /* 16 */
@@ -337,6 +339,19 @@ int liberasurecode_get_aligned_data_size(int desc, uint64_t data_len);
  * @return minimum data length length, or -error code on error
  */
 int liberasurecode_get_minimum_encode_size(int desc);
+
+/**
+ * This will return the fragment size, which is each fragment data
+ * length the backend will allocate when encoding.
+ *
+ * @param desc - liberasurecode descriptor/handle
+ *        from liberasurecode_instance_create()
+ * @param data_len - original data length in bytes
+ *
+ * @return fragment size - sizeof(fragment_header) + size
+ *                          + frag_backend_metadata_size
+ */
+int liberasurecode_get_fragment_size(int desc, int data_len);
 
 ```
 ----

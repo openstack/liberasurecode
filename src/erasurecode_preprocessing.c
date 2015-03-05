@@ -46,7 +46,7 @@ int prepare_fragments_for_encode(ec_backend_t instance,
     data_len = orig_data_size;
     aligned_data_len = get_aligned_data_size(instance, orig_data_size);
     *blocksize = payload_size = (aligned_data_len / k);
-    buffer_size = payload_size + instance->common.metadata_adder;
+    buffer_size = payload_size + instance->common.backend_metadata_size;
 
     for (i = 0; i < k; i++) {
         int copy_size = data_len > payload_size ? payload_size : data_len;

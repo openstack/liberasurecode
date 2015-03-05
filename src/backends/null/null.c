@@ -232,7 +232,7 @@ struct ec_backend_common backend_null = {
     .soname                     = NULL_SO_NAME,
     .soversion                  = NULL_LIB_VER_STR,
     .ops                        = &null_op_stubs,
-    .metadata_adder             = 0,
+    .backend_metadata_size      = 0,
     .ec_backend_version         = _VERSION(NULL_LIB_MAJOR, NULL_LIB_MINOR,
                                            NULL_LIB_REV),
 };

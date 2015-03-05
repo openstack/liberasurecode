@@ -608,7 +608,7 @@ struct ec_backend_common backend_isa_l_rs_vand = {
     .soname                     = ISA_L_RS_VAND_SO_NAME,
     .soversion                  = ISA_L_RS_VAND_LIB_VER_STR,
     .ops                        = &isa_l_rs_vand_op_stubs,
-    .metadata_adder             = 0,
+    .backend_metadata_size      = 0,
     .ec_backend_version         = _VERSION(ISA_L_RS_VAND_LIB_MAJOR,
                                            ISA_L_RS_VAND_LIB_MINOR,
                                            ISA_L_RS_VAND_LIB_REV),

@@ -324,32 +324,32 @@ int get_fragment_payload_size(char *buf)
     return header->meta.size;
 }
 
-int set_fragment_adder_size(char *buf, int size)
+int set_fragment_backend_metadata_size(char *buf, int size)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
 
     assert(NULL != header);
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
-        log_error("Invalid fragment header (set adder size)!");
+        log_error("Invalid fragment header (set fragment backend metadata size)!");
         return -1;
     }
 
-    header->meta.frag_adder_size = size;
+    header->meta.frag_backend_metadata_size = size;
 
     return 0;
 }
 
-int get_fragment_adder_size(char *buf)
+int get_fragment_backend_metadata_size(char *buf)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
 
     assert(NULL != header);
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
-        log_error("Invalid fragment header (get adder size)!");
+        log_error("Invalid fragment header (get fragment backend metadata size)!");
         return -1;
     }
 
-    return header->meta.frag_adder_size;
+    return header->meta.frag_backend_metadata_size;
 }
 
 int get_fragment_buffer_size(char *buf)
@@ -362,7 +362,7 @@ int get_fragment_buffer_size(char *buf)
         return -1;
     }
 
-    return header->meta.size + header->meta.frag_adder_size;
+    return header->meta.size + header->meta.frag_backend_metadata_size;
 }
 
 int set_orig_data_size(char *buf, int orig_data_size)

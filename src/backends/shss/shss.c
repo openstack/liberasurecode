@@ -302,5 +302,5 @@ struct ec_backend_common backend_shss = {
     .soname                     = SHSS_SO_NAME,
     .soversion                  = SHSS_LIB_VER_STR,
     .ops                        = &shss_op_stubs,
-    .metadata_adder             = METADATA,
+    .backend_metadata_size      = METADATA,
 };
