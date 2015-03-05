@@ -617,7 +617,7 @@ static void encode_decode_test_impl(const ec_backend_id_t be_id,
         assert(header != NULL);
         fragment_metadata_t metadata = header->meta;
         assert(metadata.idx == i);
-        assert(metadata.size == encoded_fragment_len - frag_header_size - be->common.metadata_adder);
+        assert(metadata.size == encoded_fragment_len - frag_header_size - be->common.backend_metadata_size);
         assert(metadata.orig_data_size == orig_data_size);
         char *data_ptr = frag + frag_header_size;
         int cmp_size = remaining >= metadata.size ? metadata.size : remaining;

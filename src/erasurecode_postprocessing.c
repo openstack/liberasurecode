@@ -41,7 +41,7 @@ void add_fragment_metadata(ec_backend_t be, char *fragment,
     set_fragment_payload_size(fragment, blocksize);
     set_backend_id(fragment, be->common.id);
     set_backend_version(fragment, be->common.ec_backend_version);
-    set_fragment_backend_metadata_size(fragment, be->common.metadata_adder);
+    set_fragment_backend_metadata_size(fragment, be->common.backend_metadata_size);
 
     if (add_chksum) {
         set_checksum(ct, fragment, blocksize);

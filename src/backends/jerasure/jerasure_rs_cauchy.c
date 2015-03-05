@@ -427,7 +427,7 @@ struct ec_backend_common backend_jerasure_rs_cauchy = {
     .soname                     = JERASURE_RS_CAUCHY_SO_NAME,
     .soversion                  = JERASURE_RS_CAUCHY_LIB_VER_STR,
     .ops                        = &jerasure_rs_cauchy_op_stubs,
-    .metadata_adder             = 0,
+    .backend_metadata_size      = 0,
     .ec_backend_version         = _VERSION(JERASURE_RS_CAUCHY_LIB_MAJOR,
                                            JERASURE_RS_CAUCHY_LIB_MINOR,
                                            JERASURE_RS_CAUCHY_LIB_REV),
