@@ -261,7 +261,6 @@ Erasure Code Fragment Checksum Types Supported
 typedef enum {
     CHKSUM_NONE                     = 0, /* "none" (default) */
     CHKSUM_CRC32                    = 1, /* "crc32" */
-    CHKSUM_MD5                      = 2, /* "md5" */
     CHKSUM_TYPES_MAX,
 } ec_checksum_type_t;
 
