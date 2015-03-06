@@ -429,6 +429,10 @@ static void test_reconstruct_fragment_invalid_args()
     int frag_len = 10;
     char **avail_frags = malloc(sizeof(char *) * 2);
     char *out_frag = malloc(frag_len);
+    int orig_data_size = 1024 * 1024;
+    char *orig_data = create_buffer(orig_data_size, 'x');
+    char **encoded_data = NULL, **encoded_parity = NULL;
+    uint64_t encoded_fragment_len = 0;
 
     assert(avail_frags);
     assert(out_frag);
@@ -444,6 +448,23 @@ static void test_reconstruct_fragment_invalid_args()
 
     rc = liberasurecode_reconstruct_fragment(desc, avail_frags, 1, frag_len, 1, NULL);
     assert(rc < 0);
+
+    free(out_frag);
+    free(avail_frags);
+
+    // Test for EINSUFFFRAGS
+    // we have to call encode to get fragments which have valid header.
+    rc = liberasurecode_encode(desc, orig_data, orig_data_size,
+            &encoded_data, &encoded_parity, &encoded_fragment_len);
+    assert(rc == 0);
+
+    out_frag = malloc(encoded_fragment_len);
+
+    assert(out_frag != NULL);
+    rc = liberasurecode_reconstruct_fragment(desc, avail_frags, 1, encoded_fragment_len, 1, out_frag);
+
+    assert(rc == -EINSUFFFRAGS);
+
     free(out_frag);
     free(avail_frags);
 }

@@ -248,7 +248,7 @@ int get_fragment_partition(
     }
     // TODO: In general, it is possible to reconstruct one or more fragments
     // when more than m fragments are missing (e.g. flat XOR codes)
-    return (num_missing > m) ? -1 : 0;
+    return (num_missing > m) ? -EINSUFFFRAGS : 0;
 }
 
 int fragments_to_string(int k, int m,
