@@ -246,7 +246,7 @@ int liberasurecode_instance_create(const ec_backend_id_t id,
     ec_backend_t instance = NULL;
     struct ec_backend_args bargs;
     if (!args)
-        return -1;
+        return -EINVALIDPARAMS;
 
     if (id >= EC_BACKENDS_MAX)
         return -EBACKENDNOTSUPP;
@@ -388,29 +388,29 @@ int liberasurecode_encode(int desc,
 
     if (orig_data == NULL) {
         log_error("Pointer to data buffer is null!");
-        ret = -1;
+        ret = -EINVALIDPARAMS;
         goto out;
     }
 
     if (orig_data_size <= 0) {
         log_error("Size of data to encode must be a positive value");
-        ret = -1;
+        ret = -EINVALIDPARAMS;
         goto out;
     }
 
     if (encoded_data == NULL) {
         log_error("Pointer to encoded data buffers is null!");
-        return -1;
+        return -EINVALIDPARAMS;
     }
 
     if (encoded_parity == NULL) {
         log_error("Pointer to encoded parity buffers is null!");
-        return -1;
+        return -EINVALIDPARAMS;
     }
 
     if (fragment_len == NULL) {
         log_error("Pointer to fragment length is null!");
-        ret = -1;
+        ret = -EINVALIDPARAMS;
         goto out;
     }
 
@@ -538,19 +538,19 @@ int liberasurecode_decode(int desc,
 
     if (NULL == available_fragments) {
         log_error("Pointer to encoded fragments buffer is null!");
-        ret = -1;
+        ret = -EINVALIDPARAMS;
         goto out;
     }
 
     if (NULL == out_data) {
         log_error("Pointer to decoded data buffer is null!");
-        ret = -1;
+        ret = -EINVALIDPARAMS;
         goto out;
     }
 
     if (NULL == out_data_len) {
         log_error("Pointer to decoded data length variable is null!");
-        ret = -1;
+        ret = -EINVALIDPARAMS;
         goto out;
     }
 
@@ -747,13 +747,13 @@ int liberasurecode_reconstruct_fragment(int desc,
 
     if (NULL == available_fragments) {
         log_error("Can not reconstruct fragment, available fragments pointer is NULL");
-        ret = -1;
+        ret = -EINVALIDPARAMS;
         goto out;
     }
 
     if (NULL == out_fragment) {
         log_error("Can not reconstruct fragment, output fragment pointer is NULL");
-        ret = -1;
+        ret = -EINVALIDPARAMS;
         goto out;
     }
 
@@ -896,19 +896,19 @@ int liberasurecode_fragments_needed(int desc,
     }
     if (NULL == fragments_to_reconstruct) {
         log_error("Unable to determine list of fragments needed, pointer to list of indexes to reconstruct is NULL.");
-        ret = -1;
+        ret = -EINVALIDPARAMS;
         goto out_error;
     }
 
     if (NULL == fragments_to_exclude) {
         log_error("Unable to determine list of fragments needed, pointer to list of fragments to exclude is NULL.");
-        ret = -1;
+        ret = -EINVALIDPARAMS;
         goto out_error;
     }
 
     if (NULL == fragments_needed) {
         log_error("Unable to determine list of fragments needed, pointer to list of fragments to reconstruct is NULL.");
-        ret = -1;
+        ret = -EINVALIDPARAMS;
         goto out_error;
     }
 
@@ -943,13 +943,13 @@ int liberasurecode_get_fragment_metadata(char *fragment,
 
     if (NULL == fragment) {
         log_error("Need valid fragment object to get metadata for");
-        ret = -1;
+        ret = -EINVALIDPARAMS;
         goto out;
     }
 
     if (NULL == fragment_metadata) {
         log_error("Need valid fragment_metadata object for return value");
-        ret = -2;
+        ret = -EINVALIDPARAMS;
         goto out;
     }
 
@@ -957,7 +957,7 @@ int liberasurecode_get_fragment_metadata(char *fragment,
     fragment_hdr = (fragment_header_t *) fragment;
     if (LIBERASURECODE_FRAG_HEADER_MAGIC != fragment_hdr->magic) {
         log_error("Invalid fragment, illegal magic value");
-        ret = -2;
+        ret = -EINVALIDPARAMS;
         goto out;
     }
 

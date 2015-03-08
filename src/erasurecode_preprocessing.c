@@ -277,6 +277,7 @@ int fragments_to_string(int k, int m,
 
     if (NULL == data) {
         log_error("Could not allocate buffer for data!!");
+        ret = -ENOMEM;
         goto out; 
     }
     
@@ -285,6 +286,7 @@ int fragments_to_string(int k, int m,
         data_size = get_fragment_payload_size(fragments[i]);
         if ((index < 0) || (data_size < 0)) {
             log_error("Invalid fragment header information!");
+            ret = -EINVALIDPARAMS;
             goto out;
         }
 
@@ -294,6 +296,7 @@ int fragments_to_string(int k, int m,
         } else {
             if (get_orig_data_size(fragments[i]) != orig_data_size) {
                 log_error("Inconsistent orig_data_size in fragment header!");
+                ret = -EINVALIDPARAMS;
                 goto out;
             }
         }
@@ -323,6 +326,7 @@ int fragments_to_string(int k, int m,
     internal_payload = (char *) get_aligned_buffer16(orig_data_size);
     if (NULL == internal_payload) {
         log_error("Could not allocate buffer for decoded string!");
+        ret = -ENOMEM;
         goto out;
     }
     
