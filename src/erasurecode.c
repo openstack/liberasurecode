@@ -562,18 +562,20 @@ int liberasurecode_decode(int desc,
         goto out;
     }
 
-    /*
-     * Try to re-assebmle the original data before attempting a decode
-     */
-    ret = fragments_to_string(k, m,
-                              available_fragments, num_fragments,
-                              out_data, out_data_len);
+    if (instance->common.id != 5) {
+        /* shss (ntt_backend) must force to decode */
+        // TODO: Add a frag and function to handle whether the backend want to decode or not.
+        /*
+         * Try to re-assebmle the original data before attempting a decode
+         */
+        ret = fragments_to_string(k, m,
+                                  available_fragments, num_fragments,
+                                  out_data, out_data_len);
 
-    /* shss (ntt_backend) must force to decode */
-    // TODO: Add a frag and function to handle whether the backend want to decode or not.
-    if (ret == 0 && instance->common.id != 5) {
-        /* We were able to get the original data without decoding! */
-        goto out;
+        if (ret == 0) {
+            /* We were able to get the original data without decoding! */
+            goto out;
+        }
     }
 
     /*
