@@ -562,7 +562,7 @@ int liberasurecode_decode(int desc,
         goto out;
     }
 
-    if (instance->common.id != 5) {
+    if (instance->common.id != EC_BACKEND_SHSS) {
         /* shss (ntt_backend) must force to decode */
         // TODO: Add a frag and function to handle whether the backend want to decode or not.
         /*
