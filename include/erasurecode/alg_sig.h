@@ -31,7 +31,11 @@ struct jerasure_mult_routines {
   galois_single_multiply_func galois_single_multiply;
 };
 
+#if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
 #define JERASURE_SONAME "libJerasure.dylib"
+#else
+#define JERASURE_SONAME "libJerasure.so"
+#endif
 
 typedef struct alg_sig_s
 {
