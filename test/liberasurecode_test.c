@@ -324,10 +324,6 @@ static void test_encode_invalid_args()
             &encoded_data, &encoded_parity, &encoded_fragment_len);
     assert(rc < 0);
 
-    rc = liberasurecode_encode(desc, orig_data, 0,
-            &encoded_data, &encoded_parity, &encoded_fragment_len);
-    assert(rc < 0);
-
     rc = liberasurecode_encode(desc, orig_data, orig_data_size,
             NULL, &encoded_parity, &encoded_fragment_len);
     assert(rc < 0);

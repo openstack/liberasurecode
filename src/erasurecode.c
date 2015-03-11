@@ -392,12 +392,6 @@ int liberasurecode_encode(int desc,
         goto out;
     }
 
-    if (orig_data_size <= 0) {
-        log_error("Size of data to encode must be a positive value");
-        ret = -EINVALIDPARAMS;
-        goto out;
-    }
-
     if (encoded_data == NULL) {
         log_error("Pointer to encoded data buffers is null!");
         return -EINVALIDPARAMS;
