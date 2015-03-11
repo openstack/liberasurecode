@@ -27,14 +27,23 @@ include_HEADERS = \
 	include/erasurecode/list.h \
 	include/xor_codes/xor_hd_code_defs.h \
 	include/xor_codes/xor_code.h \
-  include/config_liberasurecode.h
+	include/config_liberasurecode.h
 
 test: check
-	@./test/alg_sig_test
-	@./test/test_xor_hd_code
-	@./test/liberasurecode_test
-	@./test/libec_slap
-
+	$(eval SONAMES := $(shell find $(abs_top_builddir) -name '*.so'))
+	$(eval SODIRS := $(dir $(SONAMES)))
+	$(eval LD_LIBRARY_PATH := LD_LIBRARY_PATH="$(subst / ,/:,$(SODIRS))")
+	$(eval DYLD_LIBRARY_PATH := DYLD_LIBRARY_PATH="$(subst / ,/:,$(SODIRS))")
+	$(eval DYLD_FALLBACK_LIBRARY_PATH := DYLD_FALLBACK_LIBRARY_PATH="$(subst / ,/:,$(SODIRS))")
+	@$(LD_LIBRARY_PATH) $(DYLD_LIBRARY_PATH) $(DYLD_FALLBACK_LIBRARY_PATH) \
+		./test/alg_sig_test
+	@$(LD_LIBRARY_PATH) $(DYLD_LIBRARY_PATH) $(DYLD_FALLBACK_LIBRARY_PATH) \
+		./test/test_xor_hd_code
+	@$(LD_LIBRARY_PATH) $(DYLD_LIBRARY_PATH) $(DYLD_FALLBACK_LIBRARY_PATH) \
+		./test/liberasurecode_test
+	@$(LD_LIBRARY_PATH) $(DYLD_LIBRARY_PATH) $(DYLD_FALLBACK_LIBRARY_PATH) \
+		./test/libec_slap
+ 
 VALGRIND_EXEC_COMMAND = $(LIBTOOL_COMMAND) valgrind --tool=memcheck \
 	--error-exitcode=1 --leak-check=yes --track-fds=yes \
 	--malloc-fill=A5 --free-fill=DE --fullpath-after=.
