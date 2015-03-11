@@ -261,9 +261,24 @@ static void test_create_and_destroy_backend(
 
 static void test_create_backend_invalid_args()
 {
-    assert(liberasurecode_instance_create(-1, &null_args) < 0);
-    assert(liberasurecode_instance_create(EC_BACKENDS_MAX, &null_args) < 0);
-    assert(liberasurecode_instance_create(EC_BACKEND_NULL, NULL) < 0);
+    int desc = liberasurecode_instance_create(-1, &null_args);
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf (stderr, "Backend library not available!\n");
+        return;
+    }
+    assert(desc < 0);
+    desc = liberasurecode_instance_create(EC_BACKENDS_MAX, &null_args);
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf (stderr, "Backend library not available!\n");
+        return;
+    }
+    assert(desc < 0);
+    desc = liberasurecode_instance_create(EC_BACKEND_NULL, NULL);
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf (stderr, "Backend library not available!\n");
+        return;
+    }
+    assert(desc < 0);
 }
 
 static void test_destroy_backend_invalid_args()
@@ -273,6 +288,10 @@ static void test_destroy_backend_invalid_args()
     desc = 1;
     assert(liberasurecode_instance_destroy(desc) < 0);
     desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf (stderr, "Backend library not available!\n");
+        return;
+    }
     assert(desc > 0);
     assert(0 == liberasurecode_instance_destroy(desc));
     assert(liberasurecode_instance_destroy(desc) < 0);
@@ -295,6 +314,10 @@ static void test_encode_invalid_args()
     assert(rc < 0);
 
     desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf (stderr, "Backend library not available!\n");
+        return;
+    }
     assert(desc > 0);
 
     rc = liberasurecode_encode(desc, NULL, orig_data_size,
@@ -338,6 +361,10 @@ static void test_encode_cleanup_invalid_args()
     uint64_t encoded_fragment_len = 0;
 
     desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf (stderr, "Backend library not available!\n");
+        return;
+    }
     assert(desc > 0);
 
     rc = liberasurecode_encode(desc, orig_data, orig_data_size,
@@ -370,6 +397,10 @@ static void test_decode_invalid_args()
     uint64_t decoded_data_len = 0;
 
     desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf (stderr, "Backend library not available!\n");
+        return;
+    }
     assert(desc > 0);
     rc = liberasurecode_encode(desc, orig_data, orig_data_size,
             &encoded_data, &encoded_parity, &encoded_fragment_len);
@@ -414,6 +445,10 @@ static void test_decode_cleanup_invalid_args()
     assert(rc < 0);
 
     desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf (stderr, "Backend library not available!\n");
+        return;
+    }
     assert(desc > 0);
 
     rc = liberasurecode_decode_cleanup(desc, NULL);
@@ -441,6 +476,10 @@ static void test_reconstruct_fragment_invalid_args()
     assert(rc < 0);
 
     desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf (stderr, "Backend library not available!\n");
+        return;
+    }
     assert(desc > 0);
 
     rc = liberasurecode_reconstruct_fragment(desc, NULL, 1, frag_len, 1, out_frag);
@@ -480,6 +519,10 @@ static void test_fragments_needed_invalid_args()
     assert(rc < 0);
 
     desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf (stderr, "Backend library not available!\n");
+        return;
+    }
     assert(desc > 0);
 
     rc = liberasurecode_fragments_needed(desc, NULL, &frags_to_exclude, frags_needed);
@@ -526,6 +569,10 @@ static void test_verify_stripe_metadata_invalid_args() {
     assert(rc == -EINVALIDPARAMS);
 
     desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf (stderr, "Backend library not available!\n");
+        return;
+    }
     assert(desc > 0);
 
     rc = liberasurecode_verify_stripe_metadata(desc, NULL, num_frags);
@@ -554,6 +601,10 @@ static void test_get_fragment_partition()
     int *missing;
 
     desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf (stderr, "Backend library not available!\n");
+        return;
+    }
     assert(desc > 0);
     rc = liberasurecode_encode(desc, orig_data, orig_data_size,
             &encoded_data, &encoded_parity, &encoded_fragment_len);
@@ -734,11 +785,11 @@ static void test_fragments_needed_impl(const ec_backend_id_t be_id,
     int *fragments_to_exclude = NULL;
     int *fragments_needed = NULL;
     int *new_fragments_needed = NULL;
-    int desc = liberasurecode_instance_create(be_id, args);
     int ret = -1;
     int i = 0, j = 0;
     int n = args->k + args->m;
 
+    int desc = liberasurecode_instance_create(be_id, args);
     if (-EBACKENDNOTAVAIL == desc) {
         fprintf (stderr, "Backend library not available!\n");
         return;
