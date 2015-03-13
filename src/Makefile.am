@@ -33,7 +33,7 @@ liberasurecode_la_LIBADD = \
 		builtin/xor_codes/libXorcode.la -lpthread -lm @GCOV_LDFLAGS@
 
 # Version format  (C - A).(A).(R) for C:R:A input
-liberasurecode_la_LDFLAGS = -rpath '$(libdir)' -version-info 1:4:0
+liberasurecode_la_LDFLAGS = -rpath '$(libdir)' -version-info 1:5:0
 
 MOSTLYCLEANFILES = *.gcda *.gcno *.gcov utils/chksum/*.gcda utils/chksum/*.gcno utils/chksum/*.gcov \
                    backends/null/*.gcda backends/null/*.gcno backends/null/*.gcov  \
