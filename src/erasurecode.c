@@ -197,7 +197,7 @@ int liberasurecode_backend_close(ec_backend_t instance)
 void __attribute__ ((constructor))
 liberasurecode_init(void) {
     /* init logging */
-    openlog("liberasurecode", LOG_PID | LOG_CONS, LOG_USER);
+    openlog("liberasurecode", LOG_PID | LOG_CONS | LOG_NDELAY | LOG_PERROR, LOG_USER);
 
     /* populate supported backends list as a string */
     {
