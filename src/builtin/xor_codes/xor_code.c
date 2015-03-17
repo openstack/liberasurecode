@@ -22,7 +22,9 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifdef INTEL_SSE2
 #include <emmintrin.h>  //SSE2
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
