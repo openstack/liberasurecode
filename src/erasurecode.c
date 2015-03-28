@@ -566,7 +566,10 @@ int liberasurecode_decode(int desc,
                                   available_fragments, num_fragments,
                                   out_data, out_data_len);
 
-        if (ret == 0) {
+        if (ret == -1) {
+            /* Ignore - not necessarily an error
+             * (see fragments_to_string() in src/erasurecode_preprocessing.c) */
+        } else if (ret <= 0) {
             /* We were able to get the original data without decoding! */
             goto out;
         }

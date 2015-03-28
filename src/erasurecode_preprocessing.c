@@ -139,14 +139,14 @@ int prepare_fragments_for_decode(
             data[i] = alloc_fragment_buffer(fragment_size - sizeof(fragment_header_t));
             if (NULL == data[i]) {
                 log_error("Could not allocate data buffer!");
-                return -1;
+                return -ENOMEM;
             }
             *realloc_bm = *realloc_bm | (1 << i);
         } else if (!is_addr_aligned((unsigned long)data[i], 16)) {
             char *tmp_buf = alloc_fragment_buffer(fragment_size - sizeof(fragment_header_t));
             if (NULL == tmp_buf) {
                 log_error("Could not allocate temp buffer!");
-                return -1;
+                return -ENOMEM;
             }
             memcpy(tmp_buf, data[i], fragment_size);
             data[i] = tmp_buf;
@@ -158,12 +158,12 @@ int prepare_fragments_for_decode(
             orig_data_size = get_orig_data_size(data[i]);
             if (orig_data_size < 0) {
                 log_error("Invalid orig_data_size in fragment header!");
-                return -1;
+                return -EBADHEADER;
             }
             payload_size = get_fragment_payload_size(data[i]);
             if (orig_data_size < 0) {
                 log_error("Invalid fragment_size in fragment header!");
-                return -1;
+                return -EBADHEADER;
             }
        }
     }
@@ -178,14 +178,14 @@ int prepare_fragments_for_decode(
             parity[i] = alloc_fragment_buffer(fragment_size-sizeof(fragment_header_t));
             if (NULL == parity[i]) {
                 log_error("Could not allocate parity buffer!");
-                return -1;
+                return -ENOMEM;
             }
             *realloc_bm = *realloc_bm | (1 << (k + i));
         } else if (!is_addr_aligned((unsigned long)parity[i], 16)) {
             char *tmp_buf = alloc_fragment_buffer(fragment_size-sizeof(fragment_header_t));
             if (NULL == tmp_buf) {
                 log_error("Could not allocate temp buffer!");
-                return -1;
+                return -ENOMEM;
             }
             memcpy(tmp_buf, parity[i], fragment_size);
             parity[i] = tmp_buf;
@@ -286,7 +286,7 @@ int fragments_to_string(int k, int m,
         data_size = get_fragment_payload_size(fragments[i]);
         if ((index < 0) || (data_size < 0)) {
             log_error("Invalid fragment header information!");
-            ret = -EINVALIDPARAMS;
+            ret = -EBADHEADER;
             goto out;
         }
 
@@ -296,7 +296,7 @@ int fragments_to_string(int k, int m,
         } else {
             if (get_orig_data_size(fragments[i]) != orig_data_size) {
                 log_error("Inconsistent orig_data_size in fragment header!");
-                ret = -EINVALIDPARAMS;
+                ret = -EBADHEADER;
                 goto out;
             }
         }
