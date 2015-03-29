@@ -23,7 +23,7 @@ Highlights
 
  * Cross-platform - liberasurecode is known to work on Linux (Fedora/Debian flavors), Solaris, BSD and Darwin/Mac OS X.
 
- * Community support - Developed alongside Erasure Code authority Kevin Greenan, liberasurecode is an actively maintained open-source project with growing community involvement (Openstack Swift, Ceph, PyECLib).
+ * Community support - Developed alongside Erasure Code authority Kevin Greenan, liberasurecode is an actively maintained open-source project with growing community involvement (Openstack Swift, Ceph, PyECLib, NTT Labs).
 
 ----
 
