@@ -768,6 +768,17 @@ static void encode_decode_test_impl(const ec_backend_id_t be_id,
     free(avail_frags);
 }
 
+/**
+ * Note: this test will attempt to reconstruct a single fragment when
+ * one or more other fragments are missing (specified by skip).  
+ *
+ * For example, if skip is [0, 0, 0, 1, 0, 0] and we are reconstructing
+ * fragment 5, then it will test the reconstruction of fragment 5 when 3
+ * and 5 are assumed unavailable.
+ *
+ * We only mark at most 2 as unavailable, as we cannot guarantee every situation
+ * will be able to habndle 3 failures.
+ */
 static void reconstruct_test_impl(const ec_backend_id_t be_id,
                                  struct ec_args *args,
                                  int *skip)
@@ -796,15 +807,24 @@ static void reconstruct_test_impl(const ec_backend_id_t be_id,
     rc = liberasurecode_encode(desc, orig_data, orig_data_size,
             &encoded_data, &encoded_parity, &encoded_fragment_len);
     assert(rc == 0);
-    num_avail_frags = create_frags_array(&avail_frags, encoded_data,
-                                             encoded_parity, args, skip);
     out = malloc(encoded_fragment_len);
     assert(out != NULL);
     for (i = 0; i < num_fragments; i++) {
-        if (skip[i] == 0) {
-            continue;
-        }
         char *cmp = NULL;
+        // If the current fragment was not chosen as fragments to skip,
+        // remove it and the chosen fragments to skip from the available list
+        // and reset its state
+        if (skip[i] == 0) {
+            skip[i] = 1;
+            num_avail_frags = create_frags_array(&avail_frags, encoded_data,
+                                             encoded_parity, args, skip);
+            skip[i] = 0;
+        // Do not reset the skip state if the fragment was chosen as a fragment
+        // to skip for this invocation of the test
+        } else {
+            num_avail_frags = create_frags_array(&avail_frags, encoded_data,
+                                             encoded_parity, args, skip);
+        }
         if (i < args->k) {
             cmp = encoded_data[i];
         }

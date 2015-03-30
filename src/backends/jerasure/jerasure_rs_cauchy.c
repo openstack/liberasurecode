@@ -137,7 +137,7 @@ static int jerasure_rs_cauchy_reconstruct(void *desc, char **data, char **parity
         int *missing_idxs, int destination_idx, int blocksize)
 {
     int k, m, w;                  /* erasure code paramters */
-    int ret = 1;                  /* return code */
+    int ret = 0;                  /* return code */
     int *decoding_row = NULL;     /* decoding matrix row for decode */
     int *erased = NULL;           /* k+m length list of erased frag ids */
     int *dm_ids = NULL;           /* k length list of fragment ids */
@@ -149,29 +149,46 @@ static int jerasure_rs_cauchy_reconstruct(void *desc, char **data, char **parity
     m = jerasure_desc->m;
     w = jerasure_desc->w;
 
-    dm_ids = (int *) alloc_zeroed_buffer(sizeof(int) * k);
-    decoding_matrix = (int *) alloc_zeroed_buffer(sizeof(int *) * k * k * w * w);
-    erased = jerasure_desc->jerasure_erasures_to_erased(k, m, missing_idxs);
-    if (NULL == decoding_matrix || NULL == dm_ids || NULL == erased) {
-        goto out;
-    }
+    if (destination_idx < k) {
+        dm_ids = (int *) alloc_zeroed_buffer(sizeof(int) * k);
+        decoding_matrix = (int *) alloc_zeroed_buffer(sizeof(int *) * k * k * w * w);
+        erased = jerasure_desc->jerasure_erasures_to_erased(k, m, missing_idxs);
+        if (NULL == decoding_matrix || NULL == dm_ids || NULL == erased) {
+            goto out;
+        }
 
-    ret = jerasure_desc->jerasure_make_decoding_bitmatrix(k, m, w, 
+        ret = jerasure_desc->jerasure_make_decoding_bitmatrix(k, m, w, 
                                                jerasure_desc->bitmatrix,
                                                erased, decoding_matrix, dm_ids);
-    if (destination_idx < k) {
-        decoding_row = decoding_matrix + (destination_idx * k * w * w);
-    } else {
-        decoding_row = jerasure_desc->bitmatrix + ((destination_idx - k) * k * w * w);
-    }
+        if (ret == 0) {
+            decoding_row = decoding_matrix + (destination_idx * k * w * w);
    
-    if (ret == 0) {
-        jerasure_desc->jerasure_bitmatrix_dotprod(jerasure_desc->k, jerasure_desc->w, 
+            jerasure_desc->jerasure_bitmatrix_dotprod(jerasure_desc->k, jerasure_desc->w, 
                                    decoding_row, dm_ids, destination_idx,
-                                   data, parity, blocksize,
-                                   PYECC_CAUCHY_PACKETSIZE);
+                                   data, parity, blocksize, PYECC_CAUCHY_PACKETSIZE);
+        } else {
+           /*
+            * ToDo (KMG) I know this is not needed, but keeping to prevent future 
+            * memory leaks, as this function will be better optimized for decoding 
+            * missing parity 
+            */
+            goto out;
+        }
     } else {
-      goto out;
+        /*
+         * If it is parity we are reconstructing, then just call decode.
+         * ToDo (KMG): We can do better than this, but this should perform just
+         * fine for most cases.  We can adjust the decoding matrix like we
+         * did with ISA-L.
+         */
+        jerasure_desc->jerasure_bitmatrix_decode(k, m, w,
+                                             jerasure_desc->bitmatrix, 
+                                             0, 
+                                             missing_idxs,
+                                             data, 
+                                             parity, 
+                                             blocksize, 
+                                             PYECC_CAUCHY_PACKETSIZE); 
     }
 
 out:
