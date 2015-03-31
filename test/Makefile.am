@@ -5,7 +5,7 @@ test_xor_hd_code_SOURCES = \
 	builtin/xor_codes/test_xor_hd_code.c \
 	builtin/xor_codes/test_xor_hd_code.h
 test_xor_hd_code_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/include/erasurecode -I$(top_srcdir)/include/xor_codes  @GCOV_FLAGS@
-test_xor_hd_code_LDFLAGS = @GCOV_LDFLAGS@ -static-libtool-libs $(top_srcdir)/src/liberasurecode.la $(top_srcdir)/src/builtin/xor_codes/libXorcode.la
+test_xor_hd_code_LDFLAGS = @GCOV_LDFLAGS@ -static-libtool-libs $(top_srcdir)/src/liberasurecode.la $(top_srcdir)/src/builtin/xor_codes/libXorcode.la -ldl
 check_PROGRAMS = test_xor_hd_code
 
 alg_sig_test_SOURCES = utils/chksum/test_alg_sig.c
