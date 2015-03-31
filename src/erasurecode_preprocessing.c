@@ -224,6 +224,9 @@ int get_fragment_partition(
      */ 
     for (i = 0; i < num_fragments; i++) {
         index = get_fragment_idx(fragments[i]);
+        if (index < 0){
+            return -EBADHEADER;
+        }
         if (index < k) {
             data[index] = fragments[i];
         } else {

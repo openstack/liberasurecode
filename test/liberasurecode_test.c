@@ -434,6 +434,12 @@ static void test_decode_invalid_args()
     rc = liberasurecode_decode(desc, avail_frags, num_avail_frags,
                                strlen(fake_data), 1,
                                &decoded_data, &decoded_data_len);
+    // force_metadata_checks results in EINSUFFFRAGS
+    assert(rc == -EINSUFFFRAGS);
+
+    rc = liberasurecode_decode(desc, avail_frags, num_avail_frags,
+                               strlen(fake_data), 0,
+                               &decoded_data, &decoded_data_len);
     assert(rc == -EBADHEADER);
 
     // test with num_fragments < (k)
