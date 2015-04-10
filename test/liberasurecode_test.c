@@ -58,9 +58,9 @@ struct ec_args null_args = {
 };
 
 struct ec_args flat_xor_hd_args = {
-    .k = 10,
-    .m = 6,
-    .hd = 4,
+    .k = 3,
+    .m = 3,
+    .hd = 3,
     .ct = CHKSUM_NONE,
 };
 

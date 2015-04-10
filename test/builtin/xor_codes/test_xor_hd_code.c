@@ -238,6 +238,11 @@ int run_test(int k, int m, int hd)
   fprintf(stderr, "Running (%d, %d, %d):\n", k, m, hd);
   
   switch(k+m) {
+    case 6:
+      if (hd == 3) {
+        ret = test_hd_code(code_desc, NUM_6_3_COMBS, failure_combs_6_3);
+      }
+      break;
     case 10:
       if (hd == 3) {
         ret = test_hd_code(code_desc, NUM_10_3_COMBS, failure_combs_10_3);
@@ -348,6 +353,11 @@ int main()
 {
   int ret = 0;
   int i;
+
+  ret = run_test(3, 3, 3);
+  if (ret != 0) {
+    return ret;
+  }
  
   for (i=6; i < 16; i++) {
     ret = run_test(i, 6, 3);

@@ -34,6 +34,9 @@ unsigned int g_12_6_4_hd_code_data_bms[] = { 7, 14, 28, 56, 49, 35, 13, 26, 52, 
 unsigned int g_10_5_3_hd_code_parity_bms[] = { 163, 300, 337, 582, 664 };
 unsigned int g_10_5_3_hd_code_data_bms[] = { 5, 9, 10, 18, 20, 3, 12, 17, 6, 24 };
 
+unsigned int g_3_3_3_hd_code_parity_bms[] = { 5, 6, 3 };
+unsigned int g_3_3_3_hd_code_data_bms[] = { 5, 6, 3};
+
 
 // The rest were generated via the "goldilocks" code algorithm
 unsigned int g_6_6_3_hd_code_parity_bms[] = { 3, 48, 36, 24, 9, 6 };
@@ -123,10 +126,13 @@ unsigned int * hd3_m5_data[11] = { 0, 0, 0, 0, 0, g_5_5_3_hd_code_data_bms, g_6_
 unsigned int * hd3_m6_parity[16] = { 0, 0, 0, 0, 0, 0, g_6_6_3_hd_code_parity_bms, g_7_6_3_hd_code_parity_bms, g_8_6_3_hd_code_parity_bms, g_9_6_3_hd_code_parity_bms, g_10_6_3_hd_code_parity_bms, g_11_6_3_hd_code_parity_bms, g_12_6_3_hd_code_parity_bms, g_13_6_3_hd_code_parity_bms, g_14_6_3_hd_code_parity_bms, g_15_6_3_hd_code_parity_bms };
 unsigned int * hd3_m6_data[16] = { 0, 0, 0, 0, 0, 0, g_6_6_3_hd_code_data_bms, g_7_6_3_hd_code_data_bms, g_8_6_3_hd_code_data_bms, g_9_6_3_hd_code_data_bms, g_10_6_3_hd_code_data_bms, g_11_6_3_hd_code_data_bms, g_12_6_3_hd_code_data_bms, g_13_6_3_hd_code_data_bms, g_14_6_3_hd_code_data_bms, g_15_6_3_hd_code_data_bms };
 
+unsigned int * hd3_m3_parity[4] = { 0, 0, 0, g_3_3_3_hd_code_parity_bms };
+unsigned int * hd3_m3_data[4] = { 0, 0, 0, g_3_3_3_hd_code_data_bms };
+
 unsigned int ** parity_bm_hd4 [7] = { 0, 0, 0, 0, 0, hd4_m5_parity, hd4_m6_parity };
 unsigned int ** data_bm_hd4 [7] = { 0, 0, 0, 0, 0, hd4_m5_data, hd4_m6_data };
-unsigned int ** parity_bm_hd3 [7] = { 0, 0, 0, 0, 0, hd3_m5_parity, hd3_m6_parity };
-unsigned int ** data_bm_hd3 [7] = { 0, 0, 0, 0, 0, hd3_m5_data, hd3_m6_data };
+unsigned int ** parity_bm_hd3 [7] = { 0, 0, 0, hd3_m3_parity, 0, hd3_m5_parity, hd3_m6_parity };
+unsigned int ** data_bm_hd3 [7] = { 0, 0, 0, hd3_m3_data, 0, hd3_m5_data, hd3_m6_data };
 
 #define PARITY_BM_ARY(k, m, hd) (hd == 3) ? parity_bm_hd3[m][k] : parity_bm_hd4[m][k]
 #define DATA_BM_ARY(k, m, hd) (hd == 3) ? data_bm_hd3[m][k] : data_bm_hd4[m][k]
