@@ -32,6 +32,10 @@
 #include "list.h"
 #include "erasurecode_stdinc.h"
 #include "erasurecode_version.h"
+#include <stdint.h>
+
+#define BASE_64BIT (uint64_t)1
+#define MAX_FRAGMENTS_NUM 64
 
 #ifdef __cplusplus
 extern "C" {

@@ -123,7 +123,6 @@ char *alloc_fragment_buffer(int size)
 
     size += sizeof(fragment_header_t);
     buf = get_aligned_buffer16(size);
-
     if (buf) {
         header = (fragment_header_t *) buf;
         header->magic = LIBERASURECODE_FRAG_HEADER_MAGIC;

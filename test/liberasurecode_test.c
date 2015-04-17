@@ -488,6 +488,18 @@ static void test_create_backend_invalid_args()
         return;
     }
     assert(desc < 0);
+
+    struct ec_args invalid_args = {
+        .k = 100,
+        .m = 100,
+    };
+
+    desc = liberasurecode_instance_create(EC_BACKEND_NULL, &invalid_args);
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf (stderr, "Backend library not available!\n");
+        return;
+    }
+    assert(desc < 0);
 }
 
 static void test_destroy_backend_invalid_args()
@@ -1316,6 +1328,22 @@ static void test_simple_encode_decode(const ec_backend_id_t be_id,
     free(skip);
 }
 
+static void test_simple_encode_decode_over32()
+{
+    struct ec_args over32_args = {
+        .k = 30,
+        .m = 20,
+    };
+
+    // k + m > 32 condition must not free any other fragments
+    // memory except missing fragment 1
+    int *skip = create_skips_array(&over32_args, 1);
+    assert(skip != NULL);
+    encode_decode_test_impl(EC_BACKEND_JERASURE_RS_VAND,
+                            &over32_args, skip);
+    free(skip);
+}
+
 static void test_simple_reconstruct(const ec_backend_id_t be_id,
                                     struct ec_args *args)
 {
@@ -1653,6 +1681,10 @@ struct testcase testcases[] = {
          .skip = false},
     {"test_verify_stripe_metadata_be_ver_mismatch",
         test_verify_stripe_metadata_be_ver_mismatch,
+        EC_BACKEND_JERASURE_RS_VAND, CHKSUM_CRC32,
+        .skip = false},
+    {"test_simple_encode_decode_over32",
+        test_simple_encode_decode_over32,
         EC_BACKEND_JERASURE_RS_VAND, CHKSUM_CRC32,
         .skip = false},
     // Jerasure RS Cauchy backend tests
