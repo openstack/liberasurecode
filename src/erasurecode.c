@@ -587,7 +587,7 @@ int liberasurecode_decode(int desc,
         goto out;
     }
 
-    missing_idxs = alloc_and_set_buffer(sizeof(char*) * k, -1);
+    missing_idxs = alloc_and_set_buffer(sizeof(char*) * (k + m), -1);
     if (NULL == missing_idxs) {
         log_error("Could not allocate missing_idxs buffer!");
         goto out;
@@ -771,7 +771,7 @@ int liberasurecode_reconstruct_fragment(int desc,
         goto out;
     }
 
-    missing_idxs = alloc_and_set_buffer(sizeof(int*) * k, -1);
+    missing_idxs = alloc_and_set_buffer(sizeof(int*) * (k + m), -1);
     if (NULL == missing_idxs) {
         log_error("Could not allocate missing_idxs buffer!");
         goto out;
