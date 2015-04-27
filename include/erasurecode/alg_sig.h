@@ -26,9 +26,11 @@
 #define _ALG_SIG_H
 
 typedef int (*galois_single_multiply_func)(int, int, int);
+typedef void (*galois_uninit_field_func)(int);
 
 struct jerasure_mult_routines {
   galois_single_multiply_func galois_single_multiply;
+  galois_uninit_field_func galois_uninit_field;
 };
 
 #if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
