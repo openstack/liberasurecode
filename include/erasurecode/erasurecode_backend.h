@@ -163,5 +163,9 @@ ec_backend_t liberasurecode_backend_instance_get_by_desc(int desc);
 
 /* =~=*=~==~=*=~==~=*=~==~=*=~===~=*=~==~=*=~===~=*=~==~=*=~===~=*=~==~=*=~= */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #endif  // _ERASURECODE_BACKEND_H_
 
