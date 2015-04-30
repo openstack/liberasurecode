@@ -52,7 +52,7 @@ struct frag_array_set {
 void print_mask(unsigned long mask)
 {
     unsigned int i = 0;
-    unsigned long pos = 1;
+    long pos = 1;
 
     if (mask == 0) {
         fprintf(stderr,"  No Missing fragments");
@@ -69,7 +69,7 @@ void print_mask(unsigned long mask)
 void missing_mask_to_array(long mask, int *missing)
 {
     unsigned int i = 0;
-    unsigned long pos = 1;
+    long pos = 1;
 
     for (i = 0; i < (sizeof(size_t) * 8) - 1; i++) {
         if ((mask & (pos << i)) != 0) {
@@ -78,7 +78,7 @@ void missing_mask_to_array(long mask, int *missing)
     }
 }
 
-size_t add_item_to_missing_mask(unsigned long mask, unsigned int pos) 
+size_t add_item_to_missing_mask(unsigned long mask, long pos) 
 {
     if (pos < 0) {
         return mask;

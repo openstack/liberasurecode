@@ -10,7 +10,7 @@ INCLUDE = -I$(abs_top_builddir)/include \
 		  -I$(abs_top_builddir)/include/xor_codes
 
 AM_CPPFLAGS = $(CPPFLAGS) $(INCLUDE)
-AM_CPPFLAGS += -Werror
+AM_CPPFLAGS += -Werror -Wall
 
 AM_CFLAGS = -fPIC $(AM_CPPFLAGS) @GCOV_FLAGS@ -L/usr/local/lib
 
