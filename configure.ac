@@ -69,7 +69,7 @@ if test x$debug = xtrue ; then
 else
     DEBUG=0
     CXXFLAGS=""
-    CFLAGS="-O2 -g ${werror_flag} -D_GNU_SOURCE=1 -Wall -pedantic -std=c99"
+    CFLAGS="-O2 -g ${werror_flag} -D_GNU_SOURCE=1 -Wall -pedantic -std=c99 ${CFLAGS}"
 fi
 
 AC_ARG_ENABLE([gcov],
