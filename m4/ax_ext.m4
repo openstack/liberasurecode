@@ -57,68 +57,119 @@ AC_DEFUN([AX_EXT],
           fi
     ;;
 
-
     i[[3456]]86*|x86_64*|amd64*)
 
-      AC_REQUIRE([AX_GCC_X86_CPUID])
-      AC_REQUIRE([AX_GCC_X86_AVX_XGETBV])
+      AC_REQUIRE([AC_PROG_CC])
+      AC_LANG_PUSH([C])
 
-      AX_GCC_X86_CPUID(0x00000001)
-      ecx=`echo $ax_cv_gcc_x86_cpuid_0x00000001 | cut -d ":" -f 3`
-      edx=`echo $ax_cv_gcc_x86_cpuid_0x00000001 | cut -d ":" -f 4`
+      # Note for the next 3 macros: m4 does not like '$' and '>', so 
+      # we have to use the ascii values, 36 and 62, resp. to print the
+      # characters out to the temporary shell script used to detect
+      # CPUID settings
+      
+      AC_CACHE_VAL([ax_cv_feature_ecx], [
+      AC_RUN_IFELSE([AC_LANG_PROGRAM([#include <stdio.h>], [
+        int eax, ebx, ecx, edx;
+        FILE *f;
+        __asm__("cpuid"
+          : "=a" (eax), "=b" (ebx), "=c" (ecx), "=d" (edx)
+          : "a" (0x00000001));
+        f = fopen("ax_cv_feature_ecx", "w");
+        fprintf(f, "if (( (0x%x %c%c %c0) & 0x1 )); then echo 1; else echo 0; fi\n", ecx, 62, 62, 36);
+        fclose(f);
+        return 0;
+        ])],
+          #[ax_cv_feature_ecx=`cat ax_cv_feature_ecx`; rm -f ax_cv_feature_ecx],
+          [ax_cv_feature_ecx=`cat ax_cv_feature_ecx`],
+          [ax_cv_feature_ecx='echo 0'; rm -f ax_cv_feature_ecx],
+          [ax_cv_feature_ecx='echo 0'])])
+      
+      AC_CACHE_VAL([ax_cv_feature_edx], [
+      AC_RUN_IFELSE([AC_LANG_PROGRAM([#include <stdio.h>], [
+        int eax, ebx, ecx, edx;
+        FILE *f;
+        __asm__("cpuid"
+          : "=a" (eax), "=b" (ebx), "=c" (ecx), "=d" (edx)
+          : "a" (0x00000001));
+        f = fopen("ax_cv_feature_edx", "w");
+        fprintf(f, "if (( (0x%x %c%c %c0) & 0x1 )); then echo 1; else echo 0; fi\n", edx, 62, 62, 36);
+        fclose(f);
+        return 0;
+        ])], 
+          [ax_cv_feature_edx=`cat ax_cv_feature_edx`; rm -f ax_cv_feature_edx],
+          [ax_cv_feature_edx='echo 0'; rm -f ax_cv_feature_edx],
+          [ax_cv_feature_edx='echo 0'])])
+      
+      AC_CACHE_VAL([ax_cv_vendor_ecx], [
+      AC_RUN_IFELSE([AC_LANG_PROGRAM([#include <stdio.h>], [
+        int eax, ebx, ecx, edx;
+        FILE *f;
+        __asm__("cpuid"
+          : "=a" (eax), "=b" (ebx), "=c" (ecx), "=d" (edx)
+          : "a" (0x00000000));
+        f = fopen("ax_cv_vendor_ecx", "w");
+        fprintf(f, "if (( (0x%x %c%c %c0) & 0x1)); then echo 1; else echo 0; fi\n", ecx, 62, 62, 36);
+        fclose(f);
+        return 0;
+        ])], 
+          [ax_cv_vendor_ecx=`cat ax_cv_vendor_ecx`; rm -f ax_cv_vendor_ecx],
+          [ax_cv_vendor_ecx='echo 0'; rm -f ax_cv_vendor_ecx],
+          [ax_cv_vendor_ecx='echo 0'])])
+
+      AC_LANG_POP([C])
 
       AC_CACHE_CHECK([whether mmx is supported], [ax_cv_have_mmx_ext],
       [
         ax_cv_have_mmx_ext=no
-        if test "$((0x$edx>>23&0x01))" = 1; then
+        if test "$[[ `sh -c \"$ax_cv_feature_edx\" 23` ]]" = "1"; then
           ax_cv_have_mmx_ext=yes
         fi
       ])
-
+      
       AC_CACHE_CHECK([whether sse is supported], [ax_cv_have_sse_ext],
       [
         ax_cv_have_sse_ext=no
-        if test "$((0x$edx>>25&0x01))" = 1; then
+        if test "$[[ `sh -c \"$ax_cv_feature_edx\" 25` ]]" = "1"; then
           ax_cv_have_sse_ext=yes
         fi
       ])
-
+      
       AC_CACHE_CHECK([whether sse2 is supported], [ax_cv_have_sse2_ext],
       [
         ax_cv_have_sse2_ext=no
-        if test "$((0x$edx>>26&0x01))" = 1; then
+        if test "$[[ `sh -c \"$ax_cv_feature_edx\" 26` ]]" = "1"; then
           ax_cv_have_sse2_ext=yes
         fi
       ])
-
+      
       AC_CACHE_CHECK([whether sse3 is supported], [ax_cv_have_sse3_ext],
       [
         ax_cv_have_sse3_ext=no
-        if test "$((0x$ecx&0x01))" = 1; then
+        if test "$[[ `sh -c \"$ax_cv_feature_ecx\" 0` ]]" = "1"; then
           ax_cv_have_sse3_ext=yes
         fi
       ])
-
+      
       AC_CACHE_CHECK([whether ssse3 is supported], [ax_cv_have_ssse3_ext],
       [
         ax_cv_have_ssse3_ext=no
-        if test "$((0x$ecx>>9&0x01))" = 1; then
+        if test "$[[ `sh -c \"$ax_cv_feature_ecx\" 9` ]]" = "1"; then
           ax_cv_have_ssse3_ext=yes
         fi
       ])
-
+      
       AC_CACHE_CHECK([whether sse4.1 is supported], [ax_cv_have_sse41_ext],
       [
         ax_cv_have_sse41_ext=no
-        if test "$((0x$ecx>>19&0x01))" = 1; then
+        if test "$[[ `sh -c \"$ax_cv_feature_ecx\" 19` ]]" = "1"; then
           ax_cv_have_sse41_ext=yes
         fi
       ])
-
+      
       AC_CACHE_CHECK([whether sse4.2 is supported], [ax_cv_have_sse42_ext],
       [
         ax_cv_have_sse42_ext=no
-        if test "$((0x$ecx>>20&0x01))" = 1; then
+        if test "$[[ `sh -c \"$ax_cv_feature_ecx\" 20` ]]" = "1"; then
           ax_cv_have_sse42_ext=yes
         fi
       ])
@@ -126,25 +177,18 @@ AC_DEFUN([AX_EXT],
       AC_CACHE_CHECK([whether avx is supported by processor], [ax_cv_have_avx_cpu_ext],
       [
         ax_cv_have_avx_cpu_ext=no
-        if test "$((0x$ecx>>28&0x01))" = 1; then
+        if test "$[[ `sh -c \"$ax_cv_feature_ecx\" 28` ]]" = "1"; then
           ax_cv_have_avx_cpu_ext=yes
         fi
       ])
 
       if test x"$ax_cv_have_avx_cpu_ext" = x"yes"; then
-        AX_GCC_X86_AVX_XGETBV(0x00000000)
-
-        xgetbv_eax="0"
-        if test x"$ax_cv_gcc_x86_avx_xgetbv_0x00000000" != x"unknown"; then
-          xgetbv_eax=`echo $ax_cv_gcc_x86_avx_xgetbv_0x00000000 | cut -d ":" -f 1`
-        fi
-
         AC_CACHE_CHECK([whether avx is supported by operating system], [ax_cv_have_avx_ext],
         [
           ax_cv_have_avx_ext=no
 
-          if test "$((0x$ecx>>27&0x01))" = 1; then
-            if test "$((0x$xgetbv_eax&0x6))" = 6; then
+          if test "$[[ `sh -c \"$ax_cv_feature_ecx\" 27` ]]" = "1"; then
+            if test "$[[ `sh -c \"$ax_cv_vendor_ecx\" 6` ]]" = "1"; then
               ax_cv_have_avx_ext=yes
             fi
           fi
