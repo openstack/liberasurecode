@@ -21,6 +21,7 @@ liberasurecode_la_SOURCES = \
 		backends/jerasure/jerasure_rs_vand.c \
 		backends/jerasure/jerasure_rs_cauchy.c \
 		backends/isa-l/isa_l_rs_vand.c \
+    backends/rs_vand/rs_vand.c \
 		backends/shss/shss.c
 
 # Install additional header files
