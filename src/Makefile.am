@@ -1,10 +1,11 @@
-SUBDIRS = builtin/xor_codes builtin/null_code
+SUBDIRS = builtin/xor_codes builtin/null_code builtin/rs_vand
 
 lib_LTLIBRARIES = liberasurecode.la
 
 INCLUDES = \
 		-I$(top_srcdir)/include/erasurecode \
 		-I$(top_srcdir)/include/xor_codes \
+		-I$(top_srcdir)/include/rs_vand \
 		-I$(top_srcdir)/include/shss
 
 # liberasurecode params
@@ -30,7 +31,8 @@ liberasurecodeinclude_HEADERS = \
 
 liberasurecode_la_CPPFLAGS = -Werror @GCOV_FLAGS@
 liberasurecode_la_LIBADD = \
-		builtin/xor_codes/libXorcode.la -lpthread -lm @GCOV_LDFLAGS@
+		builtin/xor_codes/libXorcode.la -lpthread -lm @GCOV_LDFLAGS@ \
+		builtin/rs_vand/liberasurecode_rsvand.la -lpthread -lm @GCOV_LDFLAGS@
 
 # Version format  (C - A).(A).(R) for C:R:A input
 liberasurecode_la_LDFLAGS = -rpath '$(libdir)' -version-info 1:7:0

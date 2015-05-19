@@ -195,6 +195,7 @@ AM_CONDITIONAL(ENABLE_DOXYGEN, test x$enable_doxygen = xyes)
 AC_CONFIG_FILES([\
     src/builtin/null_code/Makefile \
     src/builtin/xor_codes/Makefile \
+    src/builtin/rs_vand/Makefile \
     src/Makefile \
     test/Makefile \
     doc/Makefile \
