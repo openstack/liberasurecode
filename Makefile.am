@@ -33,9 +33,9 @@ thisinclude_HEADERS = \
 test: check
 	$(eval SONAMES := $(shell find $(abs_top_builddir) -name '*.so'))
 	$(eval SODIRS := $(dir $(SONAMES)))
-	$(eval LD_LIBRARY_PATH := LD_LIBRARY_PATH="$(subst / ,/:,$(SODIRS))")
-	$(eval DYLD_LIBRARY_PATH := DYLD_LIBRARY_PATH="$(subst / ,/:,$(SODIRS))")
-	$(eval DYLD_FALLBACK_LIBRARY_PATH := DYLD_FALLBACK_LIBRARY_PATH="$(subst / ,/:,$(SODIRS))")
+	$(eval LD_LIBRARY_PATH := LD_LIBRARY_PATH="$(LD_LIBRARY_PATH):$(subst / ,/:,$(SODIRS))")
+	$(eval DYLD_LIBRARY_PATH := DYLD_LIBRARY_PATH="$(DYLD_LIBRARY_PATH):$(subst / ,/:,$(SODIRS))")
+	$(eval DYLD_FALLBACK_LIBRARY_PATH := DYLD_FALLBACK_LIBRARY_PATH=$(DYLD_FALLBACK_LIBRARY_PATH):"$(subst / ,/:,$(SODIRS))")
 	@$(LD_LIBRARY_PATH) $(DYLD_LIBRARY_PATH) $(DYLD_FALLBACK_LIBRARY_PATH) \
 		./test/liberasurecode_test
 	@$(LD_LIBRARY_PATH) $(DYLD_LIBRARY_PATH) $(DYLD_FALLBACK_LIBRARY_PATH) \

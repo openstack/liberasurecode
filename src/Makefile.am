@@ -32,6 +32,7 @@ liberasurecodeinclude_HEADERS = \
 
 liberasurecode_la_CPPFLAGS = -Werror @GCOV_FLAGS@
 liberasurecode_la_LIBADD = \
+    builtin/null_code/libnullcode.la -lpthread -lm @GCOV_LDFLAGS@ \
 		builtin/xor_codes/libXorcode.la -lpthread -lm @GCOV_LDFLAGS@ \
 		builtin/rs_vand/liberasurecode_rsvand.la -lpthread -lm @GCOV_LDFLAGS@
 
