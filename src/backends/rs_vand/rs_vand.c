@@ -159,7 +159,7 @@ static void * internal_rs_vand_init(struct ec_backend_args *args,
     desc->m = args->uargs.m;
 
     /* store w back in args so upper layer can get to it */
-    desc->w = 16; // w is currently hard-coded at 16
+    args->uargs.w = desc->w = 16; // w is currently hard-coded at 16
 
     // This check should not matter, since 64K is way higher
     // than anyone should ever use
