@@ -161,9 +161,11 @@ CFLAGS="$CFLAGS $SIMD_FLAGS"
 
 # Certain code may be dependent on 32 vs. 64-bit arch, so add a 
 # flag for 64-bit
-if test "$ac_cv_sizeof_long" -eq 8; then
+if test `uname -m` == "x86_64"; then
   CFLAGS="$CFLAGS -DARCH_64"
+  AC_MSG_RESULT([Adding -DARCH_64 to CFLAGS])
 fi
+
 
 #################################################################################
 #                             Doxygen Documentation
