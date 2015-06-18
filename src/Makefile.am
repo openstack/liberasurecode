@@ -24,12 +24,6 @@ liberasurecode_la_SOURCES = \
     backends/rs_vand/rs_vand.c \
 		backends/shss/shss.c
 
-# Install additional header files
-liberasurecodeincludedir = $(includedir)
-liberasurecodeinclude_HEADERS = \
-  ../include/erasurecode/erasurecode.h \
-  ../include/erasurecode/erasurecode_helpers.h
-
 liberasurecode_la_CPPFLAGS = -Werror @GCOV_FLAGS@
 liberasurecode_la_LIBADD = \
     builtin/null_code/libnullcode.la -lpthread -lm @GCOV_LDFLAGS@ \
