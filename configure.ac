@@ -11,9 +11,6 @@ LT_INIT # libtool
 
 AC_CONFIG_HEADER(include/config_liberasurecode.h)
 
-dnl Needed when reconfiguring with 'autoreconf -i -s'
-AC_CONFIG_MACRO_DIR([m4])
-
 AM_MAINTAINER_MODE([disable])
 m4_ifndef([AM_SILENT_RULES], [m4_define([AM_SILENT_RULES],[])])
 AM_SILENT_RULES([yes])
@@ -96,6 +93,74 @@ AC_SUBST(GCOV_LDFLAGS)
 dnl Expand the sources and objects needed to build the library
 AC_SUBST(ac_aux_dir)
 AC_SUBST(OBJECTS)
+
+dnl Do CPUID and associated compiler flag checks
+
+SUPPORTED_FLAGS=""
+$CC - -E -mmmx </dev/null >/dev/null 2>&1
+if [[ $? == "0" ]]; then
+  SUPPORTED_FLAGS="-mmmx"
+  AC_MSG_RESULT([$CC supports -mmmx])
+fi
+$CC - -E -msse </dev/null >/dev/null 2>&1
+if [[ $? == "0" ]]; then
+  SUPPORTED_FLAGS="$SUPPORTED_FLAGS -msse"
+  AC_MSG_RESULT([$CC supports -msse])
+fi
+$CC - -E -msse2 </dev/null >/dev/null 2>&1
+if [[ $? == "0" ]]; then
+  SUPPORTED_FLAGS="$SUPPORTED_FLAGS -msse2"
+  AC_MSG_RESULT([$CC supports -msse2])
+fi
+$CC - -E -msse3 </dev/null >/dev/null 2>&1
+if [[ $? == "0" ]]; then
+  SUPPORTED_FLAGS="$SUPPORTED_FLAGS -msse3"
+  AC_MSG_RESULT([$CC supports -msse3])
+fi
+$CC - -E -mssse3 </dev/null >/dev/null 2>&1
+if [[ $? == "0" ]]; then
+  SUPPORTED_FLAGS="$SUPPORTED_FLAGS -mssse3"
+  AC_MSG_RESULT([$CC supports -mssse3])
+fi
+$CC - -E -msse4.1 </dev/null >/dev/null 2>&1
+if [[ $? == "0" ]]; then
+  SUPPORTED_FLAGS="$SUPPORTED_FLAGS -msse4.1"
+  AC_MSG_RESULT([$CC supports -msse4.1])
+fi
+$CC - -E -msse4.2 </dev/null >/dev/null 2>&1
+if [[ $? == "0" ]]; then
+  SUPPORTED_FLAGS="$SUPPORTED_FLAGS -msse4.2"
+  AC_MSG_RESULT([$CC supports -msse4.2])
+fi
+$CC - -E -mavx </dev/null >/dev/null 2>&1
+if [[ $? == "0" ]]; then
+  SUPPORTED_FLAGS="$SUPPORTED_FLAGS -mavx"
+  AC_MSG_RESULT([$CC supports -mavx])
+fi
+
+# Detect the SIMD features supported by both the compiler and the CPU
+SIMD_FLAGS=""
+cat get_flags_from_cpuid.c | sed "s/FLAGSFROMAUTOCONF/${SUPPORTED_FLAGS}/" | $CC -x c -g - -o get_flags_from_cpuid
+if [[ -e ./get_flags_from_cpuid ]]; then
+  chmod 755 get_flags_from_cpuid; ./get_flags_from_cpuid; rm ./get_flags_from_cpuid
+  if [[ -e compiler_flags ]]; then
+    SIMD_FLAGS=`cat compiler_flags`
+    rm -f compiler_flags
+  else
+    AC_MSG_WARN([Could not run the CPUID detection program])
+  fi
+else
+  AC_MSG_WARN([Could not compile the CPUID detection program])
+fi
+
+AC_MSG_RESULT([Generating with SIMD flags: $SIMD_FLAGS])
+CFLAGS="$CFLAGS $SIMD_FLAGS"
+
+# Certain code may be dependent on 32 vs. 64-bit arch, so add a 
+# flag for 64-bit
+if test "$ac_cv_sizeof_long" -eq 8; then
+  CFLAGS="$CFLAGS -DARCH_64"
+fi
 
 #################################################################################
 #                             Doxygen Documentation
