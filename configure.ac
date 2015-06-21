@@ -161,7 +161,9 @@ CFLAGS="$CFLAGS $SIMD_FLAGS"
 AC_CHECK_SIZEOF([long])
 if test "$ac_cv_sizeof_long" -eq 8; then
   CFLAGS="$CFLAGS -DARCH_64"
+  AC_MSG_RESULT([Adding -DARCH_64 to CFLAGS])
 fi
+
 
 #################################################################################
 #                             Doxygen Documentation
@@ -193,6 +195,7 @@ AM_CONDITIONAL(ENABLE_DOXYGEN, test x$enable_doxygen = xyes)
 AC_CONFIG_FILES([\
     src/builtin/null_code/Makefile \
     src/builtin/xor_codes/Makefile \
+    src/builtin/rs_vand/Makefile \
     src/Makefile \
     test/Makefile \
     doc/Makefile \

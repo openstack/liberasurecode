@@ -39,6 +39,7 @@
 #define JERASURE_RS_CAUCHY_BACKEND "jerasure_rs_cauchy"
 #define ISA_L_RS_VAND_BACKEND "isa_l_rs_vand"
 #define SHSS_BACKEND "shss"
+#define RS_VAND_BACKEND "rs_vand"
 
 typedef void (*TEST_FUNC)();
 
@@ -180,12 +181,52 @@ struct ec_args shss_args = {
 
 struct ec_args *shss_test_args[] = { &shss_args, NULL };
 
+struct ec_args internal_rs_vand_args = {
+    .k = 10,
+    .m = 4,
+    .w = 16,
+    .hd = 5,
+    .ct = CHKSUM_NONE,
+};
+
+struct ec_args internal_rs_vand_44_args = {
+    .k = 4,
+    .m = 4,
+    .w = 16,
+    .hd = 5,
+    .ct = CHKSUM_NONE,
+};
+
+struct ec_args internal_rs_vand_48_args = {
+    .k = 4,
+    .m = 8,
+    .w = 16,
+    .hd = 9,
+    .ct = CHKSUM_NONE,
+};
+
+struct ec_args internal_rs_vand_1010_args = {
+    .k = 10,
+    .m = 10,
+    .w = 16,
+    .hd = 11,
+    .ct = CHKSUM_NONE,
+};
+
+struct ec_args *internal_rs_vand_test_args[] = { &internal_rs_vand_args, 
+                                                 &internal_rs_vand_44_args, 
+                                                 &internal_rs_vand_1010_args, 
+                                                 &internal_rs_vand_48_args, 
+                                                 NULL };
+
 struct ec_args **all_backend_tests[] = {  null_test_args, 
                                           flat_xor_test_args, 
                                           jerasure_rs_vand_test_args, 
                                           jerasure_rs_cauchy_test_args, 
                                           isa_l_test_args, 
-                                          shss_test_args , NULL};
+                                          shss_test_args, 
+                                          internal_rs_vand_test_args,
+                                          NULL};
 
 int num_backends()
 {
@@ -237,6 +278,8 @@ char * get_name_from_backend_id(ec_backend_id_t be) {
             return ISA_L_RS_VAND_BACKEND;
         case EC_BACKEND_SHSS:
             return SHSS_BACKEND;
+        case EC_BACKEND_INTERNAL_RS_VAND:
+            return RS_VAND_BACKEND;
         default:
             return "UNKNOWN";
     }
@@ -258,6 +301,9 @@ struct ec_args *create_ec_args(ec_backend_id_t be, ec_checksum_type_t ct, int ba
             break;
         case EC_BACKEND_JERASURE_RS_CAUCHY:
             backend_args_array = jerasure_rs_cauchy_test_args;
+            break;
+        case EC_BACKEND_INTERNAL_RS_VAND:
+            backend_args_array = internal_rs_vand_test_args;
             break;
         case EC_BACKEND_FLAT_XOR_HD:
             backend_args_array = flat_xor_test_args;
@@ -1781,6 +1827,67 @@ struct testcase testcases[] = {
     {"test_verify_stripe_metadata_be_ver_mismatch",
         test_verify_stripe_metadata_be_ver_mismatch,
         EC_BACKEND_SHSS, CHKSUM_CRC32,
+        .skip = false},
+    // Internal RS Vand backend tests
+    {"create_and_destroy_backend",
+        test_create_and_destroy_backend,
+        EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_NONE,
+        .skip = false},
+    {"simple_encode_internal_rs_vand",
+        test_simple_encode_decode,
+        EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_NONE,
+        .skip = false},
+    {"decode_with_missing_data_internal_rs_vand",
+        test_decode_with_missing_data,
+        EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_NONE,
+        .skip = false},
+    {"decode_with_missing_multi_data_internal_rs_vand",
+        test_decode_with_missing_multi_data,
+        EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_NONE,
+        .skip = false},
+    {"decode_with_missing_multi_parity_internal_rs_vand",
+        test_decode_with_missing_multi_parity,
+        EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_NONE,
+        .skip = false},
+    {"test_decode_with_missing_multi_data_parity_internal_rs_vand",
+        test_decode_with_missing_multi_data_parity,
+        EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_NONE,
+        .skip = false},
+    {"simple_reconstruct_internal_rs_vand",
+        test_simple_reconstruct,
+        EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_NONE,
+        .skip = false},
+    {"test_fragments_needed_internal_rs_vand",
+        test_fragments_needed,
+        EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_NONE,
+        .skip = false},
+    {"test_get_fragment_metadata_internal_rs_vand",
+        test_get_fragment_metadata,
+        EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_NONE,
+        .skip = false},
+    {"test_get_fragment_metadata_internal_rs_vand_crc32",
+        test_get_fragment_metadata,
+        EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata",
+        test_verify_stripe_metadata,
+        EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata_libec_mismatch",
+         test_verify_stripe_metadata_libec_mismatch,
+         EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_CRC32,
+         .skip = false},
+    {"test_verify_stripe_metadata_magic_mismatch",
+          test_verify_stripe_metadata_magic_mismatch,
+          EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_CRC32,
+         .skip = false},
+    {"test_verify_stripe_metadata_be_id_mismatch",
+         test_verify_stripe_metadata_be_id_mismatch,
+         EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_CRC32,
+         .skip = false},
+    {"test_verify_stripe_metadata_be_ver_mismatch",
+        test_verify_stripe_metadata_be_ver_mismatch,
+        EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_CRC32,
         .skip = false},
     { NULL, NULL, 0, 0, false },
 };
