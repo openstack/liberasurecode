@@ -158,6 +158,7 @@ CFLAGS="$CFLAGS $SIMD_FLAGS"
 
 # Certain code may be dependent on 32 vs. 64-bit arch, so add a 
 # flag for 64-bit
+AC_CHECK_SIZEOF([long])
 if test "$ac_cv_sizeof_long" -eq 8; then
   CFLAGS="$CFLAGS -DARCH_64"
 fi
