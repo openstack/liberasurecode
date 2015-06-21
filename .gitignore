@@ -52,9 +52,6 @@ cscope.files
 install-sh
 libtool
 ltmain.sh
-m4/libtool.m4
-m4/ltoptions.m4
-m4/ltversion.m4
 
 # doxygen documentation
 ^doc/.*\.doxytag

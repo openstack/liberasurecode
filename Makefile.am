@@ -1,6 +1,4 @@
 # Top-level liberasurecode automake configuration
-ACLOCAL_AMFLAGS = -I m4
-
 SUBDIRS = src test doc
 
 EXTRA_DIST = autogen.sh
