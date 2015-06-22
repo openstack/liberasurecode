@@ -44,7 +44,7 @@ extern struct ec_backend_common backend_jerasure_rs_vand;
 extern struct ec_backend_common backend_jerasure_rs_cauchy;
 extern struct ec_backend_common backend_isa_l_rs_vand;
 extern struct ec_backend_common backend_shss;
-extern struct ec_backend_common backend_internal_rs_vand;
+extern struct ec_backend_common backend_liberasurecode_rs_vand;
 
 ec_backend_t ec_backends_supported[] = {
     (ec_backend_t) &backend_null,
@@ -53,7 +53,7 @@ ec_backend_t ec_backends_supported[] = {
     (ec_backend_t) &backend_flat_xor_hd,
     (ec_backend_t) &backend_isa_l_rs_vand,
     (ec_backend_t) &backend_shss,
-    (ec_backend_t) &backend_internal_rs_vand,
+    (ec_backend_t) &backend_liberasurecode_rs_vand,
     NULL,
 };
 
