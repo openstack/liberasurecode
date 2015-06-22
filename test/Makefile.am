@@ -25,12 +25,12 @@ check_PROGRAMS += libec_slap
 
 rs_galois_test_SOURCES = builtin/rs_vand/rs_galois_test.c
 rs_galois_test_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/include/rs_vand  @GCOV_FLAGS@
-rs_galois_test_LDFLAGS = @GCOV_LDFLAGS@ -static-libtool-libs $(top_srcdir)/src/builtin/rs_vand/liberasurecode_rsvand.la
+rs_galois_test_LDFLAGS = @GCOV_LDFLAGS@ -static-libtool-libs $(top_srcdir)/src/builtin/rs_vand/liberasurecode_rs_vand.la
 check_PROGRAMS += rs_galois_test
 
 liberasurecode_rs_vand_test_SOURCES = builtin/rs_vand/liberasurecode_rs_vand_test.c
 liberasurecode_rs_vand_test_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/include/rs_vand  @GCOV_FLAGS@
-liberasurecode_rs_vand_test_LDFLAGS = @GCOV_LDFLAGS@ -static-libtool-libs $(top_srcdir)/src/builtin/rs_vand/liberasurecode_rsvand.la
+liberasurecode_rs_vand_test_LDFLAGS = @GCOV_LDFLAGS@ -static-libtool-libs $(top_srcdir)/src/builtin/rs_vand/liberasurecode_rs_vand.la
 check_PROGRAMS += liberasurecode_rs_vand_test
 
 MOSTLYCLEANFILES = *.gcda *.gcno *.gcov \

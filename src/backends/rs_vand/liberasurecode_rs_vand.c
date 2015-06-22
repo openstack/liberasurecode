@@ -35,11 +35,11 @@
 #define INTERNAL_RS_VAND_LIB_MINOR 0
 #define INTERNAL_RS_VAND_LIB_REV   0
 #define INTERNAL_RS_VAND_LIB_VER_STR "1.0"
-#define INTERNAL_RS_VAND_LIB_NAME "liberasurecode_rsvand"
+#define INTERNAL_RS_VAND_LIB_NAME "liberasurecode_rs_vand"
 #if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
-#define INTERNAL_RS_VAND_SO_NAME "liberasurecode_rsvand.dylib"
+#define INTERNAL_RS_VAND_SO_NAME "liberasurecode_rs_vand.dylib"
 #else
-#define INTERNAL_RS_VAND_SO_NAME "liberasurecode_rsvand.so"
+#define INTERNAL_RS_VAND_SO_NAME "liberasurecode_rs_vand.so"
 #endif
 
 /* Forward declarations */
