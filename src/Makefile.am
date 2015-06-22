@@ -37,4 +37,5 @@ MOSTLYCLEANFILES = *.gcda *.gcno *.gcov utils/chksum/*.gcda utils/chksum/*.gcno 
                    backends/null/*.gcda backends/null/*.gcno backends/null/*.gcov  \
                    backends/xor/*.gcda backends/xor/*.gcno backends/xor/*.gcov  \
                    backends/jerasure/*.gcda backends/jerasure/*.gcno backends/jerasure/*.gcov \
-                   backends/shss/*.gcda backends/shss/*.gcno backends/shss/*.gcov
+                   backends/shss/*.gcda backends/shss/*.gcno backends/shss/*.gcov \
+                   backends/rs_vand/*.gcda backends/rs_vand/*.gcno backends/rs_vand/*.gcov
