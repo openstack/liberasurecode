@@ -62,7 +62,7 @@ int is_supported(int cpuid_reg, uint64_t comp_flags, int feature_bit)
 int main(int argc, char** argv)
 {
   int feature_eax, feature_ebx, feature_ecx, feature_edx;
-  uint64_t supp_comp_flgs = get_supported_flags(argc, argv);
+  uint64_t supp_comp_flgs = get_supported_flags();
   FILE *f = fopen("compiler_flags", "w");
 
   __asm__("cpuid"
