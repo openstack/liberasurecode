@@ -30,7 +30,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <time.h>
-#include <rs_vand_internal.h>
+#include <liberasurecode_rs_vand.h>
 
 int test_make_systematic_matrix(int k, int m)
 {
@@ -152,7 +152,7 @@ int test_encode_decode(int k, int m, int num_missing, int blocksize)
   }
   
   // Encode
-  internal_rs_vand_encode(matrix, data, parity, k, m, blocksize); 
+  liberasurecode_rs_vand_encode(matrix, data, parity, k, m, blocksize); 
 
   // Copy data and parity
   for (i = 0;i < num_missing; i++) {
@@ -175,7 +175,7 @@ int test_encode_decode(int k, int m, int num_missing, int blocksize)
   }
   
   // Decode and check
-  internal_rs_vand_decode(matrix, data, parity, k, m, missing, blocksize, 1);
+  liberasurecode_rs_vand_decode(matrix, data, parity, k, m, missing, blocksize, 1);
 
   for (i = 0; i < num_missing; i++) {
     int idx = missing[i];
@@ -235,7 +235,7 @@ int test_reconstruct(int k, int m, int num_missing, int blocksize)
   }
   
   // Encode
-  internal_rs_vand_encode(matrix, data, parity, k, m, blocksize); 
+  liberasurecode_rs_vand_encode(matrix, data, parity, k, m, blocksize); 
 
   // Copy data and parity
   for (i = 0; i < num_missing; i++) {
@@ -261,7 +261,7 @@ int test_reconstruct(int k, int m, int num_missing, int blocksize)
   }
   
   // Reconstruct and check destination buffer
-  internal_rs_vand_reconstruct(matrix, data, parity, k, m, missing, destination_idx, blocksize);
+  liberasurecode_rs_vand_reconstruct(matrix, data, parity, k, m, missing, destination_idx, blocksize);
 
   // The original copy of the destination buffer is in the 0th buffer (see above)
   if (destination_idx < k) { 
@@ -302,7 +302,7 @@ int main()
   while (matrix_dimensions[i][0] >= 0) {
     int k = matrix_dimensions[i][0], m = matrix_dimensions[i][1];
 
-    init_rs_vand(k, m);
+    init_liberasurecode_rs_vand(k, m);
 
     int make_systematic_res = test_make_systematic_matrix(k, m);
     if (!make_systematic_res) {
@@ -329,7 +329,7 @@ int main()
     }
     
     
-    deinit_rs_vand(k, m);
+    deinit_liberasurecode_rs_vand(k, m);
     i++;
   }
 

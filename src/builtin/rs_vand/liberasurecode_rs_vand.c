@@ -36,7 +36,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <rs_galois.h>
-#include <rs_vand_internal.h>
+#include <liberasurecode_rs_vand.h>
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -132,12 +132,12 @@ int create_decoding_matrix(int *gen_matrix, int *dec_matrix, int *missing_idxs, 
 }
 
 
-void init_rs_vand(int k, int m)
+void init_liberasurecode_rs_vand(int k, int m)
 {
   rs_galois_init_tables();
 }
 
-void deinit_rs_vand(int k, int m)
+void deinit_liberasurecode_rs_vand(int k, int m)
 {
   rs_galois_deinit_tables();
 }
@@ -398,7 +398,7 @@ void region_dot_product(char **from_bufs, char *to_buf, int *matrix_row, int num
   }
 }
 
-int internal_rs_vand_encode(int *generator_matrix, char **data, char **parity, int k, int m, int blocksize)
+int liberasurecode_rs_vand_encode(int *generator_matrix, char **data, char **parity, int k, int m, int blocksize)
 {
   int i;
   int n = k + m;
@@ -425,7 +425,7 @@ char **get_first_k_available(char **data, char **parity, int *missing, int k)
   return first_k_available;
 }
 
-int internal_rs_vand_decode(int *generator_matrix, char **data, char **parity, int k, int m, int *missing, int blocksize, int rebuild_parity)
+int liberasurecode_rs_vand_decode(int *generator_matrix, char **data, char **parity, int k, int m, int *missing, int blocksize, int rebuild_parity)
 {
   int *decoding_matrix = NULL;
   int *inverse_decoding_matrix = NULL;
@@ -480,7 +480,7 @@ int internal_rs_vand_decode(int *generator_matrix, char **data, char **parity, i
   return 0;
 }
 
-int internal_rs_vand_reconstruct(int *generator_matrix, char **data, char **parity, int k, int m, int *missing, int destination_idx, int blocksize)
+int liberasurecode_rs_vand_reconstruct(int *generator_matrix, char **data, char **parity, int k, int m, int *missing, int destination_idx, int blocksize)
 {
   int *decoding_matrix = NULL;
   int *inverse_decoding_matrix = NULL;
