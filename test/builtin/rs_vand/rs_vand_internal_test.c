@@ -50,8 +50,11 @@ int test_make_systematic_matrix(int k, int m)
 
 void dump_buffer(char *buf, int size, const char* filename)
 {
-  int fd = open(filename, O_RDWR | O_CREAT);
-  write(fd, buf, size);
+  int fd = open(filename, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+  ssize_t nbytes = write(fd, buf, size);
+  if (nbytes < 0) {
+    printf("dump_buffer: write error!\n");
+  }
   close(fd);
 }
 
@@ -212,7 +215,7 @@ int test_reconstruct(int k, int m, int num_missing, int blocksize)
   char **missing_bufs = (char**)malloc(sizeof(char*)*num_missing);
   int *missing = (int*)malloc(sizeof(int)*(num_missing+1));
   int *matrix = make_systematic_matrix(k, m);
-  int destination_idx;
+  int destination_idx = 0;
   int n = k + m;
   int i;
   int ret = 1;
