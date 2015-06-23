@@ -1,0 +1,15 @@
+# liberasurecode_rs_vand pkg-config source file
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: erasurecode_rs_vand
+Description: Naive Reed-Soloman Vandermonde Backend built-in to liberasurecode
+Version: @ERASURECODE_RS_VAND_VERSION@
+Requires:
+Conflicts:
+Libs: -L${libdir} @ERASURECODE_RS_VAND_RLD_FLAGS@ -lerasurecode
+Libs.private: @ERASURECODE_RS_VAND_STATIC_LIBS@
+Cflags: -I${includedir}/ -I${includedir}/erasurecode @ERASURECODE_RS_VAND_CFLAGS@
