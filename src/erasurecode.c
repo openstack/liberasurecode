@@ -729,6 +729,7 @@ int liberasurecode_reconstruct_fragment(int desc,
     char **parity = NULL;
     int *missing_idxs = NULL;
     char *fragment_ptr = NULL;
+    int is_destination_missing = 0;
     int k = -1;
     int m = -1;
     int i;
@@ -792,6 +793,33 @@ int liberasurecode_reconstruct_fragment(int desc,
     }
 
     /*
+     * Odd corner-case: If the caller passes in a destination_idx that
+     * is also included in the available fragments list, we should *not*
+     * try to reconstruct.
+     *
+     * For now, we will log a warning and do nothing.  In the future, we
+     * should probably log and return an error.
+     *
+     */
+    i = 0;
+    while (missing_idxs[i] > -1) {
+        if (missing_idxs[i] == destination_idx) {
+            is_destination_missing = 1;
+        }
+        i++;
+    }
+
+    if (!is_destination_missing) {
+        if (destination_idx < k) {
+            fragment_ptr = data[destination_idx];
+        } else {
+            fragment_ptr = parity[destination_idx - k];
+        }
+        log_warn("Dest idx for reconstruction was supplied as available buffer!");
+        goto destination_available;
+    }
+
+    /*
      * Preparing the fragments for reconstruction.  This will alloc aligned
      * buffers when unaligned buffers were passed in available_fragments.
      * It passes back a bitmap telling us which buffers need to be freed by
@@ -833,6 +861,7 @@ int liberasurecode_reconstruct_fragment(int desc,
                           orig_data_size, blocksize, instance->args.uargs.ct,
                           set_chksum);
 
+destination_available:
     /*
      * Copy the reconstructed fragment to the output buffer
      *
