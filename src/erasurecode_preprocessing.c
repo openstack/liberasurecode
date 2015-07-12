@@ -323,7 +323,7 @@ int fragments_to_string(int k, int m,
             continue;
         } else {
             /* Make sure we account for duplicates */
-            if (NULL != fragments[index]) {
+            if (NULL == data[index]) {
                 data[index] = fragments[i];
                 num_data++;
             }
