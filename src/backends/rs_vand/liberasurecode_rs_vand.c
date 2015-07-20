@@ -31,15 +31,15 @@
 #include "erasurecode_backend.h"
 #include "erasurecode_helpers.h"
 
-#define INTERNAL_RS_VAND_LIB_MAJOR 1
-#define INTERNAL_RS_VAND_LIB_MINOR 0
-#define INTERNAL_RS_VAND_LIB_REV   0
-#define INTERNAL_RS_VAND_LIB_VER_STR "1.0"
-#define INTERNAL_RS_VAND_LIB_NAME "liberasurecode_rs_vand"
+#define LIBERASURECODE_RS_VAND_LIB_MAJOR 1
+#define LIBERASURECODE_RS_VAND_LIB_MINOR 0
+#define LIBERASURECODE_RS_VAND_LIB_REV   0
+#define LIBERASURECODE_RS_VAND_LIB_VER_STR "1.0"
+#define LIBERASURECODE_RS_VAND_LIB_NAME "liberasurecode_rs_vand"
 #if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
-#define INTERNAL_RS_VAND_SO_NAME "liberasurecode_rs_vand.dylib"
+#define LIBERASURECODE_RS_VAND_SO_NAME "liberasurecode_rs_vand.dylib"
 #else
-#define INTERNAL_RS_VAND_SO_NAME "liberasurecode_rs_vand.so"
+#define LIBERASURECODE_RS_VAND_SO_NAME "liberasurecode_rs_vand.so"
 #endif
 
 /* Forward declarations */
@@ -300,13 +300,13 @@ struct ec_backend_op_stubs liberasurecode_rs_vand_op_stubs = {
 };
 
 struct ec_backend_common backend_liberasurecode_rs_vand = {
-    .id                         = EC_BACKEND_INTERNAL_RS_VAND,
-    .name                       = INTERNAL_RS_VAND_LIB_NAME,
-    .soname                     = INTERNAL_RS_VAND_SO_NAME,
-    .soversion                  = INTERNAL_RS_VAND_LIB_VER_STR,
+    .id                         = EC_BACKEND_LIBERASURECODE_RS_VAND,
+    .name                       = LIBERASURECODE_RS_VAND_LIB_NAME,
+    .soname                     = LIBERASURECODE_RS_VAND_SO_NAME,
+    .soversion                  = LIBERASURECODE_RS_VAND_LIB_VER_STR,
     .ops                        = &liberasurecode_rs_vand_op_stubs,
     .backend_metadata_size      = 0,
-    .ec_backend_version         = _VERSION(INTERNAL_RS_VAND_LIB_MAJOR,
-                                           INTERNAL_RS_VAND_LIB_MINOR,
-                                           INTERNAL_RS_VAND_LIB_REV),
+    .ec_backend_version         = _VERSION(LIBERASURECODE_RS_VAND_LIB_MAJOR,
+                                           LIBERASURECODE_RS_VAND_LIB_MINOR,
+                                           LIBERASURECODE_RS_VAND_LIB_REV),
 };

@@ -280,7 +280,7 @@ char * get_name_from_backend_id(ec_backend_id_t be) {
             return ISA_L_RS_VAND_BACKEND;
         case EC_BACKEND_SHSS:
             return SHSS_BACKEND;
-        case EC_BACKEND_INTERNAL_RS_VAND:
+        case EC_BACKEND_LIBERASURECODE_RS_VAND:
             return RS_VAND_BACKEND;
         default:
             return "UNKNOWN";
@@ -304,7 +304,7 @@ struct ec_args *create_ec_args(ec_backend_id_t be, ec_checksum_type_t ct, int ba
         case EC_BACKEND_JERASURE_RS_CAUCHY:
             backend_args_array = jerasure_rs_cauchy_test_args;
             break;
-        case EC_BACKEND_INTERNAL_RS_VAND:
+        case EC_BACKEND_LIBERASURECODE_RS_VAND:
             backend_args_array = liberasurecode_rs_vand_test_args;
             break;
         case EC_BACKEND_FLAT_XOR_HD:
@@ -1833,63 +1833,63 @@ struct testcase testcases[] = {
     // Internal RS Vand backend tests
     {"create_and_destroy_backend",
         test_create_and_destroy_backend,
-        EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_NONE,
+        EC_BACKEND_LIBERASURECODE_RS_VAND, CHKSUM_NONE,
         .skip = false},
     {"simple_encode_liberasurecode_rs_vand",
         test_simple_encode_decode,
-        EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_NONE,
+        EC_BACKEND_LIBERASURECODE_RS_VAND, CHKSUM_NONE,
         .skip = false},
     {"decode_with_missing_data_liberasurecode_rs_vand",
         test_decode_with_missing_data,
-        EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_NONE,
+        EC_BACKEND_LIBERASURECODE_RS_VAND, CHKSUM_NONE,
         .skip = false},
     {"decode_with_missing_multi_data_liberasurecode_rs_vand",
         test_decode_with_missing_multi_data,
-        EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_NONE,
+        EC_BACKEND_LIBERASURECODE_RS_VAND, CHKSUM_NONE,
         .skip = false},
     {"decode_with_missing_multi_parity_liberasurecode_rs_vand",
         test_decode_with_missing_multi_parity,
-        EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_NONE,
+        EC_BACKEND_LIBERASURECODE_RS_VAND, CHKSUM_NONE,
         .skip = false},
     {"test_decode_with_missing_multi_data_parity_liberasurecode_rs_vand",
         test_decode_with_missing_multi_data_parity,
-        EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_NONE,
+        EC_BACKEND_LIBERASURECODE_RS_VAND, CHKSUM_NONE,
         .skip = false},
     {"simple_reconstruct_liberasurecode_rs_vand",
         test_simple_reconstruct,
-        EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_NONE,
+        EC_BACKEND_LIBERASURECODE_RS_VAND, CHKSUM_NONE,
         .skip = false},
     {"test_fragments_needed_liberasurecode_rs_vand",
         test_fragments_needed,
-        EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_NONE,
+        EC_BACKEND_LIBERASURECODE_RS_VAND, CHKSUM_NONE,
         .skip = false},
     {"test_get_fragment_metadata_liberasurecode_rs_vand",
         test_get_fragment_metadata,
-        EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_NONE,
+        EC_BACKEND_LIBERASURECODE_RS_VAND, CHKSUM_NONE,
         .skip = false},
     {"test_get_fragment_metadata_liberasurecode_rs_vand_crc32",
         test_get_fragment_metadata,
-        EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_CRC32,
+        EC_BACKEND_LIBERASURECODE_RS_VAND, CHKSUM_CRC32,
         .skip = false},
     {"test_verify_stripe_metadata",
         test_verify_stripe_metadata,
-        EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_CRC32,
+        EC_BACKEND_LIBERASURECODE_RS_VAND, CHKSUM_CRC32,
         .skip = false},
     {"test_verify_stripe_metadata_libec_mismatch",
          test_verify_stripe_metadata_libec_mismatch,
-         EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_CRC32,
+         EC_BACKEND_LIBERASURECODE_RS_VAND, CHKSUM_CRC32,
          .skip = false},
     {"test_verify_stripe_metadata_magic_mismatch",
           test_verify_stripe_metadata_magic_mismatch,
-          EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_CRC32,
+          EC_BACKEND_LIBERASURECODE_RS_VAND, CHKSUM_CRC32,
          .skip = false},
     {"test_verify_stripe_metadata_be_id_mismatch",
          test_verify_stripe_metadata_be_id_mismatch,
-         EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_CRC32,
+         EC_BACKEND_LIBERASURECODE_RS_VAND, CHKSUM_CRC32,
          .skip = false},
     {"test_verify_stripe_metadata_be_ver_mismatch",
         test_verify_stripe_metadata_be_ver_mismatch,
-        EC_BACKEND_INTERNAL_RS_VAND, CHKSUM_CRC32,
+        EC_BACKEND_LIBERASURECODE_RS_VAND, CHKSUM_CRC32,
         .skip = false},
     { NULL, NULL, 0, 0, false },
 };
