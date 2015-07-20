@@ -1,1 +1,24 @@
-Release 1.0
+Release 1.0.8
+-------------
+
+ . Introduce 'liberasurecode_rs_vand', a native, software-based Reed-Soloman
+   Vandermonde backend
+ . Properly set W in the new internal RS backend.  Without this change, the
+   fragment length passed up is incorrect.
+ . Remove all GPLv3 m4 references for CPUID checks
+ . Properly dedupe fragments in fragments_to_string() function
+ . Prevent backends from reconstructing an index when it is not missing,
+   ie, is available
+ . Make ./configure to obey CFLAGS
+ . Add missing pkg-config templates
+ . Remove autoconf installed files from git control
+ . Fix get_supported_flags() arguments
+ . Properly detect 64-bit architecture.
+ . Add -f argument to autoreconf to regenerate aclocal macros
+ . Silent autoconf warning for ac_cv_sizeof_long
+ . Fix C++ build issues (add missing cplusplus macros definitions)
+ . Make liberasurecode header installs to a specific include directory
+ . Fix 'make test' to properly run null and installed backend tests.
+ . Fix a uint < 0 warning reported by Clang
+ . Fix memory leak in alg_sig init
+ . Fix decode when m > k and all parities are chosen as input to decode

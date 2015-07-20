@@ -26,7 +26,9 @@ thisinclude_HEADERS = \
 	include/erasurecode/list.h \
 	include/xor_codes/xor_hd_code_defs.h \
 	include/xor_codes/xor_code.h \
-	include/config_liberasurecode.h
+	include/config_liberasurecode.h \
+	include/rs_vand/rs_galois.h \
+	include/rs_vand/liberasurecode_rs_vand.h
 
 test: check
 	$(eval SONAMES := $(shell find $(abs_top_builddir) -name '*.so'))

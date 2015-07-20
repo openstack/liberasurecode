@@ -22,6 +22,7 @@ liberasurecode_la_SOURCES = \
 		backends/jerasure/jerasure_rs_cauchy.c \
 		backends/isa-l/isa_l_rs_vand.c \
 		backends/rs_vand/liberasurecode_rs_vand.c \
+		builtin/rs_vand/rs_galois.c \
 		backends/shss/shss.c
 
 liberasurecode_la_CPPFLAGS = -Werror @GCOV_FLAGS@
@@ -31,7 +32,7 @@ liberasurecode_la_LIBADD = \
 		builtin/rs_vand/liberasurecode_rs_vand.la -lpthread -lm @GCOV_LDFLAGS@
 
 # Version format  (C - A).(A).(R) for C:R:A input
-liberasurecode_la_LDFLAGS = -rpath '$(libdir)' -version-info 1:7:0
+liberasurecode_la_LDFLAGS = -rpath '$(libdir)' -version-info 1:8:0
 
 MOSTLYCLEANFILES = *.gcda *.gcno *.gcov utils/chksum/*.gcda utils/chksum/*.gcno utils/chksum/*.gcov \
                    backends/null/*.gcda backends/null/*.gcno backends/null/*.gcov  \
