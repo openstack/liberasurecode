@@ -47,6 +47,8 @@ galois_single_multiply_func get_galois_multi_func(void *handle) {
     return func_handle.fptr;
 }
 
+void stub_galois_uninit_field(int w){}
+
 galois_uninit_field_func get_galois_uninit_func(void *handle) {
     /*
      * ISO C forbids casting a void* to a function pointer.
@@ -74,6 +76,19 @@ int load_gf_functions(void *sohandle, struct jerasure_mult_routines *routines)
     if (NULL == routines->galois_single_multiply) {
       return -1;
     }
+    /**
+     * It is possible that the underlying Jerasure implementation
+     * is old (pre-jerasure.org).  If so, there is not an uninit
+     * function, so these tests will fail.
+     *
+     * Since nothing is using alg_sig at the moment, we stub the
+     * uninit function to unblock the tests.  Once we plug the internal
+     * GF functions into alg_sig, this can jsut go away.
+     */
+    if (NULL == routines->galois_uninit_field) {
+      routines->galois_uninit_field = &stub_galois_uninit_field;
+    }
+
     return 0;
 }
 
