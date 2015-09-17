@@ -1,5 +1,5 @@
 /*
- * <Copyright>
+ * Copyright 2014, Kevin Greenan, Tushar Gohda, All rights reserved
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -31,27 +31,6 @@
 
 #include "erasurecode_backend.h"
 #include "erasurecode_stdinc.h"
-
-/* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
-
-/**
- * liberasurecode fragment header definition
- *
- * Prevent the compiler from padding this by using the __packed__ keyword
- */
-
-#define LIBERASURECODE_FRAG_HEADER_MAGIC    0xb0c5ecc
-#define LIBERASURECODE_MAX_CHECKSUM_LEN     8   /* quad words */
-
-typedef struct __attribute__((__packed__)) fragment_header_s
-{
-    fragment_metadata_t meta;   /* 59 bytes */
-    uint32_t            magic;  /*  4 bytes */
-    uint32_t            libec_version; /* 4 bytes */
-    // We must be aligned to 16-byte boundaries
-    // So, size this array accordingly
-    uint8_t             aligned_padding[13];
-} fragment_header_t;
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 

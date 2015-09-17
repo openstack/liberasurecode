@@ -29,7 +29,6 @@
 #ifndef _ERASURECODE_H_
 #define _ERASURECODE_H_
 
-#include "list.h"
 #include "erasurecode_stdinc.h"
 #include "erasurecode_version.h"
 
@@ -259,9 +258,6 @@ fragment_metadata
     uint32_t    backend_version;    /* 4 */
 } fragment_metadata_t;
 
-#define FRAGSIZE_2_BLOCKSIZE(fragment_size) \
-    (fragment_size - sizeof(fragment_header_t))
-
 /**
  * Get opaque metadata for a fragment.  The metadata is opaque to the
  * client, but meaningful to the underlying library.  It is used to verify
@@ -302,6 +298,30 @@ int is_invalid_fragment(int desc, char *fragment);
  */
 int liberasurecode_verify_stripe_metadata(int desc,
         char **fragments, int num_fragments);
+
+/* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
+
+/**
+ * liberasurecode fragment header definition
+ *
+ * Prevent the compiler from padding this by using the __packed__ keyword
+ */
+
+#define LIBERASURECODE_FRAG_HEADER_MAGIC    0xb0c5ecc
+#define LIBERASURECODE_MAX_CHECKSUM_LEN     8   /* quad words */
+
+typedef struct __attribute__((__packed__)) fragment_header_s
+{
+    fragment_metadata_t meta;   /* 59 bytes */
+    uint32_t            magic;  /*  4 bytes */
+    uint32_t            libec_version; /* 4 bytes */
+    // We must be aligned to 16-byte boundaries
+    // So, size this array accordingly
+    uint8_t             aligned_padding[13];
+} fragment_header_t;
+
+#define FRAGSIZE_2_BLOCKSIZE(fragment_size) \
+    (fragment_size - sizeof(fragment_header_t))
 
 /* ==~=*=~===~=*=~==~=*=~== liberasurecode Helpers ==~*==~=*=~==~=~=*=~==~= */
 
