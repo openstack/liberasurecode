@@ -28,7 +28,6 @@
 #ifndef _EXCLUDE_LIBERASURE_CODE_H_
 #include "config_liberasurecode.h"
 #endif
-#include "erasurecode_log.h"
 
 #ifdef HAVE_SYSLOG_H
 #include <syslog.h>

@@ -32,7 +32,9 @@
 #include "erasurecode_helpers.h"
 #include "erasurecode_stdinc.h"
 #include "erasurecode_version.h"
+
 #include "alg_sig.h"
+#include "erasurecode_log.h"
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 

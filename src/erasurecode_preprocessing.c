@@ -28,6 +28,7 @@
 
 #include "erasurecode_backend.h"
 #include "erasurecode_helpers.h"
+#include "erasurecode_log.h"
 #include "erasurecode_preprocessing.h"
 #include "erasurecode_stdinc.h"
 

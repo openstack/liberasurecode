@@ -33,7 +33,9 @@
 #include "erasurecode_preprocessing.h"
 #include "erasurecode_postprocessing.h"
 #include "erasurecode_stdinc.h"
+
 #include "alg_sig.h"
+#include "erasurecode_log.h"
 
 /* =~=*=~==~=*=~==~=*=~= Supported EC backends =~=*=~==~=*=~==~=*=~==~=*=~== */
 
