@@ -30,6 +30,15 @@ thisinclude_HEADERS = \
 	include/rs_vand/rs_galois.h \
 	include/rs_vand/liberasurecode_rs_vand.h
 
+install-exec-hook:
+	-(cd $(DESTDIR)$(includedir) && \
+	   rm erasurecode.h erasurecode_version.h \
+	      erasurecode_stdinc.h config_liberasurecode.h && \
+	   $(LN_S) liberasurecode/erasurecode.h && \
+	   $(LN_S) liberasurecode/erasurecode_version.h && \
+	   $(LN_S) liberasurecode/erasurecode_stdinc.h && \
+	   $(LN_S) liberasurecode/config_liberasurecode.h)
+
 test: check
 	$(eval SONAMES := $(shell find $(abs_top_builddir) -name '*.so'))
 	$(eval SODIRS := $(dir $(SONAMES)))
