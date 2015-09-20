@@ -42,6 +42,7 @@
 #include <assert.h>
 #include "erasurecode.h"
 #include "erasurecode_helpers.h"
+#include "erasurecode_helpers_ext.h"
 #include "builtin/xor_codes/test_xor_hd_code.h"
 
 struct frag_array_set {

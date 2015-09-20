@@ -26,72 +26,54 @@
  * vi: set noai tw=79 ts=4 sw=4:
  */
 
-#ifndef _ERASURECODE_HELPERS_H_
-#define _ERASURECODE_HELPERS_H_
+#ifndef _ERASURECODE_HELPERS_EXT_H_
+#define _ERASURECODE_HELPERS_EXT_H_
 
-#include "erasurecode_stdinc.h"
+#include "erasurecode_backend.h"
+#include "erasurecode_helpers.h"
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
-#define talloc(type, num)   (type *) malloc(sizeof(type) * (num))
-
-/* Determine if an address is aligned to a particular boundary */
 static inline
-int is_addr_aligned(unsigned long addr, int align)
+void init_fragment_header(char *buf)
 {
-    return (addr & (align - 1)) == 0;
-}
+    fragment_header_t *header = (fragment_header_t *) buf;
 
-/*
- * Convert an int list into a bitmap
- * Assume the list is '-1' terminated.
- */
-static inline
-unsigned long long convert_list_to_bitmap(int *list)
-{
-    int i = 0;
-    unsigned long long bm = 0;
-
-    while (list[i] > -1) {
-        /*
-         * TODO: Assert list[i] < 64
-         */
-        bm |= (1 << list[i]);
-        i++;
-    }
-
-    return bm;
-}
-
-/*
- * Convert an index list int list into a bitmap
- * is_idx_in_erasure[] needs to be allocated by the caller
- * @returns number of idxs in error
- */
-static inline
-int convert_idx_list_to_bitvalues(
-        int *list_idxs,         // input idx_list
-        int *is_idx_in_erasure, // output idx list as boolean values (1/0)
-        int num_idxs)           // total number of indexes
-{
-    int i = 0, n = 0;
-
-    for (i = 0; i < num_idxs; i++)
-        is_idx_in_erasure[i] = 0;
-    for (i = 0, n = 0; (list_idxs[i] > -1) && (n < num_idxs); i++, n++)
-        is_idx_in_erasure[list_idxs[i]] = 1;
-
-    return n;
+    header->magic = LIBERASURECODE_FRAG_HEADER_MAGIC;
 }
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
-void *alloc_zeroed_buffer(int size);
-void *alloc_and_set_buffer(int size, int value);
-void *check_and_free_buffer(void *buf);
-void *get_aligned_buffer16(int size);
+char *alloc_fragment_buffer(int size);
+int free_fragment_buffer(char *buf);
+int get_aligned_data_size(ec_backend_t instance, int data_len);
+char *get_data_ptr_from_fragment(char *buf);
+int get_data_ptr_array_from_fragments(char **data_array, char **fragments,
+        int num_fragments);
+int get_fragment_ptr_array_from_data(char **frag_array, char **data,
+        int num_data);
+char *get_fragment_ptr_from_data_novalidate(char *buf);
+char *get_fragment_ptr_from_data(char *buf);
+uint64_t get_fragment_size(char *buf);
+int set_fragment_idx(char *buf, int idx);
+int get_fragment_idx(char *buf);
+int set_fragment_payload_size(char *buf, int size);
+int get_fragment_payload_size(char *buf);
+int set_fragment_backend_metadata_size(char *buf, int size);
+int get_fragment_backend_metadata_size(char *buf);
+int get_fragment_buffer_size(char *buf);
+int set_orig_data_size(char *buf, int orig_data_size);
+int get_orig_data_size(char *buf);
+int set_checksum(ec_checksum_type_t ct, char *buf, int blocksize);
+int get_checksum(char *buf); //TODO implement this
+int set_libec_version(char *fragment);
+int get_libec_version(char *fragment, uint32_t *ver);
+int set_backend_id(char *buf, ec_backend_id_t id);
+int get_backend_id(char *buf, ec_backend_id_t *id);
+int set_backend_version(char *buf, uint32_t version);
+int get_backend_version(char *buf, uint32_t *version);
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
-#endif  // _ERASURECODE_HELPERS_H_
+#endif  // _ERASURECODE_HELPERS_EXT_H_
 

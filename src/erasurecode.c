@@ -30,6 +30,7 @@
 #include "erasurecode.h"
 #include "erasurecode_backend.h"
 #include "erasurecode_helpers.h"
+#include "erasurecode_helpers_ext.h"
 #include "erasurecode_preprocessing.h"
 #include "erasurecode_postprocessing.h"
 #include "erasurecode_stdinc.h"

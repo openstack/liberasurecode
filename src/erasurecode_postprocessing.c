@@ -28,6 +28,7 @@
 
 #include "erasurecode_backend.h"
 #include "erasurecode_helpers.h"
+#include "erasurecode_helpers_ext.h"
 #include "erasurecode_stdinc.h"
 
 void add_fragment_metadata(ec_backend_t be, char *fragment,
