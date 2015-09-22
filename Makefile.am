@@ -18,6 +18,7 @@ thisinclude_HEADERS = \
 	include/erasurecode/erasurecode.h \
 	include/erasurecode/erasurecode_backend.h \
 	include/erasurecode/erasurecode_helpers.h \
+	include/erasurecode/erasurecode_helpers_ext.h \
 	include/erasurecode/erasurecode_log.h \
 	include/erasurecode/erasurecode_preprocessing.h \
 	include/erasurecode/erasurecode_postprocessing.h \
@@ -29,6 +30,17 @@ thisinclude_HEADERS = \
 	include/config_liberasurecode.h \
 	include/rs_vand/rs_galois.h \
 	include/rs_vand/liberasurecode_rs_vand.h
+
+install-exec-hook:
+	-(cd $(DESTDIR)$(includedir) && \
+	   rm -f erasurecode.h erasurecode_version.h \
+	         erasurecode_stdinc.h erasurecode_helpers.h \
+	         config_liberasurecode.h && \
+	   $(LN_S) liberasurecode/erasurecode.h && \
+	   $(LN_S) liberasurecode/erasurecode_version.h && \
+	   $(LN_S) liberasurecode/erasurecode_stdinc.h && \
+	   $(LN_S) liberasurecode/erasurecode_helpers.h && \
+	   $(LN_S) liberasurecode/config_liberasurecode.h)
 
 test: check
 	$(eval SONAMES := $(shell find $(abs_top_builddir) -name '*.so'))

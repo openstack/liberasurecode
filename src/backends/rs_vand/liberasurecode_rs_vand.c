@@ -30,6 +30,7 @@
 #include "erasurecode.h"
 #include "erasurecode_backend.h"
 #include "erasurecode_helpers.h"
+#include "erasurecode_helpers_ext.h"
 
 #define LIBERASURECODE_RS_VAND_LIB_MAJOR 1
 #define LIBERASURECODE_RS_VAND_LIB_MINOR 0

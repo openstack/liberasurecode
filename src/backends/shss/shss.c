@@ -34,6 +34,7 @@
 
 #include "erasurecode.h"
 #include "erasurecode_helpers.h"
+#include "erasurecode_helpers_ext.h"
 #include "erasurecode_backend.h"
 
 /* Forward declarations */
