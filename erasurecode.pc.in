@@ -12,4 +12,4 @@ Requires:
 Conflicts:
 Libs: -L${libdir} @ERASURECODE_RLD_FLAGS@ -lerasurecode
 Libs.private: @ERASURECODE_STATIC_LIBS@
-Cflags: -I${includedir}/ -I${includedir}/erasurecode @ERASURECODE_CFLAGS@
+Cflags: -I${includedir}/ -I${includedir}/liberasurecode @ERASURECODE_CFLAGS@
