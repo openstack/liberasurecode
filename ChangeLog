@@ -1,3 +1,14 @@
+Release 1.1.0
+-------------
+
+ . Fix for a segfault related to Jerasure uninit() function that is being
+   looked up by the jerasure EC backend (Issue#19)
+ . Split helpers.h include for backward compatibility
+ . Create header symlinks in std locations for backward compat (<= 1.0.8)
+ . Eliminate erasurecode_stdinc.h dependency on log.h
+ . Move fragment_header defn to main erasurecode header
+ . doxygen documentation fixes
+
 Release 1.0.9
 -------------
 
