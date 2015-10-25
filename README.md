@@ -324,6 +324,16 @@ int liberasurecode_get_fragment_size(int desc, int data_len);
 Build and Install
 =================
 
+Install dependencies -
+
+ Debian/Ubuntu hosts:
+
+   # apt-get install build-essential autoconf automake libtool
+
+ Fedora/RedHat/Centos hosts:
+
+   # yum install -y gcc make autoconf automake libtool
+
 To build the liberasurecode repository, perform the following from the 
 top-level directory:
 
@@ -367,6 +377,7 @@ Code organization
  |   |       |                            code implementation (shared library)
  |   |       +-- xor_code.c
  |   |       +-- xor_hd_code.c
+ |   |   +-- rs_vand                  --> liberasurecode native Reed Soloman codes
  |   |
  |   +-- utils
  |       +-- chksum                   --> fragment checksum utils for erasure
