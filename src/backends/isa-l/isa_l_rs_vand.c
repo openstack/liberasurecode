@@ -43,7 +43,7 @@
 #if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
 #define ISA_L_RS_VAND_SO_NAME "libisal.dylib"
 #else
-#define ISA_L_RS_VAND_SO_NAME "libisal.so"
+#define ISA_L_RS_VAND_SO_NAME "libisal.so.2"
 #endif
 
 /* Forward declarations */

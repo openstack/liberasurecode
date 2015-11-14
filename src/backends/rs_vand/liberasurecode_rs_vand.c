@@ -40,7 +40,7 @@
 #if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
 #define LIBERASURECODE_RS_VAND_SO_NAME "liberasurecode_rs_vand.dylib"
 #else
-#define LIBERASURECODE_RS_VAND_SO_NAME "liberasurecode_rs_vand.so"
+#define LIBERASURECODE_RS_VAND_SO_NAME "liberasurecode_rs_vand.so.1"
 #endif
 
 /* Forward declarations */

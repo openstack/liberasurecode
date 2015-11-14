@@ -39,7 +39,7 @@
 #if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
 #define NULL_SO_NAME "libnullcode.dylib"
 #else
-#define NULL_SO_NAME "libnullcode.so"
+#define NULL_SO_NAME "libnullcode.so.1"
 #endif
 /* Forward declarations */
 struct ec_backend null;

@@ -41,7 +41,7 @@
 #if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
 #define FLAT_XOR_SO_NAME "libXorcode.dylib"
 #else
-#define FLAT_XOR_SO_NAME "libXorcode.so"
+#define FLAT_XOR_SO_NAME "libXorcode.so.1"
 #endif
 #define DEFAULT_W 32
 

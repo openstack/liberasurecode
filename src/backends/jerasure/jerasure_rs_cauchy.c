@@ -42,7 +42,7 @@
 #if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
 #define JERASURE_RS_CAUCHY_SO_NAME "libJerasure.dylib"
 #else
-#define JERASURE_RS_CAUCHY_SO_NAME "libJerasure.so"
+#define JERASURE_RS_CAUCHY_SO_NAME "libJerasure.so.2"
 #endif
 
 /* Forward declarations */
