@@ -41,6 +41,37 @@ Active Users
  * PyECLib - Python EC library:  https://pypi.python.org/pypi/PyECLib
  * Openstack Swift Object Store - https://wiki.openstack.org/wiki/Swift
 
+
+----
+
+Build and Install
+=================
+
+Install dependencies -
+
+ Debian/Ubuntu hosts:
+
+```sh
+ $ sudo apt-get install build-essential autoconf automake libtool
+```
+
+ Fedora/RedHat/Centos hosts:
+
+```sh
+ $ sudo yum install -y gcc make autoconf automake libtool
+```
+
+To build the liberasurecode repository, perform the following from the 
+top-level directory:
+
+``` sh
+ $ ./autogen.sh
+ $ ./configure
+ $ make
+ $ make test
+ $ sudo make install
+```
+
 ----
 
 liberasurecode API Definition
@@ -317,32 +348,6 @@ int liberasurecode_get_minimum_encode_size(int desc);
  *                         + frag_backend_metadata_size
  */
 int liberasurecode_get_fragment_size(int desc, int data_len);
-```
-----
-
-
-Build and Install
-=================
-
-Install dependencies -
-
- Debian/Ubuntu hosts:
-
-   # apt-get install build-essential autoconf automake libtool
-
- Fedora/RedHat/Centos hosts:
-
-   # yum install -y gcc make autoconf automake libtool
-
-To build the liberasurecode repository, perform the following from the 
-top-level directory:
-
-``` sh
- $ ./autogen.sh
- $ ./configure
- $ make
- $ make test
- $ sudo make install
 ```
 
 ----
