@@ -32,7 +32,8 @@ thisinclude_HEADERS = \
 	include/rs_vand/liberasurecode_rs_vand.h
 
 install-exec-hook:
-	-(cd $(DESTDIR)$(includedir) && \
+	-(mkdir -p $(DESTDIR)$(includedir) && \
+	   cd $(DESTDIR)$(includedir) && \
 	   rm -f erasurecode.h erasurecode_version.h \
 	         erasurecode_stdinc.h erasurecode_helpers.h \
 	         config_liberasurecode.h && \
