@@ -183,7 +183,7 @@ fi
 
 # Detect the SIMD features supported by both the compiler and the CPU
 SIMD_FLAGS=""
-cat get_flags_from_cpuid.c | sed "s/FLAGSFROMAUTOCONF/${SUPPORTED_FLAGS}/" | $CC -x c -g - -o get_flags_from_cpuid
+cat "$srcdir/get_flags_from_cpuid.c" | sed "s/FLAGSFROMAUTOCONF/${SUPPORTED_FLAGS}/" | $CC -x c -g - -o get_flags_from_cpuid
 if [[ -e ./get_flags_from_cpuid ]]; then
   chmod 755 get_flags_from_cpuid; ./get_flags_from_cpuid; rm ./get_flags_from_cpuid
   if [[ -e compiler_flags ]]; then
