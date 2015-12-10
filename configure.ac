@@ -10,20 +10,20 @@ AM_MAINTAINER_MODE([disable])
 m4_ifndef([AM_SILENT_RULES], [m4_define([AM_SILENT_RULES],[])])
 AM_SILENT_RULES([yes])
 
-# Release version
+# Get release version
 AC_PATH_PROG(SED, sed, "", $PATH:/bin:/usr/bin:/usr/local/bin)
 if test -z "$SED"; then
   AC_MSG_WARN([sed was not found])
 fi
-
+VERINC="${srcdir}/include/erasurecode/erasurecode_version.h"
 AC_MSG_CHECKING([liberasurecode API version])
-LIBERASURECODE_VERSION_MAJOR=`$SED -ne 's/^#define _MAJOR *\([0-9]*\)/\1/p' ${srcdir}/include/erasurecode/erasurecode_version.h 2>/dev/null`
+LIBERASURECODE_VERSION_MAJOR=`$SED -ne 's/^#define _MAJOR *\([0-9]*\)/\1/p' ${VERINC} 2>/dev/null`
 AC_MSG_RESULT($LIBERASURECODE_VERSION_MAJOR)
 if test -z "$LIBERASURECODE_VERSION_MAJOR"; then
-  AC_MSG_ERROR([API version number can not be retrieved from include/erasurecode/erasurecode_version.h])
+  AC_MSG_ERROR([API version number can not be retrieved from $VERINC])
 fi
-LIBERASURECODE_VERSION_MINOR=`$SED -ne 's/^#define _MINOR *\([0-9]*\)/\1/p' ${srcdir}/include/erasurecode/erasurecode_version.h 2>/dev/null`
-LIBERASURECODE_VERSION_MICRO=`$SED -ne 's/^#define _REV *\([0-9]*\)/\1/p' ${srcdir}/include/erasurecode/erasurecode_version.h 2>/dev/null`
+LIBERASURECODE_VERSION_MINOR=`$SED -ne 's/^#define _MINOR *\([0-9]*\)/\1/p' ${VERINC} 2>/dev/null`
+LIBERASURECODE_VERSION_MICRO=`$SED -ne 's/^#define _REV *\([0-9]*\)/\1/p' ${VERINC} 2>/dev/null`
 LIBERASURECODE_VERSION=${LIBERASURECODE_VERSION_MAJOR}.${LIBERASURECODE_VERSION_MINOR}.${LIBERASURECODE_VERSION_MICRO}
 LIBERASURECODE_API_VERSION=${LIBERASURECODE_VERSION_MAJOR}
 
@@ -196,7 +196,9 @@ fi
 
 # Detect the SIMD features supported by both the compiler and the CPU
 SIMD_FLAGS=""
-cat "$srcdir/get_flags_from_cpuid.c" | sed "s/FLAGSFROMAUTOCONF/${SUPPORTED_FLAGS}/" | $CC -x c -g - -o get_flags_from_cpuid
+cat "$srcdir/get_flags_from_cpuid.c" \
+    | sed "s/FLAGSFROMAUTOCONF/${SUPPORTED_FLAGS}/" \
+    | $CC -x c -g - -o get_flags_from_cpuid
 if [[ -e ./get_flags_from_cpuid ]]; then
   chmod 755 get_flags_from_cpuid; ./get_flags_from_cpuid; rm ./get_flags_from_cpuid
   if [[ -e compiler_flags ]]; then
