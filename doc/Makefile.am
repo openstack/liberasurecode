@@ -1,4 +1,4 @@
-DOC_MODULE="liberasurecode"
+DOC_MODULE=@PACKAGE@
 HTML_DIR=$(datadir)/$(DOC_MODULE)/html
 TARGET_DIR=$(HTML_DIR)/$(DOC_MODULE)
 
@@ -16,14 +16,14 @@ clean-local:
 	rm -rf html
 
 install-data-local: html
-	../install-sh -d $(DESTDIR)$(TARGET_DIR)
+	$(top_srcdir)/install-sh -d $(DESTDIR)$(TARGET_DIR)
 	(installfiles=`echo html/*`; \
 	if test "$$installfiles" = 'html/*'; \
 	then echo '-- Nothing to install' ; \
 	else \
 		for i in $$installfiles; do \
 			echo '-- Installing '$$i ; \
-			../install-sh $$i $(DESTDIR)$(TARGET_DIR); \
+			$(top_srcdir)/install-sh $$i $(DESTDIR)$(TARGET_DIR); \
 		done; \
 	fi)
 
