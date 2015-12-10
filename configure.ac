@@ -2,29 +2,37 @@
 #                           Standard Stuff
 ################################################################################
 
-# Release version
-m4_define([package_version_major],[1])
-m4_define([package_version_minor],[1])
-m4_define([package_version_micro],[2])
-
-# API version
-m4_define([api_version],[1])
-
-AC_INIT(liberasurecode,
-        [package_version_major.package_version_minor.package_version_micro])
-        
-AC_GNU_SOURCE
-
 AC_PREREQ([2.61])
-
-AM_INIT_AUTOMAKE([subdir-objects])
-LT_INIT # libtool
-
-AC_CONFIG_HEADER(include/config_liberasurecode.h)
-
+AC_INIT(liberasurecode, [-], 
+        [tusharsg AT gmail DOT com, kmgreen2 AT gmail DOT com],
+        [], [https://bitbucket.org/tsg-/liberasurecode/])
 AM_MAINTAINER_MODE([disable])
 m4_ifndef([AM_SILENT_RULES], [m4_define([AM_SILENT_RULES],[])])
 AM_SILENT_RULES([yes])
+
+# Release version
+AC_PATH_PROG(SED, sed, "", $PATH:/bin:/usr/bin:/usr/local/bin)
+if test -z "$SED"; then
+  AC_MSG_WARN([sed was not found])
+fi
+
+AC_MSG_CHECKING([liberasurecode API version])
+LIBERASURECODE_VERSION_MAJOR=`$SED -ne 's/^#define _MAJOR *\([0-9]*\)/\1/p' ${srcdir}/include/erasurecode/erasurecode_version.h 2>/dev/null`
+AC_MSG_RESULT($LIBERASURECODE_VERSION_MAJOR)
+if test -z "$LIBERASURECODE_VERSION_MAJOR"; then
+  AC_MSG_ERROR([API version number can not be retrieved from include/erasurecode/erasurecode_version.h])
+fi
+LIBERASURECODE_VERSION_MINOR=`$SED -ne 's/^#define _MINOR *\([0-9]*\)/\1/p' ${srcdir}/include/erasurecode/erasurecode_version.h 2>/dev/null`
+LIBERASURECODE_VERSION_MICRO=`$SED -ne 's/^#define _REV *\([0-9]*\)/\1/p' ${srcdir}/include/erasurecode/erasurecode_version.h 2>/dev/null`
+LIBERASURECODE_VERSION=${LIBERASURECODE_VERSION_MAJOR}.${LIBERASURECODE_VERSION_MINOR}.${LIBERASURECODE_VERSION_MICRO}
+LIBERASURECODE_API_VERSION=${LIBERASURECODE_VERSION_MAJOR}
+
+LIBERASURECODE_VERSION_INFO=$((${LIBERASURECODE_VERSION_MAJOR}+${LIBERASURECODE_VERSION_MINOR})):${LIBERASURECODE_VERSION_MICRO}:${LIBERASURECODE_VERSION_MINOR}
+
+AC_GNU_SOURCE
+
+AM_INIT_AUTOMAKE([subdir-objects])
+LT_INIT # libtool
 
 AC_PROG_LN_S
 
@@ -61,10 +69,15 @@ m4_popdef([pkg_description])
 
 PKG_INSTALLDIR
 
-AC_SUBST([PACKAGE_VERSION_MAJOR],package_version_major)
-AC_SUBST([PACKAGE_VERSION_MINOR],package_version_minor)
-AC_SUBST([PACKAGE_VERSION_MICRO],package_version_micro)
-AC_SUBST([API_VERSION],api_version)
+AC_SUBST(LIBERASURECODE_VERSION_MAJOR)
+AC_SUBST(LIBERASURECODE_API_VERSION)
+AC_SUBST(LIBERASURECODE_VERSION_MINOR)
+AC_SUBST(LIBERASURECODE_VERSION_MICRO)
+AC_SUBST(LIBERASURECODE_VERSION)
+AC_SUBST(LIBERASURECODE_VERSION_INFO)
+AC_SUBST([PACKAGE_VERSION], LIBERASURECODE_VERSION)
+
+AC_CONFIG_HEADER(include/config_liberasurecode.h)
 
 AX_EXT()
 
@@ -248,8 +261,8 @@ AC_CONFIG_FILES([\
 ])
 
 AC_CONFIG_FILES([\
-    erasurecode-$API_VERSION.pc:erasurecode.pc], [],
-    [API_VERSION='$API_VERSION'])
+    erasurecode-${LIBERASURECODE_API_VERSION}.pc:erasurecode.pc], [],
+    [LIBERASURECODE_API_VERSION='$LIBERASURECODE_API_VERSION'])
 
 AM_CONDITIONAL([HAVE_DOXYGEN], [test -n "$DOXYGEN"])
 AM_COND_IF([HAVE_DOXYGEN],

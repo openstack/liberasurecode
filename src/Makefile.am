@@ -32,7 +32,7 @@ liberasurecode_la_LIBADD = \
 		builtin/rs_vand/liberasurecode_rs_vand.la -lpthread -lm @GCOV_LDFLAGS@
 
 # Version format  (C - A).(A).(R) for C:R:A input
-liberasurecode_la_LDFLAGS = -rpath '$(libdir)' -version-info 2:0:1
+liberasurecode_la_LDFLAGS = -rpath '$(libdir)' -version-info @LIBERASURECODE_VERSION_INFO@
 
 MOSTLYCLEANFILES = *.gcda *.gcno *.gcov utils/chksum/*.gcda utils/chksum/*.gcno utils/chksum/*.gcov \
                    backends/null/*.gcda backends/null/*.gcno backends/null/*.gcov  \
