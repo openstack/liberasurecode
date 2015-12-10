@@ -1,7 +1,18 @@
 ################################################################################
 #                           Standard Stuff
 ################################################################################
-AC_INIT(liberasurecode,1.1.0)
+
+# Release version
+m4_define([package_version_major],[1])
+m4_define([package_version_minor],[1])
+m4_define([package_version_micro],[2])
+
+# API version
+m4_define([api_version],[1])
+
+AC_INIT(liberasurecode,
+        [package_version_major.package_version_minor.package_version_micro])
+        
 AC_GNU_SOURCE
 
 AC_PREREQ([2.61])
@@ -24,6 +35,14 @@ AC_PROG_LIBTOOL
 AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
+
+PKG_PROG_PKG_CONFIG
+PKG_INSTALLDIR
+
+AC_SUBST([PACKAGE_VERSION_MAJOR],package_version_major)
+AC_SUBST([PACKAGE_VERSION_MINOR],package_version_minor)
+AC_SUBST([PACKAGE_VERSION_MICRO],package_version_micro)
+AC_SUBST([API_VERSION],api_version)
 
 AX_EXT()
 
@@ -202,9 +221,12 @@ AC_CONFIG_FILES([\
     test/Makefile \
     doc/Makefile \
     Makefile \
-    erasurecode.pc \
     Xorcode.pc
 ])
+
+AC_CONFIG_FILES([\
+    erasurecode-$API_VERSION.pc:erasurecode.pc], [],
+    [API_VERSION='$API_VERSION'])
 
 AM_CONDITIONAL([HAVE_DOXYGEN], [test -n "$DOXYGEN"])
 AM_COND_IF([HAVE_DOXYGEN],

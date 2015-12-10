@@ -31,6 +31,8 @@ thisinclude_HEADERS = \
 	include/rs_vand/rs_galois.h \
 	include/rs_vand/liberasurecode_rs_vand.h
 
+pkgconfig_DATA = erasurecode-$(API_VERSION).pc
+
 install-exec-hook:
 	-(mkdir -p $(DESTDIR)$(includedir) && \
 	   cd $(DESTDIR)$(includedir) && \
