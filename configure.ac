@@ -270,3 +270,18 @@ AM_COND_IF([HAVE_DOXYGEN],
 
 AC_OUTPUT
 
+AC_MSG_NOTICE([
+
+ $PACKAGE configured:
+ --------------------------
+
+  version:                $LIBERASURECODE_VERSION
+  interface revision:     $LIBERASURECODE_VERSION_INFO
+  generate documentation: $DOXYGEN
+  installation prefix:    $prefix
+  CFLAGS:                 $CXXFLAGS $CFLAGS
+  LDFLAGS:                $LIBS $LDFLAGS
+
+ type "make" followed by "make install" as root.
+ $DOXMAKE
+])
