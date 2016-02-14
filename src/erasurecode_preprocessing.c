@@ -240,7 +240,7 @@ int get_fragment_partition(
      */ 
     for (i = 0; i < num_fragments; i++) {
         index = get_fragment_idx(fragments[i]);
-        if (index < 0){
+        if (index < 0 || index > (k + m)) {
             return -EBADHEADER;
         }
         if (index < k) {
