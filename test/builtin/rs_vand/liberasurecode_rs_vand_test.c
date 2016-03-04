@@ -329,7 +329,7 @@ int main()
     }
     
     
-    deinit_liberasurecode_rs_vand(k, m);
+    deinit_liberasurecode_rs_vand();
     i++;
   }
 

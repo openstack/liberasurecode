@@ -137,7 +137,7 @@ void init_liberasurecode_rs_vand(int k, int m)
   rs_galois_init_tables();
 }
 
-void deinit_liberasurecode_rs_vand(int k, int m)
+void deinit_liberasurecode_rs_vand()
 {
   rs_galois_deinit_tables();
 }
