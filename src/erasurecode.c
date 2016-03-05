@@ -231,7 +231,7 @@ liberasurecode_exit(void) {
  *
  * @param id - one of the supported backends as
  *        defined by ec_backend_id_t
- * @param ec_args - arguments to the EC backend
+ * @param args - arguments to the EC backend
  *        arguments common to all backends
  *          k - number of data fragments
  *          m - number of parity fragments
@@ -298,7 +298,7 @@ int liberasurecode_instance_create(const ec_backend_id_t id,
 /**
  * Close a liberasurecode instance
  *
- * @param liberasurecode descriptor to close
+ * @param desc - liberasurecode descriptor to close
  */
 int liberasurecode_instance_destroy(int desc)
 {
@@ -506,7 +506,7 @@ int liberasurecode_decode_cleanup(int desc, char *data)
  *
  * @param desc - liberasurecode descriptor/handle
  *        from liberasurecode_instance_create()
- * @param fragments - erasure encoded fragments (> = k)
+ * @param available_fragments - erasure encoded fragments (> = k)
  * @param num_fragments - number of fragments being passed in
  * @param fragment_len - length of each fragment (assume they are the same)
  * @param force_metadata_checks - force fragment metadata checks (default: 0)
@@ -907,12 +907,12 @@ out:
  * Return a list of lists with valid rebuild indexes given
  * a list of missing indexes.
  *
- * @desc: liberasurecode instance descriptor (obtained with
+ * @param desc - liberasurecode instance descriptor (obtained with
  *        liberasurecode_instance_create)
- * @fragments_to_reconstruct list of indexes to reconstruct
- * @fragments_to_exclude list of indexes to exclude from
+ * @param fragments_to_reconstruct - list of indexes to reconstruct
+ * @param fragments_to_exclude - list of indexes to exclude from
           reconstruction equation
- * @fragments_needed list of fragments needed to reconstruct
+ * @param fragments_needed - list of fragments needed to reconstruct
           fragments in fragments_to_reconstruct
  *
  * @return a list of lists (bitmaps) of indexes to rebuild data

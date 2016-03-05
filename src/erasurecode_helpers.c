@@ -177,8 +177,8 @@ uint64_t get_fragment_size(char *buf)
  * Compute a size aligned to the number of data and the underlying wordsize 
  * of the EC algorithm.
  * 
- * @param instance, ec_backend_t instance (to extract args)
- * @param data_len, integer length of data in bytes
+ * @param instance - ec_backend_t instance (to extract args)
+ * @param data_len - integer length of data in bytes
  * @return integer data length aligned with wordsize of EC algorithm
  */
 int get_aligned_data_size(ec_backend_t instance, int data_len)
