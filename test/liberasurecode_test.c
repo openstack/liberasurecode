@@ -471,6 +471,16 @@ static void test_create_and_destroy_backend(
     assert(0 == liberasurecode_instance_destroy(desc));
 }
 
+static void test_backend_available(ec_backend_id_t be_id) {
+    assert(1 == liberasurecode_backend_available(be_id));
+}
+
+static void test_backend_available_invalid_args(ec_backend_id_t be_id)
+{
+    int ret = liberasurecode_backend_available(EC_BACKENDS_MAX);
+    assert(ret < 0);
+}
+
 static void test_create_backend_invalid_args()
 {
     int desc = liberasurecode_instance_create(-1, &null_args);
@@ -1522,6 +1532,14 @@ static void test_verify_stripe_metadata_frag_idx_invalid(
 //static void test_verify_str
 
 struct testcase testcases[] = {
+    {"test_backend_available_invalid_args",
+        test_backend_available_invalid_args,
+        EC_BACKENDS_MAX, 0,
+        .skip = false},
+    {"test_backend_available",
+        test_backend_available,
+        EC_BACKEND_NULL, 0,
+        .skip =  false},
     {"test_create_backend_invalid_args",
         test_create_backend_invalid_args,
         EC_BACKENDS_MAX, CHKSUM_TYPES_MAX,
