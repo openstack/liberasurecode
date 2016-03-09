@@ -93,6 +93,15 @@ struct ec_args {
 /* liberasurecode frontend API functions */
 
 /**
+ * Checks if a given backend is available.
+ *
+ * @param backend_id - one of the supported backends.
+ *
+ * @returns 1 if a backend is available; 0 otherwise
+ */
+int liberasurecode_backend_available(const ec_backend_id_t backend_id);
+
+/**
  * Create a liberasurecode instance and return a descriptor 
  * for use with EC operations (encode, decode, reconstruct)
  *

@@ -168,21 +168,10 @@ static void print_dlerror(const char *caller)
 }
 
 /* Generic dlopen/dlclose routines */
-int liberasurecode_backend_open(ec_backend_t instance)
+void* liberasurecode_backend_open(ec_backend_t instance)
 {
-    if (instance && NULL != instance->desc.backend_sohandle)
-        return 0;
-
     /* Use RTLD_LOCAL to avoid symbol collisions */
-    instance->desc.backend_sohandle = dlopen(instance->common.soname,
-                                             RTLD_LAZY | RTLD_LOCAL);
-    if (NULL == instance->desc.backend_sohandle) {
-        print_dlerror(__func__);
-        return -EBACKENDNOTAVAIL;
-    }
-
-    dlerror();    /* Clear any existing errors */
-    return 0;
+    return dlopen(instance->common.soname, RTLD_LAZY | RTLD_LOCAL);
 }
 
 int liberasurecode_backend_close(ec_backend_t instance)
@@ -226,6 +215,28 @@ liberasurecode_exit(void) {
 /* =~=*=~==~=*=~= liberasurecode frontend API implementation =~=*=~==~=*=~== */
 
 /**
+ * Checks if a given backend is available.
+ *
+ * @param backend_id - one of the supported backends.
+ *
+ * @returns 1 if a backend is available; 0 otherwise
+ */
+int liberasurecode_backend_available(const ec_backend_id_t backend_id) {
+    struct ec_backend backend;
+    if (backend_id >= EC_BACKENDS_MAX)
+        return 0;
+
+    backend.desc.backend_sohandle = liberasurecode_backend_open(
+            ec_backends_supported[backend_id]);
+    if (!backend.desc.backend_sohandle) {
+        return 0;
+    }
+
+    liberasurecode_backend_close(&backend);
+    return 1;
+}
+
+/**
  * Create a liberasurecode instance and return a descriptor
  * for use with EC operations (encode, decode, reconstruct)
  *
@@ -247,7 +258,6 @@ liberasurecode_exit(void) {
 int liberasurecode_instance_create(const ec_backend_id_t id,
                                    struct ec_args *args)
 {
-    int err = 0;
     ec_backend_t instance = NULL;
     struct ec_backend_args bargs;
     if (!args)
@@ -274,11 +284,14 @@ int liberasurecode_instance_create(const ec_backend_id_t id,
 
     /* Open backend .so if not already open */
     /* .so handle is returned in instance->desc.backend_sohandle */
-    err = liberasurecode_backend_open(instance);
-    if (err < 0) {
-        /* ignore during init, return the same handle */
-        free(instance);
-        return err;
+    if (!instance->desc.backend_sohandle) {
+        instance->desc.backend_sohandle = liberasurecode_backend_open(instance);
+        if (!instance->desc.backend_sohandle) {
+            /* ignore during init, return the same handle */
+            print_dlerror(__func__);
+            free(instance);
+            return -EBACKENDNOTAVAIL;
+        }
     }
 
     /* Call private init() for the backend */

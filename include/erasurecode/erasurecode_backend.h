@@ -142,7 +142,7 @@ int liberasurecode_backend_instance_unregister(ec_backend_t instance);
 
 
 /* Generic dlopen/dlclose routines */
-int liberasurecode_backend_open(ec_backend_t instance);
+void* liberasurecode_backend_open(ec_backend_t instance);
 int liberasurecode_backend_close(ec_backend_t instance);
 
 
