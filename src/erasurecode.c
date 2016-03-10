@@ -170,6 +170,8 @@ static void print_dlerror(const char *caller)
 /* Generic dlopen/dlclose routines */
 void* liberasurecode_backend_open(ec_backend_t instance)
 {
+    if (NULL == instance)
+        return NULL;
     /* Use RTLD_LOCAL to avoid symbol collisions */
     return dlopen(instance->common.soname, RTLD_LAZY | RTLD_LOCAL);
 }
