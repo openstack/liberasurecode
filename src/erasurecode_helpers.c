@@ -501,3 +501,45 @@ inline uint32_t* get_chksum(char *buf)
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
+#if LIBERASURECODE_VERSION >= _VERSION(1,2,0)
+inline int set_metadata_chksum(char *buf)
+{
+    fragment_header_t* header = (fragment_header_t*) buf;
+
+    assert(NULL != header);
+    if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
+        log_error("Invalid fragment header (set meta chksum)!\n");
+        return -1;
+    }
+
+    header->metadata_chksum = crc32(0, &header->meta,
+                                    sizeof(fragment_metadata_t));
+    return 0;
+}
+
+inline uint32_t* get_metadata_chksum(char *buf)
+{
+    fragment_header_t* header = (fragment_header_t*) buf;
+
+    assert(NULL != header);
+    if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
+        log_error("Invalid fragment header (get meta chksum)!");
+        return NULL;
+    }
+
+    return (uint32_t *) &header->metadata_chksum;
+}
+#else
+inline int set_metadata_chksum(char *buf)
+{
+    return 0;
+}
+
+inline uint32_t* get_metadata_chksum(char *buf)
+{
+    return (uint32_t *) 0;
+}
+#endif
+
+/* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
+

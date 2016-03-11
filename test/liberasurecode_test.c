@@ -940,17 +940,29 @@ static void encode_decode_test_impl(const ec_backend_id_t be_id,
     assert(0 == rc);
     orig_data_ptr = orig_data;
     remaining = orig_data_size;
-    for (i = 0; i < args->k; i++)
+    for (i = 0; i < args->k + args->m; i++)
     {
-        char *frag = encoded_data[i];
+        int cmp_size = -1;
+        char *data_ptr = NULL;
+        char *frag = NULL;
+        uint32_t *mcksum = NULL;
+
+        frag = (i < args->k) ? encoded_data[i] : encoded_parity[i - args->k];
+        assert(frag != NULL);
         fragment_header_t *header = (fragment_header_t*)frag;
         assert(header != NULL);
+        mcksum = get_metadata_chksum(frag);
+        assert(mcksum != NULL);
+        assert(header->metadata_chksum == *mcksum);
+
         fragment_metadata_t metadata = header->meta;
         assert(metadata.idx == i);
         assert(metadata.size == encoded_fragment_len - frag_header_size - be->common.backend_metadata_size);
         assert(metadata.orig_data_size == orig_data_size);
-        char *data_ptr = frag + frag_header_size;
-        int cmp_size = remaining >= metadata.size ? metadata.size : remaining;
+        assert(metadata.backend_id == be_id);
+        assert(metadata.chksum_mismatch == 0);
+        data_ptr = frag + frag_header_size;
+        cmp_size = remaining >= metadata.size ? metadata.size : remaining;
         // shss doesn't keep original data on data fragments
         if (be_id != EC_BACKEND_SHSS) {
             assert(memcmp(data_ptr, orig_data_ptr, cmp_size) == 0);

@@ -65,13 +65,16 @@ int get_fragment_buffer_size(char *buf);
 int set_orig_data_size(char *buf, int orig_data_size);
 int get_orig_data_size(char *buf);
 int set_checksum(ec_checksum_type_t ct, char *buf, int blocksize);
-int get_checksum(char *buf); //TODO implement this
+int get_checksum(char *buf);
 int set_libec_version(char *fragment);
 int get_libec_version(char *fragment, uint32_t *ver);
 int set_backend_id(char *buf, ec_backend_id_t id);
 int get_backend_id(char *buf, ec_backend_id_t *id);
 int set_backend_version(char *buf, uint32_t version);
 int get_backend_version(char *buf, uint32_t *version);
+int set_metadata_chksum(char *buf);
+uint32_t *get_metadata_chksum(char *buf);
+int is_invalid_fragment_header(fragment_header_t *header);
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
