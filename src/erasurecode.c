@@ -1042,7 +1042,7 @@ int liberasurecode_verify_fragment_metadata(ec_backend_t be,
 {
     int k = be->args.uargs.k;
     int m = be->args.uargs.m;
-    if (md->idx < 0 || (md->idx > (k + m))) {
+    if (md->idx > (k + m)) {
         return 1;
     }
     if (md->backend_id != be->common.id) {
