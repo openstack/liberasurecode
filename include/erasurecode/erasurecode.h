@@ -256,15 +256,15 @@ int liberasurecode_fragments_needed(int desc,
 typedef struct __attribute__((__packed__))
 fragment_metadata
 {
-    uint32_t    idx;                                     /*  4 */
-    uint32_t    size;                                    /*  4 */
-    uint32_t    frag_backend_metadata_size;              /*  4 */
-    uint64_t    orig_data_size;                          /*  8 */
-    uint8_t     chksum_type;                             /*  1 */
+    uint32_t    idx;                /* 4 */
+    uint32_t    size;               /* 4 */
+    uint32_t    frag_backend_metadata_size;    /* 4 */
+    uint64_t    orig_data_size;     /* 8 */
+    uint8_t     chksum_type;        /* 1 */
     uint32_t    chksum[LIBERASURECODE_MAX_CHECKSUM_LEN]; /* 32 */
-    uint8_t     chksum_mismatch;                         /*  1 */
-    uint8_t     backend_id;                              /*  1 */
-    uint32_t    backend_version;                         /*  4 */
+    uint8_t     chksum_mismatch;    /* 1 */
+    uint8_t     backend_id;         /* 1 */
+    uint32_t    backend_version;    /* 4 */
 } fragment_metadata_t;
 
 /**
@@ -321,13 +321,12 @@ int liberasurecode_verify_stripe_metadata(int desc,
 
 typedef struct __attribute__((__packed__)) fragment_header_s
 {
-    fragment_metadata_t meta;              /* 59 bytes */
-    uint32_t            magic;             /*  4 bytes */
-    uint32_t            libec_version;     /*  4 bytes */
-    uint32_t            metadata_chksum;   /*  4 bytes */
+    fragment_metadata_t meta;   /* 59 bytes */
+    uint32_t            magic;  /*  4 bytes */
+    uint32_t            libec_version; /* 4 bytes */
     // We must be aligned to 16-byte boundaries
     // So, size this array accordingly
-    uint8_t             aligned_padding[9];
+    uint8_t             aligned_padding[13];
 } fragment_header_t;
 
 #define FRAGSIZE_2_BLOCKSIZE(fragment_size) \
