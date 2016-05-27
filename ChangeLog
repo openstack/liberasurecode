@@ -1,3 +1,11 @@
+Release 1.2.0
+-------------
+
+ . Add functionality to enable consumers to check which backends are
+   present on a system
+ . Fix segfault when fragment index is out of range
+ . Add fragment metadata checksumming support
+
 Release 1.1.0
 -------------
 
