@@ -10,7 +10,7 @@ Highlights
 
  * Unified Erasure Coding interface for common storage workloads.
 
- * Pluggable Erasure Code backends - As of v1.1.x, liberasurecode supports the following backends:
+ * Pluggable Erasure Code backends - liberasurecode supports the following backends:
 
       - 'liberasurecode_rs_vand' - Native, software-only Erasure Coding implementation that supports a Reed-Solomon backend
       - 'Jerasure' - Erasure Coding library that supports Reed-Solomon, Cauchy backends [1]
