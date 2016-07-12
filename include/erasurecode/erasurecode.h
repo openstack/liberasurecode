@@ -371,6 +371,7 @@ int liberasurecode_get_minimum_encode_size(int desc);
  *
  * @return fragment size - sizeof(fragment_header) + size
  *                         + frag_backend_metadata_size
+ *                         if an error, return value will be negative
  */
 int liberasurecode_get_fragment_size(int desc, int data_len);
 
