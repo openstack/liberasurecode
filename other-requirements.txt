@@ -7,3 +7,4 @@ make [platform:rpm]
 autoconf
 automake
 libtool
+valgrind
