@@ -5,7 +5,7 @@
 AC_PREREQ([2.61])
 AC_INIT(liberasurecode, [-], 
         [tusharsg AT gmail DOT com, kmgreen2 AT gmail DOT com],
-        [], [https://bitbucket.org/tsg-/liberasurecode/])
+        [], [https://github.com/openstack/liberasurecode])
 AM_MAINTAINER_MODE([disable])
 m4_ifndef([AM_SILENT_RULES], [m4_define([AM_SILENT_RULES],[])])
 AM_SILENT_RULES([yes])
