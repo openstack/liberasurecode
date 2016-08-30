@@ -331,7 +331,7 @@ int liberasurecode_instance_destroy(int desc)
     /* dlclose() backend library */
     liberasurecode_backend_close(instance);
 
-    /* Remove instace from registry */
+    /* Remove instance from registry */
     rc = liberasurecode_backend_instance_unregister(instance);
     if (rc == 0) {
         free(instance);
