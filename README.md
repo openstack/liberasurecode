@@ -420,4 +420,4 @@ References
 
  [3] Greenan, Kevin M et al, "Flat XOR-based erasure codes in storage systems", http://www.kaymgee.com/Kevin_Greenan/Publications_files/greenan-msst10.pdf
 
- [4] Kota Tsuyuzaki <tsuyuzaki.kota@lab.ntt.co.jp>, Ryuta Kon <kon.ryuta@po.ntts.co.jp>, "NTT SHSS Erasure Coding backend"
+ [4] Kota Tsuyuzaki <tsuyuzaki.kota@lab.ntt.co.jp>, "NTT SHSS Erasure Coding backend"
