@@ -6,6 +6,7 @@ INCLUDES = \
 		-I$(top_srcdir)/include/erasurecode \
 		-I$(top_srcdir)/include/xor_codes \
 		-I$(top_srcdir)/include/rs_vand \
+		-I$(top_srcdir)/include/isa_l \
 		-I$(top_srcdir)/include/shss
 
 # liberasurecode params
@@ -20,7 +21,9 @@ liberasurecode_la_SOURCES = \
 		backends/xor/flat_xor_hd.c \
 		backends/jerasure/jerasure_rs_vand.c \
 		backends/jerasure/jerasure_rs_cauchy.c \
+		backends/isa-l/isa_l_common.c \
 		backends/isa-l/isa_l_rs_vand.c \
+		backends/isa-l/isa_l_rs_cauchy.c \
 		backends/rs_vand/liberasurecode_rs_vand.c \
 		builtin/rs_vand/rs_galois.c \
 		backends/shss/shss.c
