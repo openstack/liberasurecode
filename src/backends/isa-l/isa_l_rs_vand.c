@@ -261,7 +261,10 @@ static int isa_l_rs_vand_decode(void *desc, char **data, char **parity,
         goto out;
     }
 
-    isa_l_desc->gf_invert_matrix(decode_matrix, decode_inverse, k);
+    int im_ret = isa_l_desc->gf_invert_matrix(decode_matrix, decode_inverse, k);
+    if (im_ret < 0) {
+        goto out;
+    }
 
     // Generate g_tbls from computed decode matrix (k x k) matrix
     g_tbls = malloc(sizeof(unsigned char) * (k * m * 32));
@@ -365,7 +368,10 @@ static int isa_l_rs_vand_reconstruct(void *desc, char **data, char **parity,
         goto out;
     }
 
-    isa_l_desc->gf_invert_matrix(decode_matrix, decode_inverse, k);
+    int im_ret = isa_l_desc->gf_invert_matrix(decode_matrix, decode_inverse, k);
+    if (im_ret < 0) {
+        goto out;
+    }
 
     /**
      * Get the row needed to reconstruct

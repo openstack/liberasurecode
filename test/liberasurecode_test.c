@@ -1346,6 +1346,102 @@ static void test_decode_with_missing_multi_data_parity(
     }
 }
 
+static void test_decode_reconstruct_specific_error_case(
+    const ec_backend_id_t be_id, struct ec_args *args)
+{
+    struct ec_args specific_1010_args = {
+        .k = 10,
+        .m = 10,
+    };
+
+    int rc = 0;
+    int desc = -1;
+    int orig_data_size = 1024 * 1024;
+    char *orig_data = create_buffer(orig_data_size, 'x');
+    char **encoded_data = NULL, **encoded_parity = NULL;
+    uint64_t encoded_fragment_len = 0;
+    int num_avail_frags = -1;
+    char **avail_frags = NULL;
+    char *decoded_data = NULL;
+    char *out_frag = NULL;
+    uint64_t decoded_data_len = 0;
+
+    int *skips = create_skips_array(&specific_1010_args,-1);
+    assert(skips != NULL);
+    // available frags for a bad pattern: [0, 1, 2, 3, 4, 6, 7, 10, 12, 15]
+    skips[5] = skips[8] = skips[9] = skips[11] = skips[13] = skips[14] =
+        skips[16] = skips[17] = skips[18] = skips[19] = 1;
+
+    desc = liberasurecode_instance_create(
+        EC_BACKEND_ISA_L_RS_VAND, &specific_1010_args);
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf (stderr, "Backend library not available!\n");
+        return;
+    }
+    assert(desc > 0);
+
+    rc = liberasurecode_encode(desc, orig_data, orig_data_size,
+            &encoded_data, &encoded_parity, &encoded_fragment_len);
+    assert(rc == 0);
+
+    num_avail_frags = create_frags_array(&avail_frags, encoded_data,
+                                         encoded_parity, &specific_1010_args,
+                                         skips);
+    assert(num_avail_frags > 0);
+
+    rc = liberasurecode_decode(desc, avail_frags, num_avail_frags,
+                               encoded_fragment_len, 1,
+                               &decoded_data, &decoded_data_len);
+    assert(rc == -1);
+    free(avail_frags);
+
+    // 5 is a hole in available frags
+    num_avail_frags = create_frags_array(&avail_frags, encoded_data,
+                                         encoded_parity, &specific_1010_args,
+                                         skips);
+    out_frag = malloc(sizeof(char) * encoded_fragment_len);
+    rc = liberasurecode_reconstruct_fragment(
+        desc, avail_frags, 10, encoded_fragment_len, 5, out_frag);
+    assert(rc == -1);
+
+    free(out_frag);
+    free(avail_frags);
+
+    // sanity; [0, 1, 2, 3, 4, 6, 7, 10, 12, 14] is ok
+    skips[15] = 1; skips[14] = 0;
+    num_avail_frags = create_frags_array(&avail_frags, encoded_data,
+                                         encoded_parity, &specific_1010_args,
+                                         skips);
+    assert(num_avail_frags > 0);
+    rc = liberasurecode_decode(desc, avail_frags, num_avail_frags,
+                               encoded_fragment_len, 1,
+                               &decoded_data, &decoded_data_len);
+    assert(rc == 0);
+    // 5 is a hole in available frags
+    out_frag = malloc(sizeof(char) * encoded_fragment_len);
+    rc = liberasurecode_reconstruct_fragment(
+        desc, avail_frags, 10, encoded_fragment_len, 5, out_frag);
+
+    assert(rc == 0);
+
+    free(out_frag);
+
+    // cleanup all
+    rc = liberasurecode_encode_cleanup(desc, encoded_data, encoded_parity);
+    assert(rc == 0);
+
+    rc = liberasurecode_decode_cleanup(desc, decoded_data);
+    assert(rc == 0);
+
+    if (desc) {
+        assert(0 == liberasurecode_instance_destroy(desc));
+    }
+
+    free(orig_data);
+    free(avail_frags);
+    free(skips);
+}
+
 static void test_simple_encode_decode(const ec_backend_id_t be_id,
                                      struct ec_args *args)
 {
@@ -1874,6 +1970,10 @@ struct testcase testcases[] = {
     {"test_verify_stripe_metadata_frag_idx_invalid",
         test_verify_stripe_metadata_frag_idx_invalid,
         EC_BACKEND_ISA_L_RS_VAND, CHKSUM_CRC32,
+        .skip = false},
+    {"test_isa_l_decode_reconstruct_specific_error_case",
+        test_decode_reconstruct_specific_error_case,
+        EC_BACKENDS_MAX, 0, // note this test is using ISA-L in hard coded
         .skip = false},
     // shss tests
     {"create_and_destroy_backend",
