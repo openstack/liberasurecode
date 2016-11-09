@@ -475,10 +475,11 @@ static void test_backend_available(ec_backend_id_t be_id) {
     assert(1 == liberasurecode_backend_available(be_id));
 }
 
-static void test_backend_available_invalid_args(ec_backend_id_t be_id)
+static void test_backend_available_invalid_args()
 {
     int ret = liberasurecode_backend_available(EC_BACKENDS_MAX);
-    assert(ret < 0);
+    // returns 1 if a backend is available; 0 otherwise
+    assert(0 == ret);
 }
 
 static void test_create_backend_invalid_args()
@@ -640,12 +641,13 @@ static void test_decode_invalid_args()
     rc = liberasurecode_decode(desc, avail_frags, num_avail_frags,
                                strlen(fake_data), 1,
                                &decoded_data, &decoded_data_len);
-    // force_metadata_checks results in EINSUFFFRAGS
-    assert(rc == -EINSUFFFRAGS);
+    // no metadata headers w/ force_metadata_checks results in EBADHEADER
+    assert(rc == -EBADHEADER);
 
     rc = liberasurecode_decode(desc, avail_frags, num_avail_frags,
                                strlen(fake_data), 0,
                                &decoded_data, &decoded_data_len);
+    // no metadata headers w/o force_metadata_checks also results in EBADHEADER
     assert(rc == -EBADHEADER);
 
     // test with num_fragments < (k)
@@ -810,7 +812,7 @@ static void test_get_fragment_metadata_invalid_args() {
 
     memset(frag, 0, 1024); //clears magic
     rc = liberasurecode_get_fragment_metadata(frag, &metadata);
-    assert(rc < 0);
+    assert(rc == -EBADHEADER);
 
     free(frag);
 }
@@ -2008,25 +2010,36 @@ int main(int argc, char **argv)
     int max_backend_tests = max_tests_for_backends();
 
     for (i = 0; i < max_backend_tests; i++) {
-		    for (ii = 0; testcases[ii].description != NULL; ++ii) {
-		        const char *testname = get_name_from_backend_id(testcases[ii].be_id);
-		        fflush(stdout);
-		        if (testcases[ii].skip) {
-		            fprintf(stdout, "ok # SKIP %d - %s: %s (idx=%d)\n", num_cases,
-		                    testcases[ii].description,
-		                    (testname) ? testname : "", i);
-		            continue;
-		        }
-		        struct ec_args *args = create_ec_args(testcases[ii].be_id, testcases[ii].ct, i);
+        for (ii = 0; testcases[ii].description != NULL; ++ii) {
+            const char *testname = get_name_from_backend_id(testcases[ii].be_id);
+            fflush(stdout);
+            if (testcases[ii].skip) {
+                fprintf(stdout, "ok # SKIP %d - %s: %s (idx=%d)\n", num_cases,
+                        testcases[ii].description,
+                        (testname) ? testname : "", i);
+                continue;
+            }
+            if (testcases[ii].be_id == EC_BACKENDS_MAX) {
+                /* EC_BACKEND_MAX basically designed for invalid args tests
+                 * and not takes the args so call the function w/o args here */
+                testcases[ii].function();
+                fprintf(stdout, "ok %d - %s: %s (idx=%d)\n", num_cases,
+                        testcases[ii].description,
+                        (testname) ? testname : "", i);
+                fflush(stdout);
+                num_cases++;
+                continue;
+            }
+            struct ec_args *args = create_ec_args(testcases[ii].be_id, testcases[ii].ct, i);
             if (NULL != args) {
-		            testcases[ii].function(testcases[ii].be_id, args);
-		            fprintf(stdout, "ok %d - %s: %s (idx=%d)\n", num_cases,
-		                    testcases[ii].description,
-		                    (testname) ? testname : "", i);
-		            fflush(stdout);
-		            free(args);
-		            num_cases++;
-            } 
+                testcases[ii].function(testcases[ii].be_id, args);
+                fprintf(stdout, "ok %d - %s: %s (idx=%d)\n", num_cases,
+                        testcases[ii].description,
+                        (testname) ? testname : "", i);
+                fflush(stdout);
+                free(args);
+                num_cases++;
+            }
         }
     }
     return 0;

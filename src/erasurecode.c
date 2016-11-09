@@ -1072,6 +1072,9 @@ int is_invalid_fragment_header(fragment_header_t *header)
 {
     uint32_t *stored_csum = NULL, csum = 0;
     assert (NULL != header);
+    if (header->libec_version == 0)
+        /* libec_version must be bigger than 0 */
+        return 1;
     if (header->libec_version < _VERSION(1,2,0))
         /* no metadata checksum support */
         return 0;
