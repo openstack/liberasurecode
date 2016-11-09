@@ -1,3 +1,11 @@
+Release 1.3.0
+-------------
+
+ . Fixed error handling on gf_ivnert_matrix in isa-l backend
+ . Added get_by_desc return value handling to get_fragment_size
+ . Other minor fixes and updates
+
+
 Release 1.2.0
 -------------
 
