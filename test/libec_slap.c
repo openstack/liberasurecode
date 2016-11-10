@@ -144,10 +144,9 @@ out:
 static void fill_buffer(char *buf, size_t size, int seed)
 {
     size_t i;
-    buf[0] = seed;
 
-    for (i=1; i < size; i++) {
-        buf[i] = ((buf[i-1] + i) % 256);
+    for (i=0; i < size; i++) {
+        buf[i] = (seed += i);
     }
 }
 
