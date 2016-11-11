@@ -20,11 +20,16 @@ Highlights
       - 'NULL' template backend implemented to help future backend writers
 
 
- * True 'plugin' architecture - liberasurecode uses Dynamically Loaded (DL) libraries to realize a true 'plugin' architecture.  This also allows one to build liberasurecode indepdendent of the Erasure Code backend libraries.
+ * True 'plugin' architecture - liberasurecode uses Dynamically Loaded (DL)
+   libraries to realize a true 'plugin' architecture.  This also allows one to
+   build liberasurecode indepdendent of the Erasure Code backend libraries.
 
- * Cross-platform - liberasurecode is known to work on Linux (Fedora/Debian flavors), Solaris, BSD and Darwin/Mac OS X.
+ * Cross-platform - liberasurecode is known to work on Linux (Fedora/Debian
+   flavors), Solaris, BSD and Darwin/Mac OS X.
 
- * Community support - Developed alongside Erasure Code authority Kevin Greenan, liberasurecode is an actively maintained open-source project with growing community involvement (Openstack Swift, Ceph, PyECLib, NTT Labs).
+ * Community support - Developed alongside Erasure Code authority Kevin
+   Greenan, liberasurecode is an actively maintained open-source project with
+   growing community involvement (Openstack Swift, Ceph, PyECLib, NTT Labs).
 
 ----
 
@@ -38,7 +43,7 @@ liberasurecode is distributed under the terms of the **BSD** license.
 Active Users
 ====================
 
- * PyECLib - Python EC library:  https://pypi.python.org/pypi/PyECLib
+ * PyECLib - Python EC library: https://github.com/openstack/pyeclib
  * Openstack Swift Object Store - https://wiki.openstack.org/wiki/Swift
 
 
