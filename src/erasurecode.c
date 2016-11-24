@@ -812,18 +812,21 @@ int liberasurecode_reconstruct_fragment(int desc,
     data = alloc_zeroed_buffer(sizeof(char*) * k);
     if (NULL == data) {
         log_error("Could not allocate data buffer!");
+        ret = -ENOMEM;
         goto out;
     }
 
     parity = alloc_zeroed_buffer(sizeof(char*) * m);
     if (NULL == parity) {
         log_error("Could not allocate parity buffer!");
+        ret = -ENOMEM;
         goto out;
     }
 
     missing_idxs = alloc_and_set_buffer(sizeof(int*) * (k + m), -1);
     if (NULL == missing_idxs) {
         log_error("Could not allocate missing_idxs buffer!");
+        ret = -ENOMEM;
         goto out;
     }
 
