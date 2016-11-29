@@ -65,7 +65,7 @@ void *get_aligned_buffer16(int size)
      * Ensure all memory is aligned to 16-byte boundaries
      * to support 128-bit operations
      */
-    if (posix_memalign(&buf, 16, size) < 0) {
+    if (posix_memalign(&buf, 16, size) != 0) {
         return NULL;
     }
 
