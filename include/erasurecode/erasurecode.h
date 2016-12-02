@@ -375,6 +375,14 @@ int liberasurecode_get_minimum_encode_size(int desc);
  */
 int liberasurecode_get_fragment_size(int desc, int data_len);
 
+/**
+ * This will return the liberasurecode version for the descriptor
+ *
+ * @return version uint32_t - from erasurecode_version.h
+ */
+
+uint32_t liberasurecode_get_version();
+
 /* ==~=*=~===~=*=~==~=*=~== liberasurecode Error codes =~=*=~==~=~=*=~==~== */
 
 /* Error codes */

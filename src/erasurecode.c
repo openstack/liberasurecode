@@ -1232,6 +1232,16 @@ int liberasurecode_get_fragment_size(int desc, int data_len)
     return size;
 }
 
+
+/**
+ * This will return the liberasurecode version for the descriptor
+ */
+
+uint32_t liberasurecode_get_version()
+{
+    return LIBERASURECODE_VERSION;
+}
+
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=* misc *=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
 #if 0
