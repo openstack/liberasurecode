@@ -39,6 +39,7 @@
 #define JERASURE_RS_VAND_BACKEND "jerasure_rs_vand"
 #define JERASURE_RS_CAUCHY_BACKEND "jerasure_rs_cauchy"
 #define ISA_L_RS_VAND_BACKEND "isa_l_rs_vand"
+#define ISA_L_RS_CAUCHY_BACKEND "isa_l_rs_cauchy"
 #define SHSS_BACKEND "shss"
 #define RS_VAND_BACKEND "liberasurecode_rs_vand"
 
@@ -281,6 +282,8 @@ char * get_name_from_backend_id(ec_backend_id_t be) {
             return FLAT_XOR_HD_BACKEND;
         case EC_BACKEND_ISA_L_RS_VAND:
             return ISA_L_RS_VAND_BACKEND;
+        case EC_BACKEND_ISA_L_RS_CAUCHY:
+            return ISA_L_RS_CAUCHY_BACKEND;
         case EC_BACKEND_SHSS:
             return SHSS_BACKEND;
         case EC_BACKEND_LIBERASURECODE_RS_VAND:
@@ -314,6 +317,9 @@ struct ec_args *create_ec_args(ec_backend_id_t be, ec_checksum_type_t ct, int ba
             backend_args_array = flat_xor_test_args;
             break;
         case EC_BACKEND_ISA_L_RS_VAND:
+            backend_args_array = isa_l_test_args;
+            break;
+        case EC_BACKEND_ISA_L_RS_CAUCHY:
             backend_args_array = isa_l_test_args;
             break;
         case EC_BACKEND_SHSS:
@@ -1910,7 +1916,7 @@ struct testcase testcases[] = {
         test_verify_stripe_metadata_frag_idx_invalid,
         EC_BACKEND_JERASURE_RS_CAUCHY, CHKSUM_CRC32,
         .skip = false},
-    // ISA-L tests
+    // ISA-L rs_vand tests
     {"create_and_destroy_backend",
         test_create_and_destroy_backend,
         EC_BACKEND_ISA_L_RS_VAND, CHKSUM_NONE,
@@ -1974,6 +1980,67 @@ struct testcase testcases[] = {
     {"test_isa_l_decode_reconstruct_specific_error_case",
         test_decode_reconstruct_specific_error_case,
         EC_BACKENDS_MAX, 0, // note this test is using ISA-L in hard coded
+	.skip = false},
+    // ISA-L rs cauchy tests
+    {"create_and_destroy_backend",
+        test_create_and_destroy_backend,
+        EC_BACKEND_ISA_L_RS_CAUCHY, CHKSUM_NONE,
+        .skip = false},
+    {"simple_encode_isa_l",
+        test_simple_encode_decode,
+        EC_BACKEND_ISA_L_RS_CAUCHY, CHKSUM_NONE,
+        .skip = false},
+    {"decode_with_missing_data_isa_l",
+        test_decode_with_missing_data,
+        EC_BACKEND_ISA_L_RS_CAUCHY, CHKSUM_NONE,
+        .skip = false},
+    {"decode_with_missing_multi_data_isa_l",
+        test_decode_with_missing_multi_data,
+        EC_BACKEND_ISA_L_RS_CAUCHY, CHKSUM_NONE,
+        .skip = false},
+    {"decode_with_missing_multi_parity_isa_l",
+        test_decode_with_missing_multi_parity,
+        EC_BACKEND_ISA_L_RS_CAUCHY, CHKSUM_NONE,
+        .skip = false},
+    {"test_decode_with_missing_multi_data_parity_isa_l",
+        test_decode_with_missing_multi_data_parity,
+        EC_BACKEND_ISA_L_RS_CAUCHY, CHKSUM_NONE,
+        .skip = false},
+    {"simple_reconstruct_isa_l",
+        test_simple_reconstruct,
+        EC_BACKEND_ISA_L_RS_CAUCHY, CHKSUM_NONE,
+        .skip = false},
+    {"test_fragments_needed_isa_l",
+        test_fragments_needed,
+        EC_BACKEND_ISA_L_RS_CAUCHY, CHKSUM_NONE,
+        .skip = false},
+    {"test_get_fragment_metadata_isa_l",
+        test_get_fragment_metadata,
+        EC_BACKEND_ISA_L_RS_CAUCHY, CHKSUM_NONE,
+        .skip = false},
+    {"test_verify_stripe_metadata",
+        test_verify_stripe_metadata,
+        EC_BACKEND_ISA_L_RS_CAUCHY, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata_libec_mismatch",
+        test_verify_stripe_metadata_libec_mismatch,
+        EC_BACKEND_ISA_L_RS_CAUCHY, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata_magic_mismatch",
+        test_verify_stripe_metadata_magic_mismatch,
+        EC_BACKEND_ISA_L_RS_CAUCHY, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata_be_id_mismatch",
+        test_verify_stripe_metadata_be_id_mismatch,
+        EC_BACKEND_ISA_L_RS_CAUCHY, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata_be_ver_mismatch",
+        test_verify_stripe_metadata_be_ver_mismatch,
+        EC_BACKEND_ISA_L_RS_CAUCHY, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata_frag_idx_invalid",
+        test_verify_stripe_metadata_frag_idx_invalid,
+        EC_BACKEND_ISA_L_RS_CAUCHY, CHKSUM_CRC32,
         .skip = false},
     // shss tests
     {"create_and_destroy_backend",
