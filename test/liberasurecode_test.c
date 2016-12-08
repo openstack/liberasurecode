@@ -909,6 +909,11 @@ static void test_get_fragment_partition()
     free(orig_data);
 }
 
+static void test_liberasurecode_get_version(){
+    uint32_t version = liberasurecode_get_version();
+    assert(version == LIBERASURECODE_VERSION);
+}
+
 static void encode_decode_test_impl(const ec_backend_id_t be_id,
                                    struct ec_args *args,
                                    int *skip)
@@ -1698,6 +1703,10 @@ struct testcase testcases[] = {
         .skip = false},
     {"test_get_fragment_partition",
         test_get_fragment_partition,
+        EC_BACKENDS_MAX, CHKSUM_TYPES_MAX,
+        .skip = false},
+    {"test_liberasurecode_get_version",
+        test_liberasurecode_get_version,
         EC_BACKENDS_MAX, CHKSUM_TYPES_MAX,
         .skip = false},
     // NULL backend test
