@@ -346,6 +346,8 @@ struct ec_backend_op_stubs jerasure_rs_vand_op_stubs = {
     .RECONSTRUCT                = jerasure_rs_vand_reconstruct,
     .ELEMENTSIZE                = jerasure_rs_vand_element_size,
     .ISCOMPATIBLEWITH           = jerasure_rs_vand_is_compatible_with,
+    .GETMETADATASIZE            = get_backend_metadata_size_zero,
+    .GETENCODEOFFSET            = get_encode_offset_zero,
 };
 
 struct ec_backend_common backend_jerasure_rs_vand = {
@@ -354,7 +356,6 @@ struct ec_backend_common backend_jerasure_rs_vand = {
     .soname                     = JERASURE_RS_VAND_SO_NAME,
     .soversion                  = JERASURE_RS_VAND_LIB_VER_STR,
     .ops                        = &jerasure_rs_vand_op_stubs,
-    .backend_metadata_size      = 0,
     .ec_backend_version         = _VERSION(JERASURE_RS_VAND_LIB_MAJOR,
                                            JERASURE_RS_VAND_LIB_MINOR,
                                            JERASURE_RS_VAND_LIB_REV),

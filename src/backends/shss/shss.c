@@ -286,6 +286,10 @@ static bool shss_is_compatible_with(uint32_t version) {
     return version == backend_shss.ec_backend_version;
 }
 
+static size_t shss_get_backend_metadata_size(void *desc, int blocksize) {
+    return METADATA;
+}
+
 struct ec_backend_op_stubs shss_op_stubs = {
     .INIT                       = shss_init,
     .EXIT                       = shss_exit,
@@ -295,6 +299,8 @@ struct ec_backend_op_stubs shss_op_stubs = {
     .RECONSTRUCT                = shss_reconstruct,
     .ELEMENTSIZE                = shss_element_size,
     .ISCOMPATIBLEWITH           = shss_is_compatible_with,
+    .GETMETADATASIZE            = shss_get_backend_metadata_size,
+    .GETENCODEOFFSET            = get_encode_offset_zero,
 };
 
 struct ec_backend_common backend_shss = {
@@ -303,5 +309,4 @@ struct ec_backend_common backend_shss = {
     .soname                     = SHSS_SO_NAME,
     .soversion                  = SHSS_LIB_VER_STR,
     .ops                        = &shss_op_stubs,
-    .backend_metadata_size      = METADATA,
 };

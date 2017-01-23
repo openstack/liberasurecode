@@ -71,6 +71,8 @@ struct ec_backend_op_stubs isa_l_rs_cauchy_op_stubs = {
     .RECONSTRUCT                = isa_l_reconstruct,
     .ELEMENTSIZE                = isa_l_element_size,
     .ISCOMPATIBLEWITH           = isa_l_rs_cauchy_is_compatible_with,
+    .GETMETADATASIZE            = get_backend_metadata_size_zero,
+    .GETENCODEOFFSET            = get_encode_offset_zero,
 };
 
 struct ec_backend_common backend_isa_l_rs_cauchy = {
@@ -79,7 +81,6 @@ struct ec_backend_common backend_isa_l_rs_cauchy = {
     .soname                     = ISA_L_RS_CAUCHY_SO_NAME,
     .soversion                  = ISA_L_RS_CAUCHY_LIB_VER_STR,
     .ops                        = &isa_l_rs_cauchy_op_stubs,
-    .backend_metadata_size      = 0,
     .ec_backend_version         = _VERSION(ISA_L_RS_CAUCHY_LIB_MAJOR,
                                            ISA_L_RS_CAUCHY_LIB_MINOR,
                                            ISA_L_RS_CAUCHY_LIB_REV),

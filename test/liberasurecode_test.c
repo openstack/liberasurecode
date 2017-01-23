@@ -42,6 +42,7 @@
 #define ISA_L_RS_CAUCHY_BACKEND "isa_l_rs_cauchy"
 #define SHSS_BACKEND "shss"
 #define RS_VAND_BACKEND "liberasurecode_rs_vand"
+#define LIBPHAZR_BACKEND "libphazr"
 
 typedef void (*TEST_FUNC)();
 
@@ -222,6 +223,13 @@ struct ec_args *liberasurecode_rs_vand_test_args[] = {
                &liberasurecode_rs_vand_48_args,
                NULL };
 
+struct ec_args libphazr_args = {
+    .k = 4,
+    .m = 4,
+};
+
+struct ec_args *libphazr_test_args[] = { &libphazr_args, NULL };
+
 struct ec_args **all_backend_tests[] = {
                null_test_args,
                flat_xor_test_args,
@@ -230,6 +238,7 @@ struct ec_args **all_backend_tests[] = {
                isa_l_test_args,
                shss_test_args,
                liberasurecode_rs_vand_test_args,
+               libphazr_test_args,
                NULL};
 
 int num_backends()
@@ -288,6 +297,8 @@ char * get_name_from_backend_id(ec_backend_id_t be) {
             return SHSS_BACKEND;
         case EC_BACKEND_LIBERASURECODE_RS_VAND:
             return RS_VAND_BACKEND;
+        case EC_BACKEND_LIBPHAZR:
+            return LIBPHAZR_BACKEND;
         default:
             return "UNKNOWN";
     }
@@ -324,6 +335,9 @@ struct ec_args *create_ec_args(ec_backend_id_t be, ec_checksum_type_t ct, int ba
             break;
         case EC_BACKEND_SHSS:
             backend_args_array = shss_test_args;
+            break;
+        case EC_BACKEND_LIBPHAZR:
+            backend_args_array = libphazr_test_args;
             break;
         default:
             return NULL;
@@ -932,10 +946,8 @@ static void encode_decode_test_impl(const ec_backend_id_t be_id,
     int num_avail_frags = 0;
     char *orig_data_ptr = NULL;
     int remaining = 0;
-    ec_backend_t be = NULL;
 
     desc = liberasurecode_instance_create(be_id, args);
-    be = liberasurecode_backend_instance_get_by_desc(desc);
 
     if (-EBACKENDNOTAVAIL == desc) {
         fprintf (stderr, "Backend library not available!\n");
@@ -970,14 +982,14 @@ static void encode_decode_test_impl(const ec_backend_id_t be_id,
 
         fragment_metadata_t metadata = header->meta;
         assert(metadata.idx == i);
-        assert(metadata.size == encoded_fragment_len - frag_header_size - be->common.backend_metadata_size);
+        assert(metadata.size == encoded_fragment_len - frag_header_size - metadata.frag_backend_metadata_size);
         assert(metadata.orig_data_size == orig_data_size);
         assert(metadata.backend_id == be_id);
         assert(metadata.chksum_mismatch == 0);
         data_ptr = frag + frag_header_size;
         cmp_size = remaining >= metadata.size ? metadata.size : remaining;
-        // shss doesn't keep original data on data fragments
-        if (be_id != EC_BACKEND_SHSS) {
+        // shss & libphazr doesn't keep original data on data fragments
+        if (be_id != EC_BACKEND_SHSS && be_id != EC_BACKEND_LIBPHAZR) {
             assert(memcmp(data_ptr, orig_data_ptr, cmp_size) == 0);
         }
         remaining -= cmp_size;
@@ -2176,6 +2188,75 @@ struct testcase testcases[] = {
     {"test_verify_stripe_metadata_frag_idx_invalid",
         test_verify_stripe_metadata_frag_idx_invalid,
         EC_BACKEND_LIBERASURECODE_RS_VAND, CHKSUM_CRC32,
+        .skip = false},
+    // libphazr backend tests
+    {"create_and_destroy_backend",
+        test_create_and_destroy_backend,
+        EC_BACKEND_LIBPHAZR, CHKSUM_NONE,
+        .skip = false},
+    {"simple_encode_libphazr",
+        test_simple_encode_decode,
+        EC_BACKEND_LIBPHAZR, CHKSUM_NONE,
+        .skip = false},
+    {"decode_with_missing_data_libphazr",
+        test_decode_with_missing_data,
+        EC_BACKEND_LIBPHAZR, CHKSUM_NONE,
+        .skip = false},
+    {"decode_with_missing_parity_libphazr",
+        test_decode_with_missing_parity,
+        EC_BACKEND_LIBPHAZR, CHKSUM_NONE,
+        .skip = false},
+    {"decode_with_missing_multi_data_libphazr",
+        test_decode_with_missing_multi_data,
+        EC_BACKEND_LIBPHAZR, CHKSUM_NONE,
+        .skip = false},
+    {"decode_with_missing_multi_parity_libphazr",
+        test_decode_with_missing_multi_parity,
+        EC_BACKEND_LIBPHAZR, CHKSUM_NONE,
+        .skip = false},
+    {"test_decode_with_missing_multi_data_parity_libphazr",
+        test_decode_with_missing_multi_data_parity,
+        EC_BACKEND_LIBPHAZR, CHKSUM_NONE,
+        .skip = false},
+    {"simple_reconstruct_libphazr",
+        test_simple_reconstruct,
+        EC_BACKEND_LIBPHAZR, CHKSUM_NONE,
+        .skip = false},
+    {"test_fragments_needed_libphazr",
+        test_fragments_needed,
+        EC_BACKEND_LIBPHAZR, CHKSUM_NONE,
+        .skip = false},
+    {"test_get_fragment_metadata_libphazr",
+        test_get_fragment_metadata,
+        EC_BACKEND_LIBPHAZR, CHKSUM_NONE,
+        .skip = false},
+    {"test_get_fragment_metadata_libphazr_crc32",
+        test_get_fragment_metadata,
+        EC_BACKEND_LIBPHAZR, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata",
+        test_verify_stripe_metadata,
+        EC_BACKEND_LIBPHAZR, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata_libec_mismatch",
+        test_verify_stripe_metadata_libec_mismatch,
+        EC_BACKEND_LIBPHAZR, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata_magic_mismatch",
+        test_verify_stripe_metadata_magic_mismatch,
+        EC_BACKEND_LIBPHAZR, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata_be_id_mismatch",
+        test_verify_stripe_metadata_be_id_mismatch,
+        EC_BACKEND_LIBPHAZR, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata_be_ver_mismatch",
+        test_verify_stripe_metadata_be_ver_mismatch,
+        EC_BACKEND_LIBPHAZR, CHKSUM_CRC32,
+        .skip = false},
+    {"test_verify_stripe_metadata_frag_idx_invalid",
+        test_verify_stripe_metadata_frag_idx_invalid,
+        EC_BACKEND_LIBPHAZR, CHKSUM_CRC32,
         .skip = false},
     { NULL, NULL, 0, 0, false },
 };

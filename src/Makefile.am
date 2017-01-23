@@ -26,7 +26,8 @@ liberasurecode_la_SOURCES = \
 		backends/isa-l/isa_l_rs_cauchy.c \
 		backends/rs_vand/liberasurecode_rs_vand.c \
 		builtin/rs_vand/rs_galois.c \
-		backends/shss/shss.c
+		backends/shss/shss.c \
+		backends/phazrio/libphazr.c
 
 liberasurecode_la_CPPFLAGS = -Werror @GCOV_FLAGS@
 liberasurecode_la_LIBADD = \
@@ -42,4 +43,5 @@ MOSTLYCLEANFILES = *.gcda *.gcno *.gcov utils/chksum/*.gcda utils/chksum/*.gcno 
                    backends/xor/*.gcda backends/xor/*.gcno backends/xor/*.gcov  \
                    backends/jerasure/*.gcda backends/jerasure/*.gcno backends/jerasure/*.gcov \
                    backends/shss/*.gcda backends/shss/*.gcno backends/shss/*.gcov \
-                   backends/rs_vand/*.gcda backends/rs_vand/*.gcno backends/rs_vand/*.gcov
+                   backends/rs_vand/*.gcda backends/rs_vand/*.gcno backends/rs_vand/*.gcov \
+                   backends/phazrio/*.gcda backends/phazrio/*.gcno backends/phazrio/*.gcov

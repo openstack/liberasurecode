@@ -50,7 +50,6 @@ typedef int (*null_code_encode_func)(void *, char **, char **, int);
 typedef int (*null_code_decode_func)(void *, char **, char **, int *, int, int);
 typedef int (*null_reconstruct_func)(char  **, int, uint64_t, int, char *);
 typedef int (*null_code_fragments_needed_func)(void *, int *, int *, int *);
-
 struct null_descriptor {
     /* calls required for init */
     init_null_code_func init_null_code;
@@ -215,6 +214,7 @@ static int null_exit(void *desc)
 static bool null_is_compatible_with(uint32_t version) {
     return true;
 }
+
 struct ec_backend_op_stubs null_op_stubs = {
     .INIT                       = null_init,
     .EXIT                       = null_exit,
@@ -224,6 +224,8 @@ struct ec_backend_op_stubs null_op_stubs = {
     .RECONSTRUCT                = null_reconstruct,
     .ELEMENTSIZE                = null_element_size,
     .ISCOMPATIBLEWITH           = null_is_compatible_with,
+    .GETMETADATASIZE            = get_backend_metadata_size_zero,
+    .GETENCODEOFFSET            = get_encode_offset_zero,
 };
 
 struct ec_backend_common backend_null = {
@@ -232,7 +234,6 @@ struct ec_backend_common backend_null = {
     .soname                     = NULL_SO_NAME,
     .soversion                  = NULL_LIB_VER_STR,
     .ops                        = &null_op_stubs,
-    .backend_metadata_size      = 0,
     .ec_backend_version         = _VERSION(NULL_LIB_MAJOR, NULL_LIB_MINOR,
                                            NULL_LIB_REV),
 };

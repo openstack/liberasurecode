@@ -17,6 +17,7 @@ Highlights
       - 'ISA-L' - Intel Storage Acceleration Library - SIMD accelerated Erasure Coding backends [2]
       - 'SHSS' - NTT Lab Japan's hybrid Erasure Coding backend [4]
       - 'Flat XOR HD' - built-in to liberasurecode, based on [3]
+      - 'libphazr' - Phazr.IO's erasure code backend with built-in privacy [5]
       - 'NULL' template backend implemented to help future backend writers
 
 
@@ -381,6 +382,8 @@ Code organization
  |   |       +-- isa_l_rs_vand.c      --> 'isa_l_rs_vand' erasure code backend (Intel)
  |   |   +-- shss
  |   |       +-- shss.c               --> 'shss' erasure code backend (NTT Labs)
+ |   |   +-- phazrio
+ |   |       +-- libphazr.c           --> 'libphazr' erasure code backend (Phazr.IO)
  |   |
  |   |-- builtin
  |   |   +-- xor_codes                --> XOR HD code backend, built-in erasure
@@ -426,3 +429,5 @@ References
  [3] Greenan, Kevin M et al, "Flat XOR-based erasure codes in storage systems", http://www.kaymgee.com/Kevin_Greenan/Publications_files/greenan-msst10.pdf
 
  [4] Kota Tsuyuzaki <tsuyuzaki.kota@lab.ntt.co.jp>, "NTT SHSS Erasure Coding backend"
+
+ [5] Jim Cheung <support@phazr.io>, "Phazr.IO libphazr erasure code backend with built-in privacy"

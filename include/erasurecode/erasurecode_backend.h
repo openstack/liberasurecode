@@ -1,4 +1,4 @@
-/* 
+/*
  * <Copyright>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,6 +64,8 @@ struct ec_backend_args {
 #define RECONSTRUCT     reconstruct
 #define ELEMENTSIZE     element_size
 #define ISCOMPATIBLEWITH    is_compatible_with
+#define GETMETADATASIZE     get_backend_metadata_size
+#define GETENCODEOFFSET     get_encode_offset
 
 #define FN_NAME(s)      str(s)
 #define str(s)          #s
@@ -90,7 +92,10 @@ struct ec_backend_op_stubs {
             int blocksize);
     int (*ELEMENTSIZE)(void *desc);
 
-    bool (*ISCOMPATIBLEWITH) (uint32_t version);
+    bool (*ISCOMPATIBLEWITH)(uint32_t version);
+
+    size_t (*GETMETADATASIZE)(void *desc, int blocksize);
+    size_t (*GETENCODEOFFSET)(void *desc, int metadata_size);
 };
 
 /* ==~=*=~==~=*=~==~=*=~= backend struct definitions =~=*=~==~=*=~==~=*==~== */
@@ -109,11 +114,6 @@ struct ec_backend_common {
     char                        soversion[MAX_LEN]; /* EC backend shared library version */
 
     struct ec_backend_op_stubs  *ops;               /* EC backend stubs */
-    size_t                      backend_metadata_size;
-                                                    /* EC backend custom metadata size -
-                                                     * backend_metadata_size bytes are added to
-                                                     * the fragment size when allocating
-                                                     * data/parity fragment buffers */
     uint32_t                    ec_backend_version; /* The revision number of this back
                                                      * end. Is used to determine whether
                                                      * a specific instance of this backend
@@ -161,6 +161,21 @@ ec_backend_t liberasurecode_backend_lookup_by_name(const char *name);
  * The caller must hold active_instances_rwlock
  */
 ec_backend_t liberasurecode_backend_instance_get_by_desc(int desc);
+
+/* Common function for backends */
+/**
+ * A function to return 0 for generic usage on backends for get_encode_offset
+ *
+ * Returns 0 always
+ */
+static inline size_t get_encode_offset_zero(void *desc, int metadata_size){ return 0; }
+
+/**
+ * A function to return 0 for generic usage on backends for get_backend_metadata_size
+ *
+ * Returns 0 always
+ */
+static inline size_t get_backend_metadata_size_zero(void *desc, int blocksize){ return 0; }
 
 /* =~=*=~==~=*=~==~=*=~==~=*=~===~=*=~==~=*=~===~=*=~==~=*=~===~=*=~==~=*=~= */
 

@@ -43,12 +43,19 @@ int prepare_fragments_for_encode(ec_backend_t instance,
     int data_len;           /* data len to write to fragment headers */
     int aligned_data_len;   /* EC algorithm compatible data length */
     int buffer_size, payload_size = 0;
+    int metadata_size, data_offset = 0;
 
     /* Calculate data sizes, aligned_data_len guaranteed to be divisible by k*/
     data_len = orig_data_size;
     aligned_data_len = get_aligned_data_size(instance, orig_data_size);
     *blocksize = payload_size = (aligned_data_len / k);
-    buffer_size = payload_size + instance->common.backend_metadata_size;
+    metadata_size = instance->common.ops->get_backend_metadata_size(
+                                    instance->desc.backend_desc,
+                                    *blocksize);
+    data_offset = instance->common.ops->get_encode_offset(
+                                    instance->desc.backend_desc,
+                                    metadata_size);
+    buffer_size = payload_size + metadata_size;
 
     for (i = 0; i < k; i++) {
         int copy_size = data_len > payload_size ? payload_size : data_len;
@@ -62,7 +69,7 @@ int prepare_fragments_for_encode(ec_backend_t instance,
         encoded_data[i] = get_data_ptr_from_fragment(fragment);
       
         if (data_len > 0) {
-            memcpy(encoded_data[i], orig_data, copy_size);
+            memcpy(encoded_data[i] + data_offset, orig_data, copy_size);
         }
 
         orig_data += copy_size;
@@ -357,7 +364,6 @@ int fragments_to_string(int k, int m,
         char* fragment_data = get_data_ptr_from_fragment(data[i]);
         int fragment_size = get_fragment_payload_size(data[i]);
         int payload_size = orig_data_size > fragment_size ? fragment_size : orig_data_size;
-
         memcpy(internal_payload + string_off, fragment_data, payload_size);
         orig_data_size -= payload_size;
         string_off += payload_size;
