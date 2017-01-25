@@ -1416,8 +1416,7 @@ static void test_decode_with_missing_multi_data_parity(
     }
 }
 
-static void test_decode_reconstruct_specific_error_case(
-    const ec_backend_id_t be_id, struct ec_args *args)
+static void test_isa_l_rs_vand_decode_reconstruct_specific_error_case()
 {
     struct ec_args specific_1010_args = {
         .k = 10,
@@ -1509,6 +1508,25 @@ static void test_decode_reconstruct_specific_error_case(
     assert(0 == liberasurecode_instance_destroy(desc));
     free(orig_data);
     free(skips);
+}
+
+static void test_jerasure_rs_cauchy_init_failure()
+{
+    struct ec_args bad_args = {
+        .k = 10,
+        .m = 10,
+        .w = 4,
+    };
+    // NB: (k + m) > (1 << w) => too many frags!
+
+    int desc = -1;
+    desc = liberasurecode_instance_create(
+        EC_BACKEND_JERASURE_RS_CAUCHY, &bad_args);
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf (stderr, "Backend library not available!\n");
+        return;
+    }
+    assert(-EBACKENDINITERR == desc);
 }
 
 static void test_simple_encode_decode(const ec_backend_id_t be_id,
@@ -1991,6 +2009,10 @@ struct testcase testcases[] = {
         test_verify_stripe_metadata_frag_idx_invalid,
         EC_BACKEND_JERASURE_RS_CAUCHY, CHKSUM_CRC32,
         .skip = false},
+    {"test_jerasure_rs_cauchy_init_failure",
+        test_jerasure_rs_cauchy_init_failure,
+        EC_BACKENDS_MAX, 0,
+        .skip = false},
     // ISA-L rs_vand tests
     {"create_and_destroy_backend",
         test_create_and_destroy_backend,
@@ -2052,10 +2074,10 @@ struct testcase testcases[] = {
         test_verify_stripe_metadata_frag_idx_invalid,
         EC_BACKEND_ISA_L_RS_VAND, CHKSUM_CRC32,
         .skip = false},
-    {"test_isa_l_decode_reconstruct_specific_error_case",
-        test_decode_reconstruct_specific_error_case,
+    {"test_isa_l_rs_vand_decode_reconstruct_specific_error_case",
+        test_isa_l_rs_vand_decode_reconstruct_specific_error_case,
         EC_BACKENDS_MAX, 0, // note this test is using ISA-L in hard coded
-	.skip = false},
+        .skip = false},
     // ISA-L rs cauchy tests
     {"create_and_destroy_backend",
         test_create_and_destroy_backend,
