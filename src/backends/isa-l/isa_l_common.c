@@ -444,6 +444,7 @@ int isa_l_exit(void *desc)
 
     isa_l_desc = (isa_l_descriptor*) desc;
 
+    free(isa_l_desc->matrix);
     free(isa_l_desc);
 
     return 0;
