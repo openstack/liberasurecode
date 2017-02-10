@@ -52,6 +52,7 @@ typedef struct {
 
     /* fields needed to hold state */
     unsigned char *matrix;
+    unsigned char *encode_tables;
     int k;
     int m;
     int w;
