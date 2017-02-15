@@ -543,7 +543,7 @@ int liberasurecode_rs_vand_reconstruct(int *generator_matrix, char **data, char 
     }
     region_dot_product(first_k_available, parity[destination_idx - k], parity_row, k, blocksize);
   }
-  
+  free(parity_row);
   free(decoding_matrix);
   free(inverse_decoding_matrix);
   free(first_k_available);

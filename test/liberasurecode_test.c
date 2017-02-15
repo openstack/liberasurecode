@@ -373,6 +373,9 @@ int *create_skips_array(struct ec_args *args, int skip)
 static int create_fake_frags_no_meta(char ***array, int num_frags,
                                      const char *data, int data_len)
 {
+    // N.B. The difference from creat_frags_arry is to creat new
+    // memory allocation and set a copy of data/parity there. The
+    // allocated memory should be maintained by the caller.
     int _num_frags = 0;
     int i = 0;
     char **ptr = NULL;
@@ -401,6 +404,10 @@ static int create_frags_array(char ***array,
                               struct ec_args *args,
                               int *skips)
 {
+    // N.B. this function sets pointer reference to the ***array
+    // from **data and **parity so DO NOT free each value of
+    // the array independently because the data and parity will
+    // be expected to be cleanup via liberasurecode_encode_cleanup
     int num_frags = 0;
     int i = 0;
     char **ptr = NULL;
@@ -431,6 +438,12 @@ out:
     return num_frags;
 }
 
+static void cleanup_avail_frags(char **avail_frags,
+                                int num_frags)
+{
+   while(num_frags > 0) free(avail_frags[--num_frags]);
+   free(avail_frags);
+}
 static int encode_failure_stub(void *desc, char **data,
                                char **parity, int blocksize)
 {
@@ -582,6 +595,7 @@ static void test_encode_invalid_args()
     assert(rc < 0);
     instance->common.ops->encode = orig_encode_func;
 
+    liberasurecode_instance_destroy(desc);
     free(orig_data);
 }
 
@@ -613,6 +627,7 @@ static void test_encode_cleanup_invalid_args()
 
     rc = liberasurecode_encode_cleanup(desc, encoded_data, encoded_parity);
     assert(rc == 0);
+    liberasurecode_instance_destroy(desc);
     free(orig_data);
 }
 
@@ -629,7 +644,10 @@ static void test_decode_invalid_args()
     int *skips = create_skips_array(&null_args, -1);
     char *decoded_data = NULL;
     uint64_t decoded_data_len = 0;
-    const char *fake_data = " ";
+    // fake_data len should be bigger than fragment_header_t for
+    // the verifications
+    int fake_data_len = 1024;
+    char *fake_data = create_buffer(fake_data_len, 'y');
 
     desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
     if (-EBACKENDNOTAVAIL == desc) {
@@ -641,29 +659,39 @@ static void test_decode_invalid_args()
     // test with invalid fragments (no metadata headers)
     num_avail_frags = create_fake_frags_no_meta(&avail_frags, (null_args.k +
                                                 null_args.m),
-                                                fake_data, strlen(fake_data));
+                                                fake_data, fake_data_len);
     assert(num_avail_frags > 0);
+    free(fake_data);
 
     rc = liberasurecode_decode(desc, avail_frags, num_avail_frags,
-                               strlen(fake_data), 1,
+                               fake_data_len, 1,
                                &decoded_data, &decoded_data_len);
     // no metadata headers w/ force_metadata_checks results in EBADHEADER
     assert(rc == -EBADHEADER);
 
     rc = liberasurecode_decode(desc, avail_frags, num_avail_frags,
-                               strlen(fake_data), 0,
+                               fake_data_len, 0,
                                &decoded_data, &decoded_data_len);
     // no metadata headers w/o force_metadata_checks also results in EBADHEADER
     assert(rc == -EBADHEADER);
+
+    // encoded_fragment_len is too small
+    rc = liberasurecode_decode(desc, avail_frags, num_avail_frags,
+                               1, 1, &decoded_data, &decoded_data_len);
+    assert(rc == -EBADHEADER);
+
+    cleanup_avail_frags(avail_frags, num_avail_frags);
 
     // test with num_fragments < (k)
     num_avail_frags = create_fake_frags_no_meta(&avail_frags, (null_args.k - 1),
                                                 " ", 1);
     assert(num_avail_frags > 0);
     rc = liberasurecode_decode(desc, avail_frags, num_avail_frags,
-                               strlen(fake_data), 1,
+                               fake_data_len, 1,
                                &decoded_data, &decoded_data_len);
     assert(rc == -EINSUFFFRAGS);
+
+    cleanup_avail_frags(avail_frags, num_avail_frags);
 
     rc = liberasurecode_encode(desc, orig_data, orig_data_size,
             &encoded_data, &encoded_parity, &encoded_fragment_len);
@@ -692,11 +720,15 @@ static void test_decode_invalid_args()
                                encoded_fragment_len, 1,
                                &decoded_data, NULL);
     assert(rc < 0);
+
     free(skips);
     liberasurecode_encode_cleanup(desc, encoded_data, encoded_parity);
+    liberasurecode_instance_destroy(desc);
+    // N.B. create_frags_array sets pointer reference of either encoded_data
+    // or encoded_parity and they are cleaned up via
+    // liberasurecode_encode_cleanup
     free(avail_frags);
     free(orig_data);
-
 }
 
 static void test_decode_cleanup_invalid_args()
@@ -717,7 +749,7 @@ static void test_decode_cleanup_invalid_args()
 
     rc = liberasurecode_decode_cleanup(desc, NULL);
     assert(rc == 0);
-
+    liberasurecode_instance_destroy(desc);
     free(orig_data);
 }
 
@@ -753,6 +785,7 @@ static void test_reconstruct_fragment_invalid_args()
     assert(rc < 0);
 
     free(out_frag);
+    free(avail_frags);
 
     // Test for EINSUFFFRAGS
     // we have to call encode to get fragments which have valid header.
@@ -766,9 +799,10 @@ static void test_reconstruct_fragment_invalid_args()
     rc = liberasurecode_reconstruct_fragment(desc, encoded_data, 1, encoded_fragment_len, 1, out_frag);
 
     assert(rc == -EINSUFFFRAGS);
+    free(orig_data);
     free(out_frag);
-    free(avail_frags);
     liberasurecode_encode_cleanup(desc, encoded_data, encoded_parity);
+    liberasurecode_instance_destroy(desc);
 }
 
 static void test_fragments_needed_invalid_args()
@@ -797,6 +831,7 @@ static void test_fragments_needed_invalid_args()
 
     rc = liberasurecode_fragments_needed(desc, &frags_to_recon, &frags_to_exclude, NULL);
     assert(rc < 0);
+    liberasurecode_instance_destroy(desc);
 }
 
 static void test_get_fragment_metadata_invalid_args() {
@@ -847,7 +882,8 @@ static void test_verify_stripe_metadata_invalid_args() {
 
     rc = liberasurecode_verify_stripe_metadata(desc, frags, 0);
     assert(rc == -EINVALIDPARAMS);
-
+    liberasurecode_instance_destroy(desc);
+    free(frags);
 }
 
 static void test_get_fragment_partition()
@@ -867,6 +903,8 @@ static void test_get_fragment_partition()
     desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
     if (-EBACKENDNOTAVAIL == desc) {
         fprintf (stderr, "Backend library not available!\n");
+        free(orig_data);
+        free(skips);
         return;
     }
     assert(desc > 0);
@@ -876,7 +914,19 @@ static void test_get_fragment_partition()
 
     missing = alloc_and_set_buffer(sizeof(char*) * null_args.k, -1);
 
-    for(i = 0; i < null_args.m; i++) skips[i] = 1;
+    for(i = 0; i < null_args.m; i++) {
+        skips[i] = 1;
+        /* get_fragment_partition is going to NULL all the entries in
+         * encoded_data and encoded_parity before populating them again
+         * from avail_frags. Since we're explicitly *not* including these
+         * data frags in avail_frags, free them now.
+         */
+        if (i < null_args.k) {
+            free(encoded_data[i]);
+        } else {
+            free(encoded_parity[i - null_args.k]);
+        }
+    }
     num_avail_frags = create_frags_array(&avail_frags, encoded_data,
                                          encoded_parity, &null_args, skips);
 
@@ -885,11 +935,19 @@ static void test_get_fragment_partition()
     assert(0 == rc);
 
     for(i = 0; i < null_args.m; i++) assert(missing[i] == i);
-    assert(missing[++i] == -1);
+    // Loop already pushed us one past
+    assert(missing[i] == -1);
 
+    free(avail_frags);
     free(missing);
 
-    for(i = 0; i < null_args.m + 1; i++) skips[i] = 1;
+    skips[i] = 1;
+    if (i < null_args.k) {
+        free(encoded_data[i]);
+    } else {
+        free(encoded_parity[i - null_args.k]);
+    }
+
     num_avail_frags = create_frags_array(&avail_frags, encoded_data,
                                          encoded_parity, &null_args, skips);
 
@@ -905,6 +963,7 @@ static void test_get_fragment_partition()
     free(missing);
     free(skips);
     liberasurecode_encode_cleanup(desc, encoded_data, encoded_parity);
+    liberasurecode_instance_destroy(desc);
     free(avail_frags);
     free(orig_data);
 }
@@ -1000,10 +1059,7 @@ static void encode_decode_test_impl(const ec_backend_id_t be_id,
     rc = liberasurecode_decode_cleanup(desc, decoded_data);
     assert(rc == 0);
 
-    if (desc) {
-        assert(0 == liberasurecode_instance_destroy(desc));
-    }
-
+    assert(0 == liberasurecode_instance_destroy(desc));
     free(orig_data);
     free(avail_frags);
 }
@@ -1075,11 +1131,12 @@ static void reconstruct_test_impl(const ec_backend_id_t be_id,
         rc = liberasurecode_reconstruct_fragment(desc, avail_frags, num_avail_frags, encoded_fragment_len, i, out);
         assert(rc == 0);
         assert(memcmp(out, cmp, encoded_fragment_len) == 0);
+        free(avail_frags);
     }
     free(orig_data);
     free(out);
-    free(avail_frags);
     liberasurecode_encode_cleanup(desc, encoded_data, encoded_parity);
+    liberasurecode_instance_destroy(desc);
 }
 
 static void test_fragments_needed_impl(const ec_backend_id_t be_id,
@@ -1203,6 +1260,7 @@ static void test_fragments_needed_impl(const ec_backend_id_t be_id,
         assert(is_valid_fragment == 1);
         i++;
     }
+    liberasurecode_instance_destroy(desc);
     free(fragments_to_reconstruct);
     free(fragments_to_exclude);
     free(fragments_needed);
@@ -1275,6 +1333,7 @@ static void test_get_fragment_metadata(const ec_backend_id_t be_id, struct ec_ar
         assert(be_version == be->common.ec_backend_version);
     }
     liberasurecode_encode_cleanup(desc, encoded_data, encoded_parity);
+    liberasurecode_instance_destroy(desc);
     free(orig_data);
 }
 
@@ -1387,6 +1446,8 @@ static void test_decode_reconstruct_specific_error_case(
         EC_BACKEND_ISA_L_RS_VAND, &specific_1010_args);
     if (-EBACKENDNOTAVAIL == desc) {
         fprintf (stderr, "Backend library not available!\n");
+        free(orig_data);
+        free(skips);
         return;
     }
     assert(desc > 0);
@@ -1436,6 +1497,7 @@ static void test_decode_reconstruct_specific_error_case(
     assert(rc == 0);
 
     free(out_frag);
+    free(avail_frags);
 
     // cleanup all
     rc = liberasurecode_encode_cleanup(desc, encoded_data, encoded_parity);
@@ -1444,12 +1506,8 @@ static void test_decode_reconstruct_specific_error_case(
     rc = liberasurecode_decode_cleanup(desc, decoded_data);
     assert(rc == 0);
 
-    if (desc) {
-        assert(0 == liberasurecode_instance_destroy(desc));
-    }
-
+    assert(0 == liberasurecode_instance_destroy(desc));
     free(orig_data);
-    free(avail_frags);
     free(skips);
 }
 
@@ -1510,6 +1568,8 @@ static void test_verify_stripe_metadata(const ec_backend_id_t be_id,
 
     if (-EBACKENDNOTAVAIL == desc) {
         fprintf (stderr, "Backend library not available!\n");
+        free(orig_data);
+        free(skip);
         return;
     }
     assert(desc > 0);
@@ -1527,8 +1587,10 @@ static void test_verify_stripe_metadata(const ec_backend_id_t be_id,
     assert(0 == rc);
 
     liberasurecode_encode_cleanup(desc, encoded_data, encoded_parity);
+    liberasurecode_instance_destroy(desc);
     free(orig_data);
     free(skip);
+    free(avail_frags);
 }
 
 static void verify_fragment_metadata_mismatch_impl(const ec_backend_id_t be_id, struct ec_args *args,
@@ -1551,6 +1613,8 @@ static void verify_fragment_metadata_mismatch_impl(const ec_backend_id_t be_id, 
 
     if (-EBACKENDNOTAVAIL == desc) {
         fprintf (stderr, "Backend library not available!\n");
+        free(orig_data);
+        free(skip);
         return;
     }
     assert(desc > 0);
@@ -1615,6 +1679,8 @@ static void verify_fragment_metadata_mismatch_impl(const ec_backend_id_t be_id, 
         }
     }
     liberasurecode_encode_cleanup(desc, encoded_data, encoded_parity);
+    liberasurecode_instance_destroy(desc);
+    free(avail_frags);
     free(orig_data);
     free(skip);
 }

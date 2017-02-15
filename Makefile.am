@@ -62,13 +62,22 @@ test: check
  
 VALGRIND_EXEC_COMMAND = $(LIBTOOL_COMMAND) valgrind --tool=memcheck \
 	--error-exitcode=1 --leak-check=yes --track-fds=yes \
-	--malloc-fill=A5 --free-fill=DE --fullpath-after=.
+	--malloc-fill=A5 --free-fill=DE --fullpath-after=. --trace-children=yes
 
 valgrind-test: check
-	@$(VALGRIND_EXEC_COMMAND) ./test/alg_sig_test
-	@$(VALGRIND_EXEC_COMMAND) ./test/liberasurecode_test
-	@$(VALGRIND_EXEC_COMMAND) ./test/test_xor_hd_code
-	@$(VALGRIND_EXEC_COMMAND) ./test/libec_slap
+	$(eval SONAMES := $(shell find $(abs_top_builddir) -name '*.so'))
+	$(eval SODIRS := $(dir $(SONAMES)))
+	$(eval LD_LIBRARY_PATH := LD_LIBRARY_PATH="$(LD_LIBRARY_PATH):$(subst / ,/:,$(SODIRS))")
+	$(eval DYLD_LIBRARY_PATH := DYLD_LIBRARY_PATH="$(DYLD_LIBRARY_PATH):$(subst / ,/:,$(SODIRS))")
+	$(eval DYLD_FALLBACK_LIBRARY_PATH := DYLD_FALLBACK_LIBRARY_PATH=$(DYLD_FALLBACK_LIBRARY_PATH):"$(subst / ,/:,$(SODIRS))")
+	@$(LD_LIBRARY_PATH) $(DYLD_LIBRARY_PATH) $(DYLD_FALLBACK_LIBRARY_PATH) $(VALGRIND_EXEC_COMMAND) \
+		./test/alg_sig_test
+	@$(LD_LIBRARY_PATH) $(DYLD_LIBRARY_PATH) $(DYLD_FALLBACK_LIBRARY_PATH) $(VALGRIND_EXEC_COMMAND) \
+		./test/.libs/liberasurecode_test
+	@$(LD_LIBRARY_PATH) $(DYLD_LIBRARY_PATH) $(DYLD_FALLBACK_LIBRARY_PATH) $(VALGRIND_EXEC_COMMAND) \
+		./test/test_xor_hd_code
+	@$(LD_LIBRARY_PATH) $(DYLD_LIBRARY_PATH) $(DYLD_FALLBACK_LIBRARY_PATH) $(VALGRIND_EXEC_COMMAND) \
+		./test/.libs/libec_slap
 
 CLEANFILES = cscope.in.out cscope.out cscope.po.out
 

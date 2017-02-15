@@ -587,6 +587,13 @@ int liberasurecode_decode(int desc,
         goto out;
     }
 
+    if (fragment_len < sizeof(fragment_header_t)) {
+        log_error("Fragments not long enough to include headers! "
+                  "Need %zu, but got %lu.", sizeof(fragment_header_t),
+                  (unsigned long)fragment_len);
+        ret = -EBADHEADER;
+        goto out;
+    }
     for (i = 0; i < num_fragments; ++i) {
         /* Verify metadata checksum */
         if (is_invalid_fragment_header(
