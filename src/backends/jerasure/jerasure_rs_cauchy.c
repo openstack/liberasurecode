@@ -63,6 +63,7 @@ typedef int (*jerasure_make_decoding_bitmatrix_func)
     (int, int, int, int *, int *, int *, int *);
 typedef void (*jerasure_bitmatrix_dotprod_func)
     (int, int, int *, int *, int,char **, char **, int, int);
+typedef void (*galois_uninit_field_func)(int);
 
 /*
  * ToDo (KMG): Should we make this a parameter, or is that
@@ -75,6 +76,9 @@ struct jerasure_rs_cauchy_descriptor {
     cauchy_original_coding_matrix_func cauchy_original_coding_matrix;
     jerasure_matrix_to_bitmatrix_func jerasure_matrix_to_bitmatrix;
     jerasure_smart_bitmatrix_to_schedule_func jerasure_smart_bitmatrix_to_schedule;
+
+    /* calls required for free */
+    galois_uninit_field_func galois_uninit_field;
 
     /* calls required for encode */
     jerasure_bitmatrix_encode_func jerasure_bitmatrix_encode;
@@ -273,6 +277,7 @@ static void * jerasure_rs_cauchy_init(struct ec_backend_args *args,
         cauchy_original_coding_matrix_func  initp;
         jerasure_matrix_to_bitmatrix_func matrixtobitmatrixp;
         jerasure_smart_bitmatrix_to_schedule_func matrixschedulep;
+        galois_uninit_field_func uninitp;
         jerasure_bitmatrix_encode_func encodep;
         jerasure_bitmatrix_decode_func decodep;
         jerasure_erasures_to_erased_func erasedp; 
@@ -338,6 +343,13 @@ static void * jerasure_rs_cauchy_init(struct ec_backend_args *args,
         goto error; 
     } 
 
+    func_handle.vptr = NULL;
+    func_handle.vptr = dlsym(backend_sohandle, "galois_uninit_field");
+    desc->galois_uninit_field = func_handle.uninitp;
+    if (NULL == desc->galois_uninit_field) {
+        goto error;
+    }
+
     /* setup the Cauchy matrices and schedules */
     desc->matrix = desc->cauchy_original_coding_matrix(k, m, w);
     if (NULL == desc->matrix) {
@@ -385,6 +397,15 @@ static void free_rs_cauchy_desc(
         return;
     }
 
+    /*
+     * jerasure allocates some internal data structures for caching
+     * fields. It will allocate one for w, and if we do anything that
+     * needs to xor a region >= 16 bytes, it will also allocate one
+     * for 32. Fortunately we can safely uninit any value; if it
+     * wasn't inited it will be ignored.
+     */
+    jerasure_desc->galois_uninit_field(jerasure_desc->w);
+    jerasure_desc->galois_uninit_field(32);
     free(jerasure_desc->matrix);
     free(jerasure_desc->bitmatrix);
 
