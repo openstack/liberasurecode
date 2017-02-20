@@ -2,12 +2,15 @@ SUBDIRS = builtin/xor_codes builtin/null_code builtin/rs_vand
 
 lib_LTLIBRARIES = liberasurecode.la
 
-INCLUDES = \
-		-I$(top_srcdir)/include/erasurecode \
-		-I$(top_srcdir)/include/xor_codes \
-		-I$(top_srcdir)/include/rs_vand \
-		-I$(top_srcdir)/include/isa_l \
-		-I$(top_srcdir)/include/shss
+INCLUDE = \
+		-I$(abs_top_srcdir)/include/erasurecode \
+		-I$(abs_top_srcdir)/include/xor_codes \
+		-I$(abs_top_srcdir)/include/rs_vand \
+		-I$(abs_top_srcdir)/include/isa_l \
+		-I$(abs_top_srcdir)/include/shss
+
+AM_CPPFLAGS = $(CPPFLAGS) $(INCLUDE)
+AM_CFLAGS = $(AM_CPPFLAGS)
 
 # liberasurecode params
 liberasurecode_la_SOURCES = \

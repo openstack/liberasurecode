@@ -46,11 +46,6 @@ install-exec-hook:
 	   $(LN_S) liberasurecode/config_liberasurecode.h)
 
 test: check
-	$(eval SONAMES := $(shell find $(abs_top_builddir) -name '*.so'))
-	$(eval SODIRS := $(dir $(SONAMES)))
-	$(eval LD_LIBRARY_PATH := LD_LIBRARY_PATH="$(LD_LIBRARY_PATH):$(subst / ,/:,$(SODIRS))")
-	$(eval DYLD_LIBRARY_PATH := DYLD_LIBRARY_PATH="$(DYLD_LIBRARY_PATH):$(subst / ,/:,$(SODIRS))")
-	$(eval DYLD_FALLBACK_LIBRARY_PATH := DYLD_FALLBACK_LIBRARY_PATH=$(DYLD_FALLBACK_LIBRARY_PATH):"$(subst / ,/:,$(SODIRS))")
 	@$(LD_LIBRARY_PATH) $(DYLD_LIBRARY_PATH) $(DYLD_FALLBACK_LIBRARY_PATH) \
 		./test/liberasurecode_test
 	@$(LD_LIBRARY_PATH) $(DYLD_LIBRARY_PATH) $(DYLD_FALLBACK_LIBRARY_PATH) \
@@ -65,19 +60,14 @@ VALGRIND_EXEC_COMMAND = $(LIBTOOL_COMMAND) valgrind --tool=memcheck \
 	--malloc-fill=A5 --free-fill=DE --fullpath-after=. --trace-children=yes
 
 valgrind-test: check
-	$(eval SONAMES := $(shell find $(abs_top_builddir) -name '*.so'))
-	$(eval SODIRS := $(dir $(SONAMES)))
-	$(eval LD_LIBRARY_PATH := LD_LIBRARY_PATH="$(LD_LIBRARY_PATH):$(subst / ,/:,$(SODIRS))")
-	$(eval DYLD_LIBRARY_PATH := DYLD_LIBRARY_PATH="$(DYLD_LIBRARY_PATH):$(subst / ,/:,$(SODIRS))")
-	$(eval DYLD_FALLBACK_LIBRARY_PATH := DYLD_FALLBACK_LIBRARY_PATH=$(DYLD_FALLBACK_LIBRARY_PATH):"$(subst / ,/:,$(SODIRS))")
 	@$(LD_LIBRARY_PATH) $(DYLD_LIBRARY_PATH) $(DYLD_FALLBACK_LIBRARY_PATH) $(VALGRIND_EXEC_COMMAND) \
 		./test/alg_sig_test
 	@$(LD_LIBRARY_PATH) $(DYLD_LIBRARY_PATH) $(DYLD_FALLBACK_LIBRARY_PATH) $(VALGRIND_EXEC_COMMAND) \
-		./test/.libs/liberasurecode_test
+		./test/liberasurecode_test
 	@$(LD_LIBRARY_PATH) $(DYLD_LIBRARY_PATH) $(DYLD_FALLBACK_LIBRARY_PATH) $(VALGRIND_EXEC_COMMAND) \
 		./test/test_xor_hd_code
 	@$(LD_LIBRARY_PATH) $(DYLD_LIBRARY_PATH) $(DYLD_FALLBACK_LIBRARY_PATH) $(VALGRIND_EXEC_COMMAND) \
-		./test/.libs/libec_slap
+		./test/libec_slap
 
 CLEANFILES = cscope.in.out cscope.out cscope.po.out
 
