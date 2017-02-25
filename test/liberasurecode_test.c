@@ -2262,6 +2262,9 @@ int main(int argc, char **argv)
                 continue;
             }
             if (testcases[ii].be_id == EC_BACKENDS_MAX) {
+                if (0 != i) {
+                    continue;
+                }
                 /* EC_BACKENDS_MAX basically designed for invalid args tests
                  * and not takes the args so call the function w/o args here */
                 testcases[ii].function();
