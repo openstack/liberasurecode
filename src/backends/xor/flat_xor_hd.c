@@ -178,6 +178,8 @@ struct ec_backend_op_stubs flat_xor_hd_op_stubs = {
     .RECONSTRUCT                = flat_xor_hd_reconstruct,
     .ELEMENTSIZE                = flar_xor_hd_element_size,
     .ISCOMPATIBLEWITH           = flat_xor_is_compatible_with,
+    .GETMETADATASIZE            = get_backend_metadata_size_zero,
+    .GETENCODEOFFSET            = get_encode_offset_zero,
 };
 
 struct ec_backend_common backend_flat_xor_hd = {
@@ -186,7 +188,6 @@ struct ec_backend_common backend_flat_xor_hd = {
     .soname                     = FLAT_XOR_SO_NAME,
     .soversion                  = FLAT_XOR_LIB_VER_STR,
     .ops                        = &flat_xor_hd_op_stubs,
-    .backend_metadata_size      = 0,
     .ec_backend_version         = _VERSION(FLAT_XOR_LIB_MAJOR,
                                            FLAT_XOR_LIB_MINOR,
                                            FLAT_XOR_LIB_REV),

@@ -50,6 +50,7 @@ extern struct ec_backend_common backend_isa_l_rs_vand;
 extern struct ec_backend_common backend_shss;
 extern struct ec_backend_common backend_liberasurecode_rs_vand;
 extern struct ec_backend_common backend_isa_l_rs_cauchy;
+extern struct ec_backend_common backend_libphazr;
 
 ec_backend_t ec_backends_supported[] = {
     (ec_backend_t) &backend_null,
@@ -60,6 +61,7 @@ ec_backend_t ec_backends_supported[] = {
     (ec_backend_t) &backend_shss,
     (ec_backend_t) &backend_liberasurecode_rs_vand,
     (ec_backend_t) &backend_isa_l_rs_cauchy,
+    (ec_backend_t) &backend_libphazr,
     NULL,
 };
 
@@ -604,8 +606,8 @@ int liberasurecode_decode(int desc,
         }
     }
 
-    if (instance->common.id != EC_BACKEND_SHSS) {
-        /* shss (ntt_backend) must force to decode */
+    if (instance->common.id != EC_BACKEND_SHSS && instance->common.id != EC_BACKEND_LIBPHAZR) {
+        /* shss (ntt_backend) & libphazr backend must force to decode */
         // TODO: Add a frag and function to handle whether the backend want to decode or not.
         /*
          * Try to re-assebmle the original data before attempting a decode
@@ -1239,7 +1241,11 @@ int liberasurecode_get_fragment_size(int desc, int data_len)
     if (NULL == instance)
         return -EBACKENDNOTAVAIL;
     int aligned_data_len = get_aligned_data_size(instance, data_len);
-    int size = (aligned_data_len / instance->args.uargs.k) + instance->common.backend_metadata_size;
+    int blocksize = aligned_data_len / instance->args.uargs.k;
+    int metadata_size = instance->common.ops->get_backend_metadata_size(
+                                                instance->desc.backend_desc,
+                                                blocksize);
+    int size = blocksize + metadata_size;
 
     return size;
 }
