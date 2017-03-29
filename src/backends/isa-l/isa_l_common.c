@@ -41,22 +41,13 @@ int isa_l_encode(void *desc, char **data, char **parity,
 {
     isa_l_descriptor *isa_l_desc = (isa_l_descriptor*) desc;
 
-    unsigned char *g_tbls = NULL;
+    unsigned char *g_tbls = isa_l_desc->encode_tables;
     int k = isa_l_desc->k;
     int m = isa_l_desc->m;
-
-    // Generate g_tbls from encode matrix encode_matrix
-    g_tbls = malloc(sizeof(unsigned char) * (k * m * 32));
-    if (NULL == g_tbls) {
-        return -1;
-    }
-
-    isa_l_desc->ec_init_tables(k, m, &isa_l_desc->matrix[k * k], g_tbls);
 
     /* FIXME - make ec_encode_data return a value */
     isa_l_desc->ec_encode_data(blocksize, k, m, g_tbls, (unsigned char**)data,
                                (unsigned char**)parity);
-    free(g_tbls);
     return 0;
 }
 
@@ -444,6 +435,7 @@ int isa_l_exit(void *desc)
 
     isa_l_desc = (isa_l_descriptor*) desc;
 
+    free(isa_l_desc->encode_tables);
     free(isa_l_desc->matrix);
     free(isa_l_desc);
 
@@ -536,8 +528,24 @@ void * isa_l_common_init(struct ec_backend_args *args, void *backend_sohandle,
      */
     desc->gf_gen_encoding_matrix(desc->matrix, desc->k + desc->m, desc->k);
 
+
+    /**
+     * Generate the tables for encoding
+     */
+    desc->encode_tables = malloc(sizeof(unsigned char) *
+                                 (desc->k * desc->m * 32));
+    if (NULL == desc->encode_tables) {
+        goto error_free;
+    }
+
+    desc->ec_init_tables(desc->k, desc->m,
+                         &desc->matrix[desc->k * desc->k],
+                         desc->encode_tables);
+
     return desc;
 
+error_free:
+    free(desc->matrix);
 error:
     free(desc);
 
