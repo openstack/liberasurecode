@@ -10,6 +10,6 @@ Description: C library with pluggable erasure code backends
 Version: @LIBERASURECODE_VERSION@
 Requires:
 Conflicts:
-Libs: -L${libdir} -lerasurecode
+Libs: -L${libdir} -lerasurecode -ldl
 Libs.private: @ERASURECODE_STATIC_LIBS@ -lz
 Cflags: -I${includedir}/ -I${includedir}/liberasurecode
