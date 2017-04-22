@@ -26,9 +26,11 @@
  * vi: set noai tw=79 ts=4 sw=4:
  */
 
+#include <zlib.h>
 #include "erasurecode_backend.h"
 #include "erasurecode_helpers.h"
 #include "erasurecode_helpers_ext.h"
+#include "erasurecode_log.h"
 #include "erasurecode_stdinc.h"
 
 void add_fragment_metadata(ec_backend_t be, char *fragment,
@@ -49,7 +51,16 @@ void add_fragment_metadata(ec_backend_t be, char *fragment,
     if (add_chksum) {
         set_checksum(ct, fragment, blocksize);
     }
-    set_metadata_chksum(fragment);
+
+    fragment_header_t* header = (fragment_header_t*) fragment;
+
+    if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
+        log_error("Invalid fragment header (add fragment metadata)!\n");
+        return;
+    }
+
+    header->metadata_chksum = crc32(0, (unsigned char *) &header->meta,
+                                    sizeof(fragment_metadata_t));
 }
 
 int finalize_fragments_after_encode(ec_backend_t instance,

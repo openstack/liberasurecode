@@ -72,8 +72,6 @@ int set_backend_id(char *buf, ec_backend_id_t id);
 int get_backend_id(char *buf, ec_backend_id_t *id);
 int set_backend_version(char *buf, uint32_t version);
 int get_backend_version(char *buf, uint32_t *version);
-int set_metadata_chksum(char *buf);
-uint32_t *get_metadata_chksum(char *buf);
 int is_invalid_fragment_header(fragment_header_t *header);
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */

@@ -26,8 +26,8 @@
  * vi: set noai tw=79 ts=4 sw=4:
  */
 
+#include <assert.h>
 #include <zlib.h>
-#include "assert.h"
 #include "list.h"
 #include "erasurecode.h"
 #include "erasurecode_backend.h"
@@ -1093,7 +1093,7 @@ out:
 
 int is_invalid_fragment_header(fragment_header_t *header)
 {
-    uint32_t *stored_csum = NULL, csum = 0;
+    uint32_t csum = 0;
     assert (NULL != header);
     if (header->libec_version == 0)
         /* libec_version must be bigger than 0 */
@@ -1101,17 +1101,20 @@ int is_invalid_fragment_header(fragment_header_t *header)
     if (header->libec_version < _VERSION(1,2,0))
         /* no metadata checksum support */
         return 0;
-    stored_csum = get_metadata_chksum((char *) header);
-    if (NULL == stored_csum)
-        return 1; /* can't verify, possibly crc32 call error */
+
+    if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
+        log_error("Invalid fragment header (get meta chksum)!");
+        return 1;
+    }
+
     csum = crc32(0, (unsigned char *) &header->meta, sizeof(fragment_metadata_t));
-    if (*stored_csum == csum) {
+    if (header->metadata_chksum == csum) {
         return 0;
     }
     // Else, try again with our "alternative" crc32; see
     // https://bugs.launchpad.net/liberasurecode/+bug/1666320
     csum = liberasurecode_crc32_alt(0, &header->meta, sizeof(fragment_metadata_t));
-    return (*stored_csum != csum);
+    return (header->metadata_chksum != csum);
 }
 
 int liberasurecode_verify_fragment_metadata(ec_backend_t be,

@@ -1030,15 +1030,11 @@ static void encode_decode_test_impl(const ec_backend_id_t be_id,
         int cmp_size = -1;
         char *data_ptr = NULL;
         char *frag = NULL;
-        uint32_t *mcksum = NULL;
 
         frag = (i < args->k) ? encoded_data[i] : encoded_parity[i - args->k];
         assert(frag != NULL);
         fragment_header_t *header = (fragment_header_t*)frag;
         assert(header != NULL);
-        mcksum = get_metadata_chksum(frag);
-        assert(mcksum != NULL);
-        assert(header->metadata_chksum == *mcksum);
 
         fragment_metadata_t metadata = header->meta;
         assert(metadata.idx == i);
