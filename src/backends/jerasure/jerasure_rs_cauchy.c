@@ -357,17 +357,21 @@ static void * jerasure_rs_cauchy_init(struct ec_backend_args *args,
     }
     desc->bitmatrix = desc->jerasure_matrix_to_bitmatrix(k, m, w, desc->matrix);
     if (NULL == desc->bitmatrix) {
-        goto error;
+        goto bitmatrix_error;
     }
     desc->schedule = desc->jerasure_smart_bitmatrix_to_schedule(k, m, w, desc->bitmatrix);
     if (NULL == desc->schedule) {
-        goto error;
+        goto schedule_error;
     }
 
     return desc;
 
+schedule_error:
+    free(desc->bitmatrix);
+bitmatrix_error:
+    free(desc->matrix);
 error:
-    free_rs_cauchy_desc(desc);
+    free(desc);
     return NULL;
 }
 
