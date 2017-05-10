@@ -1887,10 +1887,6 @@ struct testcase testcases[] = {
         test_verify_stripe_metadata_frag_idx_invalid,
         EC_BACKEND_FLAT_XOR_HD, CHKSUM_CRC32,
         .skip = false},
-    {"test_simple_encode_decode_over32",
-        test_simple_encode_decode_over32,
-        EC_BACKEND_JERASURE_RS_VAND, CHKSUM_CRC32,
-        .skip = false},
     // Jerasure RS Vand backend tests
     {"create_and_destroy_backend",
         test_create_and_destroy_backend,
@@ -1955,6 +1951,10 @@ struct testcase testcases[] = {
     {"test_verify_stripe_metadata_frag_idx_invalid",
         test_verify_stripe_metadata_frag_idx_invalid,
         EC_BACKEND_JERASURE_RS_VAND, CHKSUM_CRC32,
+        .skip = false},
+    {"test_simple_encode_decode_over32_jerasure_rs_vand",
+        test_simple_encode_decode_over32,
+        EC_BACKENDS_MAX, 0, // NB: this is hardcoded to use jerasure RS vand
         .skip = false},
     // Jerasure RS Cauchy backend tests
     {"create_and_destroy_backend",
@@ -2365,7 +2365,7 @@ int main(int argc, char **argv)
                 continue;
             }
             if (testcases[ii].be_id == EC_BACKENDS_MAX) {
-                /* EC_BACKEND_MAX basically designed for invalid args tests
+                /* EC_BACKENDS_MAX basically designed for invalid args tests
                  * and not takes the args so call the function w/o args here */
                 testcases[ii].function();
                 fprintf(stdout, "ok %d - %s: %s (idx=%d)\n", num_cases,
