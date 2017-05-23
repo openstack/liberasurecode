@@ -1194,8 +1194,8 @@ int liberasurecode_verify_stripe_metadata(int desc,
 /**
  * This computes the aligned size of a buffer passed into
  * the encode function.  The encode function must pad fragments
- * to be algined with the word size (w) and the last fragment also
- * needs to be aligned.  This computes the sum of the algined fragment
+ * to be aligned with the word size (w) and the last fragment also
+ * needs to be aligned.  This computes the sum of the aligned fragment
  * sizes for a given buffer to encode.
  */
 int liberasurecode_get_aligned_data_size(int desc, uint64_t data_len)
@@ -1218,8 +1218,8 @@ int liberasurecode_get_aligned_data_size(int desc, uint64_t data_len)
 
     alignment_multiple = k * word_size;
 
-    ret = (int) ceill( (double)
-            data_len / alignment_multiple) * alignment_multiple;
+    ret = ((data_len + alignment_multiple - 1) / alignment_multiple)
+            * alignment_multiple;
 
 out:
     return ret;

@@ -88,7 +88,7 @@ struct libphazr_descriptor {
 static int get_padded_blocksize(int w, int hd, int blocksize)
 {
     int word_size = w / 8;
-    return (int) ceill((double) blocksize / (word_size - hd)) * word_size;
+    return ((blocksize + ((word_size - hd) - 1)) / (word_size - hd)) * word_size;
 }
 
 static int pio_matrix_encode(void *desc, char **data, char **parity, int blocksize)

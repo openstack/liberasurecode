@@ -88,7 +88,7 @@ dnl Check for C library headers
 AC_HEADER_STDC
 AC_CHECK_HEADERS(sys/types.h stdio.h stdlib.h stddef.h stdarg.h \
                  malloc.h memory.h string.h strings.h inttypes.h \
-                 stdint.h ctype.h math.h iconv.h signal.h dlfcn.h \
+                 stdint.h ctype.h iconv.h signal.h dlfcn.h \
                  pthread.h unistd.h limits.h errno.h syslog.h)
 AC_CHECK_FUNCS(malloc calloc realloc free openlog)
 
