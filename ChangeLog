@@ -1,3 +1,17 @@
+Release 1.5.0
+-------------
+
+ . Added support for Phazr.IO libphazr library
+ . Fixed memory leaks and initialization errors in Jerasure
+ . Fixed memory leak in ISA-L
+ . Changed the Galois Field multiplication table in ISA-L to be calculated
+   only on init.
+ . Fixed valgrind-check to enable finding memory-leaks.
+ . Fixed several memory leaks in tests and also in the built-in rs_vand
+   implementation.
+ . Fixed warning on automake tool
+ . Added compiler flag to disable AVX optimizations.
+
 Release 1.4.0
 -------------
 
