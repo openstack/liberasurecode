@@ -518,32 +518,30 @@ static void test_backend_available_invalid_args()
 static void test_create_backend_invalid_args()
 {
     int desc = liberasurecode_instance_create(-1, &null_args);
-    if (-EBACKENDNOTAVAIL == desc) {
-        fprintf (stderr, "Backend library not available!\n");
-        return;
-    }
-    assert(desc < 0);
+    assert(-EBACKENDNOTSUPP == desc);
+
     desc = liberasurecode_instance_create(EC_BACKENDS_MAX, &null_args);
-    if (-EBACKENDNOTAVAIL == desc) {
-        fprintf (stderr, "Backend library not available!\n");
-        return;
-    }
-    assert(desc < 0);
+    assert(-EBACKENDNOTSUPP == desc);
+
     desc = liberasurecode_instance_create(EC_BACKEND_NULL, NULL);
-    if (-EBACKENDNOTAVAIL == desc) {
-        fprintf (stderr, "Backend library not available!\n");
-        return;
-    }
+    assert(-EINVALIDPARAMS == desc);
+
     struct ec_args invalid_args = {
         .k = 100,
         .m = 100,
     };
     desc = liberasurecode_instance_create(EC_BACKEND_NULL, &invalid_args);
-    if (-EBACKENDNOTAVAIL == desc) {
-        fprintf (stderr, "Backend library not available!\n");
-        return;
-    }
-    assert(desc < 0);
+    assert(-EINVALIDPARAMS == desc);
+
+    invalid_args.k = -1;
+    invalid_args.m = 4;
+    desc = liberasurecode_instance_create(EC_BACKEND_NULL, &invalid_args);
+    assert(-EINVALIDPARAMS == desc);
+
+    invalid_args.k = 10;
+    invalid_args.m = -1;
+    desc = liberasurecode_instance_create(EC_BACKEND_NULL, &invalid_args);
+    assert(-EINVALIDPARAMS == desc);
 }
 
 static void test_destroy_backend_invalid_args()

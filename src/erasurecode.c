@@ -273,6 +273,8 @@ int liberasurecode_instance_create(const ec_backend_id_t id,
     if (id >= EC_BACKENDS_MAX)
         return -EBACKENDNOTSUPP;
 
+    if (args->k < 0 || args->m < 0)
+        return -EINVALIDPARAMS;
     if ((args->k + args->m) > EC_MAX_FRAGMENTS) {
         log_error("Total number of fragments (k + m) must be less than %d\n",
                   EC_MAX_FRAGMENTS);
