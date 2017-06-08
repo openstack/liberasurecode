@@ -498,7 +498,7 @@ static void test_create_and_destroy_backend(
 {
     int desc = liberasurecode_instance_create(be_id, args);
     if (-EBACKENDNOTAVAIL == desc) {
-        fprintf (stderr, "Backend library not available!\n");
+        fprintf(stderr, "Backend library not available!\n");
         return;
     }
     assert(desc > 0);
@@ -553,7 +553,7 @@ static void test_destroy_backend_invalid_args()
     assert(liberasurecode_instance_destroy(desc) < 0);
     desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
     if (-EBACKENDNOTAVAIL == desc) {
-        fprintf (stderr, "Backend library not available!\n");
+        fprintf(stderr, "Backend library not available!\n");
         return;
     }
     assert(desc > 0);
@@ -579,7 +579,7 @@ static void test_encode_invalid_args()
 
     desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
     if (-EBACKENDNOTAVAIL == desc) {
-        fprintf (stderr, "Backend library not available!\n");
+        fprintf(stderr, "Backend library not available!\n");
         return;
     }
     assert(desc > 0);
@@ -623,7 +623,7 @@ static void test_encode_cleanup_invalid_args()
 
     desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
     if (-EBACKENDNOTAVAIL == desc) {
-        fprintf (stderr, "Backend library not available!\n");
+        fprintf(stderr, "Backend library not available!\n");
         return;
     }
     assert(desc > 0);
@@ -664,7 +664,7 @@ static void test_decode_invalid_args()
 
     desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
     if (-EBACKENDNOTAVAIL == desc) {
-        fprintf (stderr, "Backend library not available!\n");
+        fprintf(stderr, "Backend library not available!\n");
         return;
     }
     assert(desc > 0);
@@ -755,7 +755,7 @@ static void test_decode_cleanup_invalid_args()
 
     desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
     if (-EBACKENDNOTAVAIL == desc) {
-        fprintf (stderr, "Backend library not available!\n");
+        fprintf(stderr, "Backend library not available!\n");
         return;
     }
     assert(desc > 0);
@@ -786,7 +786,7 @@ static void test_reconstruct_fragment_invalid_args()
 
     desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
     if (-EBACKENDNOTAVAIL == desc) {
-        fprintf (stderr, "Backend library not available!\n");
+        fprintf(stderr, "Backend library not available!\n");
         return;
     }
     assert(desc > 0);
@@ -831,7 +831,7 @@ static void test_fragments_needed_invalid_args()
 
     desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
     if (-EBACKENDNOTAVAIL == desc) {
-        fprintf (stderr, "Backend library not available!\n");
+        fprintf(stderr, "Backend library not available!\n");
         return;
     }
     assert(desc > 0);
@@ -882,7 +882,7 @@ static void test_verify_stripe_metadata_invalid_args() {
 
     desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
     if (-EBACKENDNOTAVAIL == desc) {
-        fprintf (stderr, "Backend library not available!\n");
+        fprintf(stderr, "Backend library not available!\n");
         return;
     }
     assert(desc > 0);
@@ -915,7 +915,7 @@ static void test_get_fragment_partition()
 
     desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
     if (-EBACKENDNOTAVAIL == desc) {
-        fprintf (stderr, "Backend library not available!\n");
+        fprintf(stderr, "Backend library not available!\n");
         free(orig_data);
         free(skips);
         return;
@@ -1008,7 +1008,7 @@ static void encode_decode_test_impl(const ec_backend_id_t be_id,
     desc = liberasurecode_instance_create(be_id, args);
 
     if (-EBACKENDNOTAVAIL == desc) {
-        fprintf (stderr, "Backend library not available!\n");
+        fprintf(stderr, "Backend library not available!\n");
         return;
     } else if ((args->k + args->m) > EC_MAX_FRAGMENTS) {
         assert(-EINVALIDPARAMS == desc);
@@ -1100,7 +1100,7 @@ static void reconstruct_test_impl(const ec_backend_id_t be_id,
 
     desc = liberasurecode_instance_create(be_id, args);
     if (-EBACKENDNOTAVAIL == desc) {
-        fprintf (stderr, "Backend library not available!\n");
+        fprintf(stderr, "Backend library not available!\n");
         return;
     }
     assert(desc > 0);
@@ -1159,7 +1159,7 @@ static void test_fragments_needed_impl(const ec_backend_id_t be_id,
 
     int desc = liberasurecode_instance_create(be_id, args);
     if (-EBACKENDNOTAVAIL == desc) {
-        fprintf (stderr, "Backend library not available!\n");
+        fprintf(stderr, "Backend library not available!\n");
         return;
     }
     assert(desc > 0);
@@ -1292,7 +1292,7 @@ static void test_get_fragment_metadata(const ec_backend_id_t be_id, struct ec_ar
 
     desc = liberasurecode_instance_create(be_id, args);
     if (-EBACKENDNOTAVAIL == desc) {
-        fprintf (stderr, "Backend library not available!\n");
+        fprintf(stderr, "Backend library not available!\n");
         return;
     }
     assert(desc > 0);
@@ -1451,7 +1451,7 @@ static void test_isa_l_rs_vand_decode_reconstruct_specific_error_case()
     desc = liberasurecode_instance_create(
         EC_BACKEND_ISA_L_RS_VAND, &specific_1010_args);
     if (-EBACKENDNOTAVAIL == desc) {
-        fprintf (stderr, "Backend library not available!\n");
+        fprintf(stderr, "Backend library not available!\n");
         free(orig_data);
         free(skips);
         return;
@@ -1530,7 +1530,7 @@ static void test_jerasure_rs_cauchy_init_failure()
     desc = liberasurecode_instance_create(
         EC_BACKEND_JERASURE_RS_CAUCHY, &bad_args);
     if (-EBACKENDNOTAVAIL == desc) {
-        fprintf (stderr, "Backend library not available!\n");
+        fprintf(stderr, "Backend library not available!\n");
         return;
     }
     assert(-EBACKENDINITERR == desc);
@@ -1614,7 +1614,7 @@ static void test_verify_stripe_metadata(const ec_backend_id_t be_id,
     int desc = liberasurecode_instance_create(be_id, args);
 
     if (-EBACKENDNOTAVAIL == desc) {
-        fprintf (stderr, "Backend library not available!\n");
+        fprintf(stderr, "Backend library not available!\n");
         free(orig_data);
         free(skip);
         return;
@@ -1659,7 +1659,7 @@ static void verify_fragment_metadata_mismatch_impl(const ec_backend_id_t be_id, 
     int desc = liberasurecode_instance_create(be_id, args);
 
     if (-EBACKENDNOTAVAIL == desc) {
-        fprintf (stderr, "Backend library not available!\n");
+        fprintf(stderr, "Backend library not available!\n");
         free(orig_data);
         free(skip);
         return;
@@ -1866,15 +1866,15 @@ int main(int argc, char **argv)
 {
     int ii = 0, num_cases = 0, i = 0;
     int max_backend_tests = max_tests_for_backends();
+    setbuf(stdout, NULL);
 
     for (i = 0; i < max_backend_tests; i++) {
         for (ii = 0; testcases[ii].description != NULL; ++ii) {
             const char *testname = get_name_from_backend_id(testcases[ii].be_id);
-            fflush(stdout);
             if (testcases[ii].skip) {
-                fprintf(stdout, "ok # SKIP %d - %s: %s (idx=%d)\n", num_cases,
-                        testcases[ii].description,
-                        (testname) ? testname : "", i);
+                printf("ok # SKIP %d - %s: %s (idx=%d)\n", num_cases,
+                       testcases[ii].description,
+                       (testname) ? testname : "", i);
                 continue;
             }
             if (testcases[ii].be_id == EC_BACKENDS_MAX) {
@@ -1883,21 +1883,21 @@ int main(int argc, char **argv)
                 }
                 /* EC_BACKENDS_MAX basically designed for invalid args tests
                  * and not takes the args so call the function w/o args here */
+                printf("%d - %s: %s (idx=%d) ... ", num_cases,
+                       testcases[ii].description,
+                       (testname) ? testname : "", i);
                 testcases[ii].function();
-                fprintf(stdout, "ok %d - %s: %s (idx=%d)\n", num_cases,
-                        testcases[ii].description,
-                        (testname) ? testname : "", i);
-                fflush(stdout);
+                printf("ok\n");
                 num_cases++;
                 continue;
             }
             struct ec_args *args = create_ec_args(testcases[ii].be_id, testcases[ii].ct, i);
             if (NULL != args) {
+                printf("%d - %s: %s (idx=%d) ... ", num_cases,
+                       testcases[ii].description,
+                       (testname) ? testname : "", i);
                 testcases[ii].function(testcases[ii].be_id, args);
-                fprintf(stdout, "ok %d - %s: %s (idx=%d)\n", num_cases,
-                        testcases[ii].description,
-                        (testname) ? testname : "", i);
-                fflush(stdout);
+                printf("ok\n");
                 free(args);
                 num_cases++;
             }
