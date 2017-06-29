@@ -26,7 +26,7 @@
 #define _ERASURECODE_VERSION_H_
 
 #define _MAJOR 1
-#define _MINOR 4
+#define _MINOR 5
 #define _REV 0
 #define _VERSION(x, y, z) ((x << 16) | (y << 8) | (z))
 
