@@ -42,30 +42,6 @@
 
 #include <sys/param.h>
 
-#if defined(INTEL_SSE4)
-#include <nmmintrin.h>
-
-int
-crc32(int crc, const void *buf, size_t size)
-{
-  unsigned long long *current = (unsigned long long*)buf;
-  unsigned char *current_char;
-
-  crc = crc ^ ~0U;
-
-  while(size >= 8) {
-    crc = _mm_crc32_u64(crc, *current++);
-    size -= 8;
-  }
-
-  current_char = (unsigned char*)current;
-  while (size--) {
-    crc = _mm_crc32_u8(crc, *current_char++);
-  }
-  return crc ^ ~0U;
-}
-#else
-
 static int crc32_tab[] = {
   0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f,
   0xe963a535, 0x9e6495a3, 0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988,
@@ -112,9 +88,6 @@ static int crc32_tab[] = {
   0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 };
 
-// Use same polynomial as Intel's SSE4 instruction!
-#define POLY_CRC_32 0x11EDC6F41
-
 int
 crc32(int crc, const void *buf, size_t size)
 {
@@ -128,5 +101,3 @@ crc32(int crc, const void *buf, size_t size)
 
   return crc ^ ~0U;
 }
-#endif
-
