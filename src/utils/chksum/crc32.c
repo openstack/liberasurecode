@@ -89,7 +89,7 @@ static int crc32_tab[] = {
 };
 
 int
-crc32(int crc, const void *buf, size_t size)
+liberasurecode_crc32_alt(int crc, const void *buf, size_t size)
 {
   const char *p;
 

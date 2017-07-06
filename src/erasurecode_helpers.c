@@ -28,6 +28,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <zlib.h>
 #include "erasurecode_backend.h"
 #include "erasurecode_helpers.h"
 #include "erasurecode_helpers_ext.h"
@@ -474,7 +475,7 @@ inline int set_checksum(ec_checksum_type_t ct, char *buf, int blocksize)
 
     switch(header->meta.chksum_type) {
         case CHKSUM_CRC32:
-            header->meta.chksum[0] = crc32(0, data, blocksize);
+            header->meta.chksum[0] = crc32(0, (unsigned char *) data, blocksize);
             break;
         case CHKSUM_MD5:
             break;
@@ -512,7 +513,7 @@ inline int set_metadata_chksum(char *buf)
         return -1;
     }
 
-    header->metadata_chksum = crc32(0, &header->meta,
+    header->metadata_chksum = crc32(0, (unsigned char *) &header->meta,
                                     sizeof(fragment_metadata_t));
     return 0;
 }

@@ -15,7 +15,7 @@ check_PROGRAMS += alg_sig_test
 
 liberasurecode_test_SOURCES = liberasurecode_test.c
 liberasurecode_test_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/include/erasurecode  @GCOV_FLAGS@
-liberasurecode_test_LDFLAGS = @GCOV_LDFLAGS@ $(top_builddir)/src/liberasurecode.la -ldl -lpthread
+liberasurecode_test_LDFLAGS = @GCOV_LDFLAGS@ $(top_builddir)/src/liberasurecode.la -ldl -lpthread -lz
 check_PROGRAMS += liberasurecode_test
 
 libec_slap_SOURCES = libec_slap.c

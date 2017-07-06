@@ -34,9 +34,10 @@ liberasurecode_la_SOURCES = \
 
 liberasurecode_la_CPPFLAGS = -Werror @GCOV_FLAGS@
 liberasurecode_la_LIBADD = \
-		builtin/null_code/libnullcode.la -lpthread -lm @GCOV_LDFLAGS@ \
-		builtin/xor_codes/libXorcode.la -lpthread -lm @GCOV_LDFLAGS@ \
-		builtin/rs_vand/liberasurecode_rs_vand.la -lpthread -lm @GCOV_LDFLAGS@
+		builtin/null_code/libnullcode.la \
+		builtin/xor_codes/libXorcode.la \
+		builtin/rs_vand/liberasurecode_rs_vand.la \
+		-lpthread -lm -lz @GCOV_LDFLAGS@
 
 # Version format  (C - A).(A).(R) for C:R:A input
 liberasurecode_la_LDFLAGS = -rpath '$(libdir)' -version-info @LIBERASURECODE_VERSION_INFO@

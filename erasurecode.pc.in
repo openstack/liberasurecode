@@ -11,5 +11,5 @@ Version: @LIBERASURECODE_VERSION@
 Requires:
 Conflicts:
 Libs: -L${libdir} -lerasurecode
-Libs.private: @ERASURECODE_STATIC_LIBS@
+Libs.private: @ERASURECODE_STATIC_LIBS@ -lz
 Cflags: -I${includedir}/ -I${includedir}/liberasurecode

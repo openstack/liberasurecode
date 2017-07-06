@@ -26,6 +26,7 @@
  * vi: set noai tw=79 ts=4 sw=4:
  */
 
+#include <zlib.h>
 #include "assert.h"
 #include "list.h"
 #include "erasurecode.h"
@@ -1063,9 +1064,17 @@ int liberasurecode_get_fragment_metadata(char *fragment,
             uint32_t stored_chksum = fragment_hdr->meta.chksum[0];
             char *fragment_data = get_data_ptr_from_fragment(fragment);
             uint64_t fragment_size = fragment_hdr->meta.size;
-            computed_chksum = crc32(0, fragment_data, fragment_size);
+            computed_chksum = crc32(0, (unsigned char *) fragment_data, fragment_size);
             if (stored_chksum != computed_chksum) {
-                fragment_metadata->chksum_mismatch = 1;
+                // Try again with our "alternative" crc32; see
+                // https://bugs.launchpad.net/liberasurecode/+bug/1666320
+                computed_chksum = liberasurecode_crc32_alt(
+                    0, fragment_data, fragment_size);
+                if (stored_chksum != computed_chksum) {
+                    fragment_metadata->chksum_mismatch = 1;
+                } else {
+                    fragment_metadata->chksum_mismatch = 0;
+                }
             } else {
                 fragment_metadata->chksum_mismatch = 0;
             }
@@ -1095,7 +1104,13 @@ int is_invalid_fragment_header(fragment_header_t *header)
     stored_csum = get_metadata_chksum((char *) header);
     if (NULL == stored_csum)
         return 1; /* can't verify, possibly crc32 call error */
-    csum = crc32(0, &header->meta, sizeof(fragment_metadata_t));
+    csum = crc32(0, (unsigned char *) &header->meta, sizeof(fragment_metadata_t));
+    if (*stored_csum == csum) {
+        return 0;
+    }
+    // Else, try again with our "alternative" crc32; see
+    // https://bugs.launchpad.net/liberasurecode/+bug/1666320
+    csum = liberasurecode_crc32_alt(0, &header->meta, sizeof(fragment_metadata_t));
     return (*stored_csum != csum);
 }
 

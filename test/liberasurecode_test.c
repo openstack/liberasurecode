@@ -28,6 +28,7 @@
 
 #include <assert.h>
 #include <stdbool.h>
+#include <zlib.h>
 #include "erasurecode.h"
 #include "erasurecode_helpers.h"
 #include "erasurecode_helpers_ext.h"
@@ -475,7 +476,7 @@ static void validate_fragment_checksum(struct ec_args *args,
             assert(false); //currently only have support crc32
             break;
         case CHKSUM_CRC32:
-            computed = crc32(0, fragment_data, size);
+            computed = crc32(0, (unsigned char *) fragment_data, size);
             break;
         case CHKSUM_NONE:
             assert(metadata->chksum_mismatch == 0);
@@ -1745,6 +1746,35 @@ static void test_verify_stripe_metadata_frag_idx_invalid(
     verify_fragment_metadata_mismatch_impl(be_id, args, FRAGIDX_OUT_OF_RANGE);
 }
 
+static void test_metadata_crcs()
+{
+    // We've observed headers like this in the wild, using our busted crc32
+    char header[] =
+        "\x03\x00\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x10\x00"
+        "\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+        "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+        "\x00\x00\x00\x00\x00\x00\x07\x01\x0e\x02\x00\xcc\x5e\x0c\x0b\x00"
+        "\x04\x01\x00\x22\xee\x45\xb9\x00\x00\x00\x00\x00\x00\x00\x00\x00";
+
+    fragment_metadata_t res;
+
+    assert(liberasurecode_get_fragment_metadata(header, &res) == 0);
+    assert(is_invalid_fragment_header((fragment_header_t *) header) == 0);
+
+    // Switch it to zlib's implementation
+    header[70] = '\x18';
+    header[69] = '\x73';
+    header[68] = '\xf8';
+    header[67] = '\xec';
+
+    assert(liberasurecode_get_fragment_metadata(header, &res) == 0);
+    assert(is_invalid_fragment_header((fragment_header_t *) header) == 0);
+
+    // Write down the wrong thing
+    header[70] = '\xff';
+    assert(liberasurecode_get_fragment_metadata(header, &res) == -EBADHEADER);
+    assert(is_invalid_fragment_header((fragment_header_t *) header) == 1);
+}
 
 //static void test_verify_str
 
@@ -1804,6 +1834,10 @@ struct testcase testcases[] = {
     {"test_liberasurecode_get_version",
         test_liberasurecode_get_version,
         EC_BACKENDS_MAX, CHKSUM_TYPES_MAX,
+        .skip = false},
+    {"test_metadata_crcs",
+        test_metadata_crcs,
+        EC_BACKENDS_MAX, 0,
         .skip = false},
     // NULL backend test
     {"create_and_destroy_backend",

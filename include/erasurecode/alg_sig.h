@@ -57,8 +57,7 @@ alg_sig_t *init_alg_sig(int sig_len, int gf_w);
 void destroy_alg_sig(alg_sig_t* alg_sig_handle);
 
 int compute_alg_sig(alg_sig_t* alg_sig_handle, char *buf, int len, char *sig);
-int crc32_build_fast_table();
-int crc32(int crc, const void *buf, int size);
+int liberasurecode_crc32_alt(int crc, const void *buf, int size);
 
 #endif
 
