@@ -664,7 +664,7 @@ xor_code_t* init_xor_hd_code(int k, int m, int hd)
       if (k <= 10 && k >= 5) {
         is_valid = 1;
       }
-    } else if (m == 3) {
+    } else if (m == 3 && k == 3) {
       is_valid = 1;
     }
   }
