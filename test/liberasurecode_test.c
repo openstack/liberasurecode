@@ -1536,6 +1536,28 @@ static void test_jerasure_rs_cauchy_init_failure()
     assert(-EBACKENDINITERR == desc);
 }
 
+static void test_flat_xor_hd3_init_failure()
+{
+    struct ec_args bad_args[] = {
+        {.k = 1, .m = 5, .hd=3},
+        {.k = 5, .m = 1, .hd=3},
+        {.k = 4, .m = 4, .hd=3},
+        {.k = 1, .m = 3, .hd=3},
+        {.k = 4, .m = 3, .hd=3},
+    };
+
+    for (int i = 0; i < sizeof(bad_args)/sizeof(bad_args[0]); ++i) {
+        int desc = -1;
+        desc = liberasurecode_instance_create(
+            EC_BACKEND_FLAT_XOR_HD, &bad_args[i]);
+        if (-EBACKENDNOTAVAIL == desc) {
+            fprintf (stderr, "Backend library not available!\n");
+            return;
+        }
+        assert(-EBACKENDINITERR == desc);
+    }
+}
+
 static void test_simple_encode_decode(const ec_backend_id_t be_id,
                                      struct ec_args *args)
 {
@@ -1819,6 +1841,7 @@ struct testcase testcases[] = {
     TEST(test_decode_with_missing_multi_parity, EC_BACKEND_NULL, CHKSUM_NONE),
     // Flat XOR backend tests
     TEST_SUITE(EC_BACKEND_FLAT_XOR_HD),
+    TEST(test_flat_xor_hd3_init_failure, EC_BACKENDS_MAX, 0),
     // Jerasure RS Vand backend tests
     TEST_SUITE(EC_BACKEND_JERASURE_RS_VAND),
     TEST(test_jerasure_rs_vand_simple_encode_decode_over32, EC_BACKENDS_MAX, 0),
