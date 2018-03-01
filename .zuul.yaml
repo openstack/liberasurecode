@@ -1,0 +1,25 @@
+- job:
+    name: liberasurecode-unittests
+    parent: unittests
+    description: |
+      Build and run test and valgrind-test for liberasurecode.
+    run: playbooks/unittests/run.yaml
+
+- job:
+    name: liberasurecode-unittests-centos-7
+    parent: liberasurecode-unittests
+    nodeset: centos-7
+    description: |
+      Build and run test and valgrind-test for liberasurecode.
+      This job runs on CentOS-7.
+
+- project:
+    check:
+      jobs:
+        - liberasurecode-unittests
+    gate:
+      jobs:
+        - liberasurecode-unittests
+    experimental:
+      jobs:
+        - liberasurecode-unittests-centos-7

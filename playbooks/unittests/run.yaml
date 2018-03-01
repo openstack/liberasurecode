@@ -1,0 +1,15 @@
+- hosts: all
+
+  tasks:
+    - name: Build and test
+      shell:
+        cmd: |
+          set -e
+          set -x
+          ./autogen.sh
+          ./configure
+          make
+          make test
+          make valgrind-test
+        executable: /bin/bash
+        chdir: '{{ zuul.project.src_dir }}'
