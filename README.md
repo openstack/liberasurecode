@@ -51,7 +51,7 @@ Install dependencies -
  Debian/Ubuntu hosts:
 
 ```sh
- $ sudo apt-get install build-essential autoconf automake libtool
+ $ sudo apt-get install build-essential autoconf automake libtool zlib1g-dev
 ```
 
  Fedora/RedHat/CentOS hosts:
