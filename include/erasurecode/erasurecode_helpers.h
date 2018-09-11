@@ -93,5 +93,21 @@ void *get_aligned_buffer16(int size);
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
+#ifndef bswap_32
+static __inline uint32_t __libec_bswap_32(uint32_t __x)
+{
+    return __x>>24 | (__x>>8&0xff00) | (__x<<8&0xff0000) | __x<<24;
+}
+#define bswap_32(x) __libec_bswap_32(x)
+#endif
+
+#ifndef bswap_64
+static __inline uint64_t __libec_bswap_64(uint64_t __x)
+{
+    return (__libec_bswap_32(__x)+0ULL)<<32 | __libec_bswap_32(__x>>32);
+}
+#define bswap_64(x) __libec_bswap_64(x)
+#endif
+
 #endif  // _ERASURECODE_HELPERS_H_
 

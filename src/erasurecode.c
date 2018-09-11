@@ -1055,17 +1055,36 @@ int liberasurecode_get_fragment_metadata(char *fragment,
     memcpy(fragment_metadata, fragment, sizeof(struct fragment_metadata));
     fragment_hdr = (fragment_header_t *) fragment;
     if (LIBERASURECODE_FRAG_HEADER_MAGIC != fragment_hdr->magic) {
-        log_error("Invalid fragment, illegal magic value");
-        ret = -EINVALIDPARAMS;
-        goto out;
+        if (LIBERASURECODE_FRAG_HEADER_MAGIC != bswap_32(fragment_hdr->magic)) {
+            log_error("Invalid fragment, illegal magic value");
+            ret = -EINVALIDPARAMS;
+            goto out;
+        } else {
+            // Must've written this on an opposite-endian architecture.
+            // Fix it in fragment_metadata
+            fragment_metadata->idx = bswap_32(fragment_metadata->idx);
+            fragment_metadata->size = bswap_32(fragment_metadata->size);
+            fragment_metadata->frag_backend_metadata_size =
+                bswap_32(fragment_metadata->frag_backend_metadata_size);
+            fragment_metadata->orig_data_size =
+                bswap_64(fragment_metadata->orig_data_size);
+            fragment_metadata->chksum_type =
+                bswap_32(fragment_metadata->chksum_type);
+            for (int i = 0; i < LIBERASURECODE_MAX_CHECKSUM_LEN; i++) {
+                fragment_metadata->chksum[i] =
+                    bswap_32(fragment_metadata->chksum[i]);
+            }
+            fragment_metadata->backend_version =
+                bswap_32(fragment_metadata->backend_version);
+        }
     }
 
-    switch(fragment_hdr->meta.chksum_type) {
+    switch(fragment_metadata->chksum_type) {
         case CHKSUM_CRC32: {
             uint32_t computed_chksum = 0;
-            uint32_t stored_chksum = fragment_hdr->meta.chksum[0];
+            uint32_t stored_chksum = fragment_metadata->chksum[0];
             char *fragment_data = get_data_ptr_from_fragment(fragment);
-            uint64_t fragment_size = fragment_hdr->meta.size;
+            uint64_t fragment_size = fragment_metadata->size;
             computed_chksum = crc32(0, (unsigned char *) fragment_data, fragment_size);
             if (stored_chksum != computed_chksum) {
                 // Try again with our "alternative" crc32; see
@@ -1095,28 +1114,39 @@ out:
 
 int is_invalid_fragment_header(fragment_header_t *header)
 {
-    uint32_t csum = 0;
+    uint32_t csum = 0, metadata_chksum = 0, libec_version = 0;
     assert (NULL != header);
     if (header->libec_version == 0)
         /* libec_version must be bigger than 0 */
         return 1;
-    if (header->libec_version < _VERSION(1,2,0))
+    metadata_chksum = header->metadata_chksum;
+    libec_version = header->libec_version;
+    if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
+        if (bswap_32(header->magic) != LIBERASURECODE_FRAG_HEADER_MAGIC) {
+            log_error("Invalid fragment header (get meta chksum)!");
+            return 1;
+        } else {
+            // Must've written this on an opposite-endian architecture.
+            // Fix our reference checksum and version, but *don't touch
+            // the header data yet*. Leave that for when we're extracting
+            // in liberasurecode_get_fragment_metadata
+            metadata_chksum = bswap_32(metadata_chksum);
+            libec_version = bswap_32(libec_version);
+        }
+    }
+
+    if (libec_version < _VERSION(1,2,0))
         /* no metadata checksum support */
         return 0;
 
-    if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
-        log_error("Invalid fragment header (get meta chksum)!");
-        return 1;
-    }
-
     csum = crc32(0, (unsigned char *) &header->meta, sizeof(fragment_metadata_t));
-    if (header->metadata_chksum == csum) {
+    if (metadata_chksum == csum) {
         return 0;
     }
     // Else, try again with our "alternative" crc32; see
     // https://bugs.launchpad.net/liberasurecode/+bug/1666320
     csum = liberasurecode_crc32_alt(0, &header->meta, sizeof(fragment_metadata_t));
-    return (header->metadata_chksum != csum);
+    return (metadata_chksum != csum);
 }
 
 int liberasurecode_verify_fragment_metadata(ec_backend_t be,

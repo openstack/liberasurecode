@@ -1762,29 +1762,77 @@ static void test_verify_stripe_metadata_frag_idx_invalid(
     verify_fragment_metadata_mismatch_impl(be_id, args, FRAGIDX_OUT_OF_RANGE);
 }
 
-static void test_metadata_crcs()
+static void test_metadata_crcs_le()
 {
     // We've observed headers like this in the wild, using our busted crc32
-    char header[] =
+    char orig_header[] =
         "\x03\x00\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x10\x00"
         "\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
         "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
         "\x00\x00\x00\x00\x00\x00\x07\x01\x0e\x02\x00\xcc\x5e\x0c\x0b\x00"
         "\x04\x01\x00\x22\xee\x45\xb9\x00\x00\x00\x00\x00\x00\x00\x00\x00";
+    char header[sizeof(orig_header)];
+    memcpy(header, orig_header, sizeof(orig_header));
 
     fragment_metadata_t res;
 
     assert(liberasurecode_get_fragment_metadata(header, &res) == 0);
+    assert(memcmp(header, orig_header, sizeof(orig_header)) == 0);
+    assert(res.backend_version == _VERSION(2, 14, 1));
     assert(is_invalid_fragment_header((fragment_header_t *) header) == 0);
+    assert(memcmp(header, orig_header, sizeof(orig_header)) == 0);
 
     // Switch it to zlib's implementation
-    header[70] = '\x18';
-    header[69] = '\x73';
-    header[68] = '\xf8';
-    header[67] = '\xec';
+    orig_header[70] = '\x18';
+    orig_header[69] = '\x73';
+    orig_header[68] = '\xf8';
+    orig_header[67] = '\xec';
+    memcpy(header, orig_header, sizeof(orig_header));
 
     assert(liberasurecode_get_fragment_metadata(header, &res) == 0);
+    assert(memcmp(header, orig_header, sizeof(orig_header)) == 0);
+    assert(res.backend_version == _VERSION(2, 14, 1));
     assert(is_invalid_fragment_header((fragment_header_t *) header) == 0);
+    assert(memcmp(header, orig_header, sizeof(orig_header)) == 0);
+
+    // Write down the wrong thing
+    header[70] = '\xff';
+    assert(liberasurecode_get_fragment_metadata(header, &res) == -EBADHEADER);
+    assert(is_invalid_fragment_header((fragment_header_t *) header) == 1);
+}
+
+static void test_metadata_crcs_be()
+{
+    // Like above, but big-endian
+    char orig_header[] =
+        "\x00\x00\x00\x03\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+        "\x00\x10\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+        "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+        "\x00\x00\x00\x00\x00\x00\x07\x00\x02\x0e\x01\x0b\x0c\x5e\xcc\x00"
+        "\x01\x04\x00\xfa\x85\x40\x70\x00\x00\x00\x00\x00\x00\x00\x00\x00";
+    char header[sizeof(orig_header)];
+    memcpy(header, orig_header, sizeof(orig_header));
+
+    fragment_metadata_t res;
+
+    assert(liberasurecode_get_fragment_metadata(header, &res) == 0);
+    assert(memcmp(header, orig_header, sizeof(orig_header)) == 0);
+    assert(res.backend_version == _VERSION(2, 14, 1));
+    assert(is_invalid_fragment_header((fragment_header_t *) header) == 0);
+    assert(memcmp(header, orig_header, sizeof(orig_header)) == 0);
+
+    // Switch it to zlib's implementation
+    orig_header[67] = '\xe3';
+    orig_header[68] = '\x73';
+    orig_header[69] = '\x88';
+    orig_header[70] = '\xa0';
+    memcpy(header, orig_header, sizeof(orig_header));
+
+    assert(liberasurecode_get_fragment_metadata(header, &res) == 0);
+    assert(memcmp(header, orig_header, sizeof(orig_header)) == 0);
+    assert(res.backend_version == _VERSION(2, 14, 1));
+    assert(is_invalid_fragment_header((fragment_header_t *) header) == 0);
+    assert(memcmp(header, orig_header, sizeof(orig_header)) == 0);
 
     // Write down the wrong thing
     header[70] = '\xff';
@@ -1832,7 +1880,8 @@ struct testcase testcases[] = {
     TEST(test_fragments_needed_invalid_args, EC_BACKENDS_MAX, CHKSUM_TYPES_MAX),
     TEST(test_get_fragment_partition, EC_BACKENDS_MAX, CHKSUM_TYPES_MAX),
     TEST(test_liberasurecode_get_version, EC_BACKENDS_MAX, CHKSUM_TYPES_MAX),
-    TEST(test_metadata_crcs, EC_BACKENDS_MAX, 0),
+    TEST(test_metadata_crcs_le, EC_BACKENDS_MAX, 0),
+    TEST(test_metadata_crcs_be, EC_BACKENDS_MAX, 0),
     // NULL backend test
     TEST(test_create_and_destroy_backend, EC_BACKEND_NULL, CHKSUM_NONE),
     TEST(test_simple_encode_decode, EC_BACKEND_NULL, CHKSUM_NONE),
