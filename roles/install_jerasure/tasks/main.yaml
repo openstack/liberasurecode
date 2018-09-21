@@ -1,0 +1,36 @@
+- name: Ensure legacy workspace directory
+  file:
+    path: '{{ ansible_user_dir }}/workspace'
+    state: directory
+
+- name: Build and Install GF-Complete
+  shell:
+    cmd: |
+      set -e
+      set -x
+      cd $WORKSPACE
+      git clone http://lab.jerasure.org/jerasure/gf-complete.git
+      cd gf-complete
+      ./autogen.sh
+      ./configure
+      make
+      sudo make install
+    executable: /bin/bash
+    chdir: '{{ ansible_user_dir }}/workspace'
+  environment: '{{ zuul | zuul_legacy_vars }}'
+
+- name: Build and Install Jerasure
+  shell:
+    cmd: |
+      set -e
+      set -x
+      cd $WORKSPACE
+      git clone http://lab.jerasure.org/jerasure/jerasure.git
+      cd jerasure
+      autoreconf --force --install
+      ./configure
+      make
+      sudo make install
+    executable: /bin/bash
+    chdir: '{{ ansible_user_dir }}/workspace'
+  environment: '{{ zuul | zuul_legacy_vars }}'

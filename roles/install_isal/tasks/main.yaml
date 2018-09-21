@@ -1,0 +1,26 @@
+- name: Ensure legacy workspace directory
+  file:
+    path: '{{ ansible_user_dir }}/workspace'
+    state: directory
+
+- name: install yasm
+  package:
+    name: yasm
+    state: present
+  become: yes
+
+- name: Build and Install ISA-L
+  shell:
+    cmd: |
+      set -e
+      set -x
+      cd $WORKSPACE
+      git clone git://github.com/01org/isa-l.git
+      cd isa-l
+      ./autogen.sh
+      ./configure
+      make
+      sudo make install
+    executable: /bin/bash
+    chdir: '{{ ansible_user_dir }}/workspace'
+  environment: '{{ zuul | zuul_legacy_vars }}'

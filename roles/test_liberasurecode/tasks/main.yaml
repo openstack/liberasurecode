@@ -1,0 +1,14 @@
+- name: Build and test liberasurecode
+  shell:
+    cmd: |
+      set -e
+      set -x
+      sudo bash -c "echo /usr/local/lib >> /etc/ld.so.conf"
+      sudo ldconfig
+      ./autogen.sh
+      ./configure
+      make
+      make test
+      make valgrind-test
+    executable: /bin/bash
+    chdir: '{{ zuul.project.src_dir }}'
