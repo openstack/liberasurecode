@@ -1,3 +1,12 @@
+Release 1.6.0
+-------------
+
+ . Use zlib for CRC-32
+ . Allow support for reading of little-endian framents on big-ending
+   and vice-versa
+ . Added check to return error for negative data or parity arguments
+ . Added better argument validation for flat_xor_hd
+
 Release 1.5.0
 -------------
 
