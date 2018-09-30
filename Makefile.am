@@ -46,28 +46,20 @@ install-exec-hook:
 	   $(LN_S) liberasurecode/config_liberasurecode.h)
 
 test: check
-	@$(LD_LIBRARY_PATH) $(DYLD_LIBRARY_PATH) $(DYLD_FALLBACK_LIBRARY_PATH) \
-		./test/liberasurecode_test
-	@$(LD_LIBRARY_PATH) $(DYLD_LIBRARY_PATH) $(DYLD_FALLBACK_LIBRARY_PATH) \
-		./test/alg_sig_test
-	@$(LD_LIBRARY_PATH) $(DYLD_LIBRARY_PATH) $(DYLD_FALLBACK_LIBRARY_PATH) \
-		./test/test_xor_hd_code
-	@$(LD_LIBRARY_PATH) $(DYLD_LIBRARY_PATH) $(DYLD_FALLBACK_LIBRARY_PATH) \
-		./test/libec_slap
+	@./test/liberasurecode_test
+	@./test/alg_sig_test
+	@./test/test_xor_hd_code
+	@./test/libec_slap
  
 VALGRIND_EXEC_COMMAND = $(LIBTOOL_COMMAND) valgrind --tool=memcheck \
 	--error-exitcode=1 --leak-check=yes --track-fds=yes \
 	--malloc-fill=A5 --free-fill=DE --fullpath-after=. --trace-children=yes
 
 valgrind-test: check
-	@$(LD_LIBRARY_PATH) $(DYLD_LIBRARY_PATH) $(DYLD_FALLBACK_LIBRARY_PATH) $(VALGRIND_EXEC_COMMAND) \
-		./test/alg_sig_test
-	@$(LD_LIBRARY_PATH) $(DYLD_LIBRARY_PATH) $(DYLD_FALLBACK_LIBRARY_PATH) $(VALGRIND_EXEC_COMMAND) \
-		./test/liberasurecode_test
-	@$(LD_LIBRARY_PATH) $(DYLD_LIBRARY_PATH) $(DYLD_FALLBACK_LIBRARY_PATH) $(VALGRIND_EXEC_COMMAND) \
-		./test/test_xor_hd_code
-	@$(LD_LIBRARY_PATH) $(DYLD_LIBRARY_PATH) $(DYLD_FALLBACK_LIBRARY_PATH) $(VALGRIND_EXEC_COMMAND) \
-		./test/libec_slap
+	@$(VALGRIND_EXEC_COMMAND) ./test/alg_sig_test
+	@$(VALGRIND_EXEC_COMMAND) ./test/liberasurecode_test
+	@$(VALGRIND_EXEC_COMMAND) ./test/test_xor_hd_code
+	@$(VALGRIND_EXEC_COMMAND) ./test/libec_slap
 
 CLEANFILES = cscope.in.out cscope.out cscope.po.out
 
