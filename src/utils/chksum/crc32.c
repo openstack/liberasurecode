@@ -97,7 +97,8 @@ liberasurecode_crc32_alt(int crc, const void *buf, size_t size)
   crc = crc ^ ~0U;
 
   while (size--)
-    crc = crc32_tab[(crc ^ *p++) & 0xFF] ^ (crc >> 8);
+    crc = crc32_tab[(crc ^ *p++) & 0xFF] ^
+            ((((crc >> 8) & 0x00FFFFFF) ^ 0x00800000) - 0x00800000);
 
   return crc ^ ~0U;
 }

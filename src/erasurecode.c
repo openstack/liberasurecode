@@ -1045,8 +1045,7 @@ int liberasurecode_get_fragment_metadata(char *fragment,
     }
 
     /* Verify metadata checksum */
-    if (is_invalid_fragment_header(
-            (fragment_header_t *) fragment)) {
+    if (is_invalid_fragment_header((fragment_header_t *) fragment)) {
         log_error("Invalid fragment header information!");
         ret = -EBADHEADER;
         goto out;
