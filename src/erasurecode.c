@@ -250,7 +250,7 @@ int liberasurecode_backend_available(const ec_backend_id_t backend_id) {
  *
  * @param id - one of the supported backends as
  *        defined by ec_backend_id_t
- * @param ec_args - arguments to the EC backend
+ * @param args - arguments to the EC backend
  *        arguments common to all backends
  *          k - number of data fragments
  *          m - number of parity fragments
@@ -321,7 +321,7 @@ int liberasurecode_instance_create(const ec_backend_id_t id,
 /**
  * Close a liberasurecode instance
  *
- * @param liberasurecode descriptor to close
+ * @param desc - liberasurecode descriptor to close
  */
 int liberasurecode_instance_destroy(int desc)
 {
@@ -529,7 +529,7 @@ int liberasurecode_decode_cleanup(int desc, char *data)
  *
  * @param desc - liberasurecode descriptor/handle
  *        from liberasurecode_instance_create()
- * @param fragments - erasure encoded fragments (> = k)
+ * @param available_fragments - erasure encoded fragments (> = k)
  * @param num_fragments - number of fragments being passed in
  * @param fragment_len - length of each fragment (assume they are the same)
  * @param force_metadata_checks - force fragment metadata checks (default: 0)

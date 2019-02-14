@@ -178,8 +178,8 @@ uint64_t get_fragment_size(char *buf)
  * Compute a size aligned to the number of data and the underlying wordsize 
  * of the EC algorithm.
  * 
- * @param instance, ec_backend_t instance (to extract args)
- * @param data_len, integer length of data in bytes
+ * @param instance - ec_backend_t instance (to extract args)
+ * @param data_len - integer length of data in bytes
  * @return integer data length aligned with wordsize of EC algorithm
  */
 int get_aligned_data_size(ec_backend_t instance, int data_len)
@@ -485,19 +485,6 @@ inline int set_checksum(ec_checksum_type_t ct, char *buf, int blocksize)
     }
     
     return 0;
-}
-
-inline uint32_t* get_chksum(char *buf)
-{
-    fragment_header_t* header = (fragment_header_t*) buf;
-
-    assert(NULL != header);
-    if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
-        log_error("Invalid fragment header (get chksum)!");
-        return NULL;
-    }
-
-    return (uint32_t *) header->meta.chksum;
 }
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
