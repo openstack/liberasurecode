@@ -17,9 +17,8 @@
     check:
       jobs:
         - liberasurecode-unittests
+        - liberasurecode-unittests-centos-7
     gate:
       jobs:
         - liberasurecode-unittests
-    experimental:
-      jobs:
         - liberasurecode-unittests-centos-7

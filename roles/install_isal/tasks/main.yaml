@@ -3,6 +3,14 @@
     path: '{{ ansible_user_dir }}/workspace'
     state: directory
 
+- name: install yasm in RHEL based systems
+  yum:
+    name: yasm
+    enablerepo: epel
+    state: present
+  when: ansible_distribution in ['RedHat', 'CentOS']
+  become: yes
+
 - name: install yasm
   package:
     name: yasm
