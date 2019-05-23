@@ -1,3 +1,9 @@
+Release 1.6.1
+-------------
+
+ . Fixed CRC validation of little-endian fragments on big-endian
+ . Fixed compile warning about unaligned pointers
+
 Release 1.6.0
 -------------
 
