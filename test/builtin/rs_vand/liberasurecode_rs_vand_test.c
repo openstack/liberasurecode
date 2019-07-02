@@ -31,6 +31,7 @@
 #include <fcntl.h>
 #include <time.h>
 #include <liberasurecode_rs_vand.h>
+#include <sys/stat.h>
 
 int test_make_systematic_matrix(int k, int m)
 {
