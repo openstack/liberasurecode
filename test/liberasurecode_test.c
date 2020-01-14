@@ -385,8 +385,8 @@ int *create_skips_array(struct ec_args *args, int skip)
     return buf;
 }
 
-static int create_fake_frags_no_meta(char ***array, int num_frags,
-                                     const char *data, int data_len)
+inline static int create_fake_frags_no_meta(char ***array, int num_frags,
+                                            const char data, int data_len)
 {
     // N.B. The difference from creat_frags_arry is to creat new
     // memory allocation and set a copy of data/parity there. The
@@ -404,8 +404,7 @@ static int create_fake_frags_no_meta(char ***array, int num_frags,
     // add data and parity frags
     ptr = *array;
     for (i = 0; i < num_frags; i++) {
-        *ptr = (char *) malloc(data_len);
-        strncpy(*ptr++, data, data_len);
+        *ptr++ = create_buffer(data_len, data);
         _num_frags++;
     }
 
@@ -660,7 +659,6 @@ static void test_decode_invalid_args()
     // fake_data len should be bigger than fragment_header_t for
     // the verifications
     int fake_data_len = 1024;
-    char *fake_data = create_buffer(fake_data_len, 'y');
 
     desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
     if (-EBACKENDNOTAVAIL == desc) {
@@ -672,9 +670,8 @@ static void test_decode_invalid_args()
     // test with invalid fragments (no metadata headers)
     num_avail_frags = create_fake_frags_no_meta(&avail_frags, (null_args.k +
                                                 null_args.m),
-                                                fake_data, fake_data_len);
+                                                'y', fake_data_len);
     assert(num_avail_frags > 0);
-    free(fake_data);
 
     rc = liberasurecode_decode(desc, avail_frags, num_avail_frags,
                                fake_data_len, 1,
@@ -697,7 +694,7 @@ static void test_decode_invalid_args()
 
     // test with num_fragments < (k)
     num_avail_frags = create_fake_frags_no_meta(&avail_frags, (null_args.k - 1),
-                                                " ", 1);
+                                                ' ', 1);
     assert(num_avail_frags > 0);
     rc = liberasurecode_decode(desc, avail_frags, num_avail_frags,
                                fake_data_len, 1,
