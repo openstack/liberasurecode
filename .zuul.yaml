@@ -13,12 +13,22 @@
       Build and run test and valgrind-test for liberasurecode.
       This job runs on CentOS-7.
 
+- job:
+    name: liberasurecode-unittests-centos-8
+    parent: liberasurecode-unittests
+    nodeset: centos-8
+    description: |
+      Build and run test and valgrind-test for liberasurecode.
+      This job runs on CentOS-8.
+
 - project:
     check:
       jobs:
         - liberasurecode-unittests
         - liberasurecode-unittests-centos-7
+        - liberasurecode-unittests-centos-8
     gate:
       jobs:
         - liberasurecode-unittests
         - liberasurecode-unittests-centos-7
+        - liberasurecode-unittests-centos-8
