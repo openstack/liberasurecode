@@ -280,8 +280,12 @@ static int test_hd_code(struct ec_args *args,
             }
             j++;
         }
-        create_frags_array_set(&frags,encoded_data, args->k, encoded_parity,
-                               args->m, mask);
+        rc = create_frags_array_set(&frags, encoded_data, args->k, 
+                                    encoded_parity, args->m, mask);
+        if (rc) {
+            fprintf(stderr, "No core\n");
+            exit(2);
+        }
         rc = liberasurecode_decode(desc, frags.array, frags.num_fragments,
                                    encoded_fragment_len, 1,
                                    &out_data, &out_data_len);
@@ -305,8 +309,12 @@ static int test_hd_code(struct ec_args *args,
             mi = mi + 1 % (args->k + args->m);
             mask = add_item_to_missing_mask(mask, mi);
         }
-        create_frags_array_set(&frags,encoded_data, args->k, encoded_parity,
-                               args->m, mask);
+        rc = create_frags_array_set(&frags, encoded_data, args->k,
+                                    encoded_parity, args->m, mask);
+        if (rc) {
+            fprintf(stderr, "No core\n");
+            exit(2);
+        }
         rc = liberasurecode_decode(desc, frags.array, frags.num_fragments,
                                    encoded_fragment_len, 1,
                                    &out_data, &out_data_len);
