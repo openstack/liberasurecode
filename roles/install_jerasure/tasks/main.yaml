@@ -9,7 +9,7 @@
       set -e
       set -x
       cd $WORKSPACE
-      git clone http://lab.jerasure.org/jerasure/gf-complete.git
+      git clone https://github.com/ceph/gf-complete.git
       cd gf-complete
       ./autogen.sh
       ./configure
@@ -25,7 +25,7 @@
       set -e
       set -x
       cd $WORKSPACE
-      git clone http://lab.jerasure.org/jerasure/jerasure.git
+      git clone https://github.com/ceph/jerasure.git
       cd jerasure
       autoreconf --force --install
       ./configure
