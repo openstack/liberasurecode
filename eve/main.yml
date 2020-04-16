@@ -1,0 +1,97 @@
+---
+version: "0.2"
+
+branches:
+  user/*, feature/*, improvement/*, bugfix/*, w/*, q/*, hotfix/*:
+    stage: pre-merge
+
+models:
+  - name: factorized blocks
+  - Git: &git_pull_docker
+      name: git pull
+      repourl: "%(prop:git_reference)s"
+      mode: full
+      method: clobber
+      shallow: 32
+      retryFetch: true
+      haltOnFailure: true
+  - ShellCommand: &git_clean
+      name: "clean git repository"
+      command: >
+        set -xve;
+        git clean -dxf
+      haltOnFailure: true
+  - Upload: &upload_artifacts
+      source: artifacts
+      timeout: 3600
+      alwaysRun: true
+  - ShellCommand: &build
+      name: "build"
+      command: >-
+        set -xvue;
+        ./autogen.sh &&
+        ./configure &&
+        make
+      haltOnFailure: true
+      timeout: 300 # 5 minutes
+  - ShellCommand: &test
+      name: "test"
+      command: >-
+        set -xvue;
+        make check && make test
+      haltOnFailure: true
+      timeout: 300 # 5 minutes
+
+stages:
+  pre-merge:
+    worker: &master-worker
+      type: kube_pod
+      path: eve/workers/worker.yml
+      images:
+        worker: eve/workers/master
+    steps:
+      - Git: *git_pull_docker
+      - ShellCommand: *git_clean
+      - TriggerStages:
+          name: trigger compilation and test stages simultaneously
+          stage_names:
+            - centos7
+          waitForFinish: true
+          haltOnFailure: true
+      #
+      # Upload build status to artifacts
+      #
+      - ShellCommand:
+          name: add successful .final_status to artifacts
+          command: >
+            mkdir build_status
+            && echo -n "SUCCESSFUL" > build_status/.final_status
+          haltOnFailure: true
+      - ShellCommand:
+          name: add failed .final_status to artifacts if needed
+          command: >
+            [ -f build_status/.final_status ]
+            || ( mkdir build_status && echo -n "FAILED" > build_status/.final_status )
+          haltOnFailure: true
+          alwaysRun: true
+      - Upload:
+          urls:
+            - ["artifacts", ""]
+          source: build_status
+          alwaysRun: true
+
+  centos7:
+    name: "compile liberasurecode for Centos Core (7.x)"
+    worker: &build_worker_c7
+      type: kube_pod
+      path: eve/workers/worker.yml
+      images:
+        worker: eve/workers/compile_centos_7
+    steps:
+      - SetProperty:
+          property: os_name
+          value: centos7
+          hideStepIf: true
+      - Git: *git_pull_docker
+      - ShellCommand: *build
+      - ShellCommand: *test
