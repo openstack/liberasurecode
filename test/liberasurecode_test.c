@@ -35,6 +35,7 @@
 #include "erasurecode_preprocessing.h"
 #include "erasurecode_backend.h"
 #include "alg_sig.h"
+#include "xxhash.h"
 #define NULL_BACKEND "null"
 #define FLAT_XOR_HD_BACKEND "flat_xor_hd"
 #define JERASURE_RS_VAND_BACKEND "jerasure_rs_vand"
@@ -468,7 +469,8 @@ static void validate_fragment_checksum(struct ec_args *args,
     fragment_metadata_t *metadata, char *fragment_data)
 {
     uint32_t chksum = metadata->chksum[0];
-    uint32_t computed = 0;
+    uint32_t chksum2 = metadata->chksum[1];
+    uint32_t computed = 0, computed2 = 0;
     uint32_t size = metadata->size;
     switch (args->ct) {
         case CHKSUM_MD5:
@@ -476,6 +478,12 @@ static void validate_fragment_checksum(struct ec_args *args,
             break;
         case CHKSUM_CRC32:
             computed = crc32(0, (unsigned char *) fragment_data, size);
+            assert(chksum2 == 0);
+            break;
+        case CHKSUM_XXHASH:
+            assert(metadata->chksum_mismatch == 0);
+            computed = XXH64(fragment_data, size, 0) & 0xFFFFFFFF;
+            computed2 = XXH64(fragment_data, size, 0) >> 32;
             break;
         case CHKSUM_NONE:
             assert(metadata->chksum_mismatch == 0);
@@ -488,6 +496,7 @@ static void validate_fragment_checksum(struct ec_args *args,
         assert(chksum != computed);
     } else {
         assert(chksum == computed);
+        assert(chksum2 == computed2);
     }
 }
 
@@ -1860,7 +1869,14 @@ static void test_metadata_crcs_be()
     TEST(test_verify_stripe_metadata_magic_mismatch,    backend, CHKSUM_CRC32), \
     TEST(test_verify_stripe_metadata_be_id_mismatch,    backend, CHKSUM_CRC32), \
     TEST(test_verify_stripe_metadata_be_ver_mismatch,   backend, CHKSUM_CRC32), \
-    TEST(test_verify_stripe_metadata_frag_idx_invalid,  backend, CHKSUM_CRC32)
+    TEST(test_verify_stripe_metadata_frag_idx_invalid,  backend, CHKSUM_CRC32), \
+    TEST(test_get_fragment_metadata,                    backend, CHKSUM_XXHASH), \
+    TEST(test_verify_stripe_metadata,                   backend, CHKSUM_XXHASH), \
+    TEST(test_verify_stripe_metadata_libec_mismatch,    backend, CHKSUM_XXHASH), \
+    TEST(test_verify_stripe_metadata_magic_mismatch,    backend, CHKSUM_XXHASH), \
+    TEST(test_verify_stripe_metadata_be_id_mismatch,    backend, CHKSUM_XXHASH), \
+    TEST(test_verify_stripe_metadata_be_ver_mismatch,   backend, CHKSUM_XXHASH), \
+    TEST(test_verify_stripe_metadata_frag_idx_invalid,  backend, CHKSUM_XXHASH)
 
 struct testcase testcases[] = {
     TEST(test_backend_available_invalid_args, EC_BACKENDS_MAX, 0),

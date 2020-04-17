@@ -36,6 +36,7 @@
 #include "erasurecode_version.h"
 
 #include "alg_sig.h"
+#include "xxhash.h"
 #include "erasurecode_log.h"
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
@@ -479,6 +480,13 @@ inline int set_checksum(ec_checksum_type_t ct, char *buf, int blocksize)
             break;
         case CHKSUM_MD5:
             break;
+        case CHKSUM_XXHASH:
+              {
+                const uint64_t chksum = XXH64(data, blocksize, 0);
+                header->meta.chksum[0] = chksum & 0xFFFFFFFF;
+                header->meta.chksum[1] = chksum >> 32;
+                break;
+              }
         case CHKSUM_NONE:
         default:
             break;

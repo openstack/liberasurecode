@@ -60,6 +60,7 @@ typedef enum {
     CHKSUM_NONE                     = 1,
     CHKSUM_CRC32                    = 2,
     CHKSUM_MD5                      = 3,
+    CHKSUM_XXHASH                   = 4,
     CHKSUM_TYPES_MAX,
 } ec_checksum_type_t;
 

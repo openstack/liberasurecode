@@ -19,6 +19,7 @@ liberasurecode_la_SOURCES = \
 		erasurecode_preprocessing.c \
 		erasurecode_postprocessing.c \
 		utils/chksum/crc32.c \
+		utils/chksum/xxhash.c \
 		utils/chksum/alg_sig.c \
 		backends/null/null.c \
 		backends/xor/flat_xor_hd.c \
