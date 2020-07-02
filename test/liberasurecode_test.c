@@ -475,7 +475,11 @@ static void validate_fragment_checksum(struct ec_args *args,
             assert(false); //currently only have support crc32
             break;
         case CHKSUM_CRC32:
-            computed = crc32(0, (unsigned char *) fragment_data, size);
+            if (getenv("LIBERASURECODE_WRITE_LEGACY_CRC")) {
+                computed = liberasurecode_crc32_alt(0, fragment_data, size);
+            } else {
+                computed = crc32(0, (unsigned char *) fragment_data, size);
+            }
             break;
         case CHKSUM_NONE:
             assert(metadata->chksum_mismatch == 0);
@@ -1341,6 +1345,13 @@ static void test_get_fragment_metadata(const ec_backend_id_t be_id, struct ec_ar
     free(orig_data);
 }
 
+static void test_write_legacy_fragment_metadata(const ec_backend_id_t be_id, struct ec_args *args)
+{
+    setenv("LIBERASURECODE_WRITE_LEGACY_CRC", "1", 1);
+    test_get_fragment_metadata(be_id, args);
+    unsetenv("LIBERASURECODE_WRITE_LEGACY_CRC");
+}
+
 static void test_decode_with_missing_data(const ec_backend_id_t be_id,
                                           struct ec_args *args)
 {
@@ -1855,6 +1866,7 @@ static void test_metadata_crcs_be()
     TEST(test_fragments_needed,                         backend, CHKSUM_NONE), \
     TEST(test_get_fragment_metadata,                    backend, CHKSUM_NONE), \
     TEST(test_get_fragment_metadata,                    backend, CHKSUM_CRC32), \
+    TEST(test_write_legacy_fragment_metadata,           backend, CHKSUM_CRC32), \
     TEST(test_verify_stripe_metadata,                   backend, CHKSUM_CRC32), \
     TEST(test_verify_stripe_metadata_libec_mismatch,    backend, CHKSUM_CRC32), \
     TEST(test_verify_stripe_metadata_magic_mismatch,    backend, CHKSUM_CRC32), \

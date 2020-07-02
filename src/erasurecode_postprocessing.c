@@ -32,6 +32,7 @@
 #include "erasurecode_helpers_ext.h"
 #include "erasurecode_log.h"
 #include "erasurecode_stdinc.h"
+#include "alg_sig.h"
 
 void add_fragment_metadata(ec_backend_t be, char *fragment,
         int idx, uint64_t orig_data_size, int blocksize,
@@ -59,8 +60,14 @@ void add_fragment_metadata(ec_backend_t be, char *fragment,
         return;
     }
 
-    header->metadata_chksum = crc32(0, (unsigned char *) &header->meta,
-                                    sizeof(fragment_metadata_t));
+    char *flag = getenv("LIBERASURECODE_WRITE_LEGACY_CRC");
+    if (flag && !(flag[0] == '\0' || (flag[0] == '0' && flag[1] == '\0'))) {
+        header->metadata_chksum = liberasurecode_crc32_alt(
+            0, &header->meta, sizeof(fragment_metadata_t));
+    } else {
+        header->metadata_chksum = crc32(0, (unsigned char *) &header->meta,
+                                        sizeof(fragment_metadata_t));
+    }
 }
 
 int finalize_fragments_after_encode(ec_backend_t instance,

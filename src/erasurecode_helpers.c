@@ -463,6 +463,7 @@ inline int set_checksum(ec_checksum_type_t ct, char *buf, int blocksize)
 {
     fragment_header_t* header = (fragment_header_t*) buf;
     char *data = get_data_ptr_from_fragment(buf);
+    char *flag;
 
     assert(NULL != header);
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
@@ -475,7 +476,12 @@ inline int set_checksum(ec_checksum_type_t ct, char *buf, int blocksize)
 
     switch(header->meta.chksum_type) {
         case CHKSUM_CRC32:
-            header->meta.chksum[0] = crc32(0, (unsigned char *) data, blocksize);
+            flag = getenv("LIBERASURECODE_WRITE_LEGACY_CRC");
+            if (flag && !(flag[0] == '\0' || (flag[0] == '0' && flag[1] == '\0'))) {
+                header->meta.chksum[0] = liberasurecode_crc32_alt(0, data, blocksize);
+            } else {
+                header->meta.chksum[0] = crc32(0, (unsigned char *) data, blocksize);
+            }
             break;
         case CHKSUM_MD5:
             break;
