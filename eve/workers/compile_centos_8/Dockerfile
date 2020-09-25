@@ -1,12 +1,15 @@
-FROM centos:7.7.1908
+FROM centos:8.2.2004
 
 ENV HOME_BUILDBOT /var/lib/buildbot
 
 # Enable EPEL
-RUN yum install -y epel-release
+RUN dnf install -y epel-release yum-utils glibc-langpack-en dnf-plugins-core
+
+# Activate devel packages
+RUN dnf config-manager --set-enabled PowerTools
 
 # Mix of dependency of buildbot & build.
-RUN yum install -y \
+RUN dnf install -y \
         autoconf \
         automake \
         gcc \
@@ -36,11 +39,11 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
-ENV BUILD_DISTRO=centos7
+ENV BUILD_DISTRO=centos8
 
 # Run buildbot-worker on startup
 ARG BUILDBOT_VERSION=0.9.12
-RUN sudo pip install buildbot-worker==$BUILDBOT_VERSION
+RUN sudo pip2 install buildbot-worker==$BUILDBOT_VERSION
 
 WORKDIR /home/eve/workspace
 CMD buildbot-worker create-worker . "$BUILDMASTER:$BUILDMASTER_PORT" "$WORKERNAME" "$WORKERPASS" \

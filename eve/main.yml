@@ -55,7 +55,7 @@ stages:
       - TriggerStages:
           name: trigger compilation and test stages simultaneously
           stage_names:
-            - centos7
+            - centos8
           waitForFinish: true
           haltOnFailure: true
       #
@@ -80,17 +80,17 @@ stages:
           source: build_status
           alwaysRun: true
 
-  centos7:
-    name: "compile liberasurecode for Centos Core (7.x)"
-    worker: &build_worker_c7
+  centos8:
+    name: "compile liberasurecode for Centos 8.x"
+    worker: &build_worker_c8
       type: kube_pod
       path: eve/workers/worker.yml
       images:
-        worker: eve/workers/compile_centos_7
+        worker: eve/workers/compile_centos_8
     steps:
       - SetProperty:
           property: os_name
-          value: centos7
+          value: centos8
           hideStepIf: true
       - Git: *git_pull_docker
       - ShellCommand: *build
