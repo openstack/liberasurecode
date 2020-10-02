@@ -105,10 +105,10 @@ struct ec_args jerasure_rs_vand_1010_args = {
     .ct = CHKSUM_NONE,
 };
 
-struct ec_args *jerasure_rs_vand_test_args[] = { &jerasure_rs_vand_args, 
-                                                 &jerasure_rs_vand_44_args, 
-                                                 &jerasure_rs_vand_1010_args, 
-                                                 &jerasure_rs_vand_48_args, 
+struct ec_args *jerasure_rs_vand_test_args[] = { &jerasure_rs_vand_args,
+                                                 &jerasure_rs_vand_44_args,
+                                                 &jerasure_rs_vand_1010_args,
+                                                 &jerasure_rs_vand_48_args,
                                                  NULL };
 struct ec_args jerasure_rs_cauchy_args = {
     .k = 10,
@@ -143,10 +143,10 @@ struct ec_args jerasure_rs_cauchy_1010_args = {
     .ct = CHKSUM_NONE,
 };
 
-struct ec_args *jerasure_rs_cauchy_test_args[] = { &jerasure_rs_cauchy_args, 
-                                                   &jerasure_rs_cauchy_44_args, 
-                                                   &jerasure_rs_cauchy_48_args, 
-                                                   &jerasure_rs_cauchy_1010_args, 
+struct ec_args *jerasure_rs_cauchy_test_args[] = { &jerasure_rs_cauchy_args,
+                                                   &jerasure_rs_cauchy_44_args,
+                                                   &jerasure_rs_cauchy_48_args,
+                                                   &jerasure_rs_cauchy_1010_args,
                                                    NULL };
 
 struct ec_args isa_l_args = {
@@ -170,7 +170,7 @@ struct ec_args isa_l_1010_args = {
     .hd = 11,
 };
 
-struct ec_args *isa_l_test_args[] = { &isa_l_args, 
+struct ec_args *isa_l_test_args[] = { &isa_l_args,
                                       &isa_l_44_args,
                                       &isa_l_1010_args,
                                       NULL };
@@ -470,12 +470,14 @@ static void validate_fragment_checksum(struct ec_args *args,
     uint32_t chksum = metadata->chksum[0];
     uint32_t computed = 0;
     uint32_t size = metadata->size;
+    char *flag;
     switch (args->ct) {
         case CHKSUM_MD5:
             assert(false); //currently only have support crc32
             break;
         case CHKSUM_CRC32:
-            if (getenv("LIBERASURECODE_WRITE_LEGACY_CRC")) {
+            flag = getenv("LIBERASURECODE_WRITE_LEGACY_CRC");
+            if (flag && !(flag[0] == '\0' || (flag[0] == '0' && flag[1] == '\0'))) {
                 computed = liberasurecode_crc32_alt(0, fragment_data, size);
             } else {
                 computed = crc32(0, (unsigned char *) fragment_data, size);
@@ -1074,7 +1076,7 @@ static void encode_decode_test_impl(const ec_backend_id_t be_id,
 
 /**
  * Note: this test will attempt to reconstruct a single fragment when
- * one or more other fragments are missing (specified by skip).  
+ * one or more other fragments are missing (specified by skip).
  *
  * For example, if skip is [0, 0, 0, 1, 0, 0] and we are reconstructing
  * fragment 5, then it will test the reconstruction of fragment 5 when 3
@@ -1347,9 +1349,20 @@ static void test_get_fragment_metadata(const ec_backend_id_t be_id, struct ec_ar
 
 static void test_write_legacy_fragment_metadata(const ec_backend_id_t be_id, struct ec_args *args)
 {
+    // any value except 0 will write legacy crc
     setenv("LIBERASURECODE_WRITE_LEGACY_CRC", "1", 1);
     test_get_fragment_metadata(be_id, args);
+    setenv("LIBERASURECODE_WRITE_LEGACY_CRC", "true", 1);
+    test_get_fragment_metadata(be_id, args);
+    // if the value is 0 or unset the value,
+    // it will write non-legacy crc but it's still safe to write the crc
+    setenv("LIBERASURECODE_WRITE_LEGACY_CRC", "0", 1);
+    test_get_fragment_metadata(be_id, args);
+    // even it's "00", it should be assumed as non-legacy
+    setenv("LIBERASURECODE_WRITE_LEGACY_CRC", "00", 1);
+    test_get_fragment_metadata(be_id, args);
     unsetenv("LIBERASURECODE_WRITE_LEGACY_CRC");
+    test_get_fragment_metadata(be_id, args);
 }
 
 static void test_decode_with_missing_data(const ec_backend_id_t be_id,
