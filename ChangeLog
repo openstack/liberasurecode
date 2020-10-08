@@ -1,3 +1,25 @@
+Release 1.6.2
+-------------
+
+ . Allow the writing of fragments with the legacy, non-standard CRC-32.
+   This is intended to smooth upgrades from liberasurecode 1.5.0 and
+   earlier in a system with multiple readers and writers.
+
+   See https://bugs.launchpad.net/liberasurecode/+bug/1886088 for more
+   information, including a script you can run on already-written
+   fragments to determine whether you are affected.
+
+   If you are affected:
+
+    - Before upgrading, ensure every writer will have the environment variable
+      LIBERASURECODE_WRITE_LEGACY_CRC=1 set upon restart.
+    - Upgrade liberasurecode on all systems, restarting processes as needed.
+      Upgraded writers will continue writing CRCs that not-yet-upgraded
+      readers can use.
+    - After liberasurecode is upgraded everywhere, remove the environment
+      variable. zlib CRCs will be used for new writes, and data written with
+      either CRC will still be readable.
+
 Release 1.6.1
 -------------
 
