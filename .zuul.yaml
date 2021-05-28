@@ -6,6 +6,14 @@
     run: playbooks/unittests/run.yaml
 
 - job:
+    name: liberasurecode-unittests-arm64
+    parent: liberasurecode-unittests
+    nodeset: ubuntu-focal-arm64
+    description: |
+      Build and run test and valgrind-test for liberasurecode
+      on arm64.
+
+- job:
     name: liberasurecode-unittests-centos-7
     parent: liberasurecode-unittests
     nodeset: centos-7
@@ -21,12 +29,26 @@
       Build and run test and valgrind-test for liberasurecode.
       This job runs on CentOS-8.
 
+- job:
+    name: liberasurecode-unittests-centos-8-arm64
+    parent: liberasurecode-unittests
+    nodeset: centos-8-arm64
+    description: |
+      Build and run test and valgrind-test for liberasurecode.
+      This job runs on CentOS-8 on arm64.
+
 - project:
     check:
       jobs:
         - liberasurecode-unittests
         - liberasurecode-unittests-centos-7
         - liberasurecode-unittests-centos-8
+    check-arm64:
+      jobs:
+        - liberasurecode-unittests-arm64:
+            voting: false
+        - liberasurecode-unittests-centos-8-arm64:
+            voting: false
     gate:
       jobs:
         - liberasurecode-unittests
