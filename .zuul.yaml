@@ -30,6 +30,14 @@
       This job runs on CentOS-8.
 
 - job:
+    name: liberasurecode-unittests-centos-8-fips
+    parent: liberasurecode-unittests-centos-8
+    pre-run: playbooks/enable-fips.yaml
+    description: |
+      Build and run test and valgrind-test for liberasurecode.
+      This job runs on a FIPS-enabled CentOS-8 system.
+
+- job:
     name: liberasurecode-unittests-centos-8-arm64
     parent: liberasurecode-unittests
     nodeset: centos-8-arm64
@@ -43,6 +51,7 @@
         - liberasurecode-unittests
         - liberasurecode-unittests-centos-7
         - liberasurecode-unittests-centos-8
+        - liberasurecode-unittests-centos-8-fips
     check-arm64:
       jobs:
         - liberasurecode-unittests-arm64:
@@ -54,3 +63,4 @@
         - liberasurecode-unittests
         - liberasurecode-unittests-centos-7
         - liberasurecode-unittests-centos-8
+        - liberasurecode-unittests-centos-8-fips
