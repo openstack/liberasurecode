@@ -155,19 +155,21 @@ static int fragments_needed_three_data(xor_code_t *code_desc, int *missing_data,
 
   remove_from_missing_list(data_index, missing_data);
 
-  // Include all data elements except for this one
-  *data_bm |= (code_desc->parity_bms[parity_index-code_desc->k]);
-
-  // Include this parity element
   if (parity_index > -1) {
+    // Include this parity element
     *parity_bm |= (1 << (parity_index-code_desc->k));
+    // Include all data elements except for this one
+    *data_bm |= code_desc->parity_bms[parity_index-code_desc->k];
   } else {
+    // Include both parity elements
     *parity_bm |= (1 << (contains_2d-code_desc->k));
     *parity_bm |= (1 << (contains_3d-code_desc->k));
+    // And all other data elements that didn't cancel out
+    *data_bm |= tmp_parity_bm;
   }
 
   ret = fragments_needed_two_data(code_desc, missing_data, missing_parity, data_bm, parity_bm);
-  
+
   *data_bm &= ~((unsigned int)1 << data_index);
 
   return ret;
