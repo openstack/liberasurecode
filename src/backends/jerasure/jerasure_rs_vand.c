@@ -40,9 +40,9 @@
 #define JERASURE_RS_VAND_LIB_VER_STR "2.0"
 #define JERASURE_RS_VAND_LIB_NAME "jerasure_rs_vand"
 #if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
-#define JERASURE_RS_VAND_SO_NAME "libJerasure.dylib"
+#define JERASURE_RS_VAND_SO_NAME "libJerasure" LIBERASURECODE_SO_SUFFIX ".dylib"
 #else
-#define JERASURE_RS_VAND_SO_NAME "libJerasure.so.2"
+#define JERASURE_RS_VAND_SO_NAME "libJerasure" LIBERASURECODE_SO_SUFFIX ".so.2"
 #endif
 
 /* Forward declarations */

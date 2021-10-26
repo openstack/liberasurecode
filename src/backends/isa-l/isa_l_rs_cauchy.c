@@ -38,9 +38,9 @@
 #define ISA_L_RS_CAUCHY_LIB_VER_STR "2.14"
 #define ISA_L_RS_CAUCHY_LIB_NAME "isa_l_rs_cauchy"
 #if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
-#define ISA_L_RS_CAUCHY_SO_NAME "libisal.dylib"
+#define ISA_L_RS_CAUCHY_SO_NAME "libisal" LIBERASURECODE_SO_SUFFIX ".dylib"
 #else
-#define ISA_L_RS_CAUCHY_SO_NAME "libisal.so.2"
+#define ISA_L_RS_CAUCHY_SO_NAME "libisal" LIBERASURECODE_SO_SUFFIX ".so.2"
 #endif
 
 /* Forward declarations */

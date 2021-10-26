@@ -63,9 +63,9 @@ struct shss_descriptor {
 #define SHSS_LIB_VER_STR "1.0"
 #define SHSS_LIB_NAME "shss"
 #if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
-#define SHSS_SO_NAME "libshss.dylib"
+#define SHSS_SO_NAME "libshss" LIBERASURECODE_SO_SUFFIX ".dylib"
 #else
-#define SHSS_SO_NAME "libshss.so.1"
+#define SHSS_SO_NAME "libshss" LIBERASURECODE_SO_SUFFIX ".so.1"
 #endif
 #define DEFAULT_W 128
 #define METADATA 32

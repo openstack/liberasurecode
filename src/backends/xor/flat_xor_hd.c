@@ -39,9 +39,9 @@
 #define FLAT_XOR_LIB_VER_STR "1.0"
 #define FLAT_XOR_LIB_NAME "flat_xor_hd"
 #if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
-#define FLAT_XOR_SO_NAME "libXorcode.dylib"
+#define FLAT_XOR_SO_NAME "libXorcode" LIBERASURECODE_SO_SUFFIX ".dylib"
 #else
-#define FLAT_XOR_SO_NAME "libXorcode.so.1"
+#define FLAT_XOR_SO_NAME "libXorcode" LIBERASURECODE_SO_SUFFIX ".so.1"
 #endif
 #define DEFAULT_W 32
 

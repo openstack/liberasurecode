@@ -37,9 +37,9 @@
 #define NULL_LIB_VER_STR "1.0"
 #define NULL_LIB_NAME "null"
 #if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
-#define NULL_SO_NAME "libnullcode.dylib"
+#define NULL_SO_NAME "libnullcode" LIBERASURECODE_SO_SUFFIX ".dylib"
 #else
-#define NULL_SO_NAME "libnullcode.so.1"
+#define NULL_SO_NAME "libnullcode" LIBERASURECODE_SO_SUFFIX ".so.1"
 #endif
 /* Forward declarations */
 struct ec_backend null;
