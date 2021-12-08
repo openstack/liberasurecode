@@ -22,45 +22,48 @@
       This job runs on CentOS-7.
 
 - job:
-    name: liberasurecode-unittests-centos-8
+    name: liberasurecode-unittests-centos-8-stream
     parent: liberasurecode-unittests
-    nodeset: centos-8
+    nodeset: centos-8-stream
     description: |
       Build and run test and valgrind-test for liberasurecode.
-      This job runs on CentOS-8.
+      This job runs on CentOS 8 Stream.
 
 - job:
-    name: liberasurecode-unittests-centos-8-fips
-    parent: liberasurecode-unittests-centos-8
+    name: liberasurecode-unittests-centos-8-stream-fips
+    parent: liberasurecode-unittests-centos-8-stream
     pre-run: playbooks/enable-fips.yaml
     description: |
       Build and run test and valgrind-test for liberasurecode.
-      This job runs on a FIPS-enabled CentOS-8 system.
+      This job runs on a FIPS-enabled CentOS 8 Stream system.
 
 - job:
-    name: liberasurecode-unittests-centos-8-arm64
+    name: liberasurecode-unittests-centos-8-stream-arm64
     parent: liberasurecode-unittests
-    nodeset: centos-8-arm64
+    nodeset:
+      nodes:
+        - name: libec-centos-8-stream-arm64
+          label: centos-8-stream-arm64
     description: |
       Build and run test and valgrind-test for liberasurecode.
-      This job runs on CentOS-8 on arm64.
+      This job runs on CentOS 8 Stream on arm64.
 
 - project:
     check:
       jobs:
         - liberasurecode-unittests
         - liberasurecode-unittests-centos-7
-        - liberasurecode-unittests-centos-8
-        - liberasurecode-unittests-centos-8-fips
+        - liberasurecode-unittests-centos-8-stream
+        - liberasurecode-unittests-centos-8-stream-fips
     check-arm64:
       jobs:
         - liberasurecode-unittests-arm64:
             voting: false
-        - liberasurecode-unittests-centos-8-arm64:
+        - liberasurecode-unittests-centos-8-stream-arm64:
             voting: false
     gate:
       jobs:
         - liberasurecode-unittests
         - liberasurecode-unittests-centos-7
-        - liberasurecode-unittests-centos-8
-        - liberasurecode-unittests-centos-8-fips
+        - liberasurecode-unittests-centos-8-stream
+        - liberasurecode-unittests-centos-8-stream-fips
