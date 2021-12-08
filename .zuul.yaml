@@ -57,10 +57,8 @@
         - liberasurecode-unittests-centos-8-stream-fips
     check-arm64:
       jobs:
-        - liberasurecode-unittests-arm64:
-            voting: false
-        - liberasurecode-unittests-centos-8-stream-arm64:
-            voting: false
+        - liberasurecode-unittests-arm64
+        - liberasurecode-unittests-centos-8-stream-arm64
     gate:
       jobs:
         - liberasurecode-unittests
