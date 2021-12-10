@@ -73,6 +73,15 @@ top-level directory:
 
 ----
 
+Getting Help
+============
+
+- Bugs: https://bugs.launchpad.net/liberasurecode/
+- Mailing List: http://lists.openstack.org/pipermail/openstack-discuss/ (use tag `[swift][liberasurecode]`)
+- IRC: #openstack-swift on OFTC
+
+----
+
 References
 ==========
 
