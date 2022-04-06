@@ -1,3 +1,12 @@
+Release 1.6.3
+-------------
+
+ . Fixed an underflow error when using flat_xor_hd.
+ . Added a build option to allow a suffix to be added to library names passed
+   to dlopen(). To use, define LIBERASURECODE_SO_SUFFIX via CFLAGS when
+   building. This is useful when renaming libraries for PyEClib wheels, for
+   example, so they don't conflict with system packages that may be installed.
+
 Release 1.6.2
 -------------
 
@@ -94,7 +103,7 @@ Release 1.0.9
 
  . Minor bugfixes including removing offending MAJOR/MINOR version macros
  . Enforce upper limit 32 on the number of erasure coding fragments
-   (#data + #chunks) < 32 
+   (#data + #chunks) < 32
 
  Release 1.0.8
 -------------
