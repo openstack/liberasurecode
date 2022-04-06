@@ -39,9 +39,9 @@
 #define LIBPHAZR_LIB_VER_STR "1.0.0"
 #define LIBPHAZR_LIB_NAME "libphazr"
 #if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
-#define LIBPHAZR_SO_NAME "libphazr.dylib"
+#define LIBPHAZR_SO_NAME "libphazr" LIBERASURECODE_SO_SUFFIX ".dylib"
 #else
-#define LIBPHAZR_SO_NAME "libphazr.so.1"
+#define LIBPHAZR_SO_NAME "libphazr" LIBERASURECODE_SO_SUFFIX ".so.1"
 #endif
 
 /* Forward declarations */
