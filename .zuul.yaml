@@ -30,20 +30,25 @@
       This job runs on CentOS 8 Stream.
 
 - job:
-    name: liberasurecode-unittests-centos-8-stream-fips
-    parent: liberasurecode-unittests-centos-8-stream
+    name: liberasurecode-unittests-centos-9-stream
+    parent: liberasurecode-unittests
+    nodeset: centos-9-stream
+    description: |
+      Build and run test and valgrind-test for liberasurecode.
+      This job runs on CentOS 9 Stream.
+
+- job:
+    name: liberasurecode-unittests-centos-9-stream-fips
+    parent: liberasurecode-unittests-centos-9-stream
     pre-run: playbooks/enable-fips.yaml
     description: |
       Build and run test and valgrind-test for liberasurecode.
-      This job runs on a FIPS-enabled CentOS 8 Stream system.
+      This job runs on a FIPS-enabled CentOS 9 Stream system.
 
 - job:
     name: liberasurecode-unittests-centos-8-stream-arm64
     parent: liberasurecode-unittests
-    nodeset:
-      nodes:
-        - name: libec-centos-8-stream-arm64
-          label: centos-8-stream-arm64
+    nodeset: centos-8-stream-arm64
     description: |
       Build and run test and valgrind-test for liberasurecode.
       This job runs on CentOS 8 Stream on arm64.
@@ -54,7 +59,8 @@
         - liberasurecode-unittests
         - liberasurecode-unittests-centos-7
         - liberasurecode-unittests-centos-8-stream
-        - liberasurecode-unittests-centos-8-stream-fips
+        - liberasurecode-unittests-centos-9-stream
+        - liberasurecode-unittests-centos-9-stream-fips
     check-arm64:
       jobs:
         - liberasurecode-unittests-arm64
@@ -64,4 +70,5 @@
         - liberasurecode-unittests
         - liberasurecode-unittests-centos-7
         - liberasurecode-unittests-centos-8-stream
-        - liberasurecode-unittests-centos-8-stream-fips
+        - liberasurecode-unittests-centos-9-stream
+        - liberasurecode-unittests-centos-9-stream-fips
