@@ -89,7 +89,7 @@ References
 
  [2] Intel(R) Storage Acceleration Library (Open Source Version), https://01.org/intel%C2%AE-storage-acceleration-library-open-source-version
 
- [3] Greenan, Kevin M et al, "Flat XOR-based erasure codes in storage systems", http://www.kaymgee.com/Kevin_Greenan/Publications_files/greenan-msst10.pdf
+ [3] Greenan, Kevin M et al, "Flat XOR-based erasure codes in storage systems", https://web.archive.org/web/20161001210233/https://www.kaymgee.com/Kevin_Greenan/Publications_files/greenan-msst10.pdf
 
  [4] Kota Tsuyuzaki <tsuyuzaki.kota@lab.ntt.co.jp>, "NTT SHSS Erasure Coding backend"
 
