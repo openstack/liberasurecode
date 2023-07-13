@@ -3,19 +3,21 @@
     path: '{{ ansible_user_dir }}/workspace'
     state: directory
 
-- name: install yasm in RHEL based systems
-  yum:
-    name: yasm
-    enablerepo: epel
-    state: present
-  when: ansible_distribution in ['RedHat', 'CentOS']
-  become: yes
-
-- name: install yasm
-  package:
-    name: yasm
-    state: present
-  become: yes
+- name: Build and Install nasm
+  shell:
+    cmd: |
+      set -e
+      set -x
+      cd $WORKSPACE
+      curl https://www.nasm.us/pub/nasm/releasebuilds/2.16.01/nasm-2.16.01.tar.gz | tar -xz
+      cd nasm*
+      ./autogen.sh
+      ./configure
+      make nasm
+      sudo install -c nasm /usr/bin/nasm
+    executable: /bin/bash
+    chdir: '{{ ansible_user_dir }}/workspace'
+  environment: '{{ zuul | zuul_legacy_vars }}'
 
 - name: Build and Install ISA-L
   shell:
@@ -23,7 +25,7 @@
       set -e
       set -x
       cd $WORKSPACE
-      git clone https://github.com/intel/isa-l.git -b v2.30.0
+      git clone https://github.com/intel/isa-l.git
       cd isa-l
       ./autogen.sh
       ./configure
