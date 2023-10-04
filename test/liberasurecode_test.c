@@ -957,6 +957,24 @@ static void test_get_fragment_partition()
     free(avail_frags);
     free(missing);
 
+    missing = alloc_and_set_buffer(sizeof(char*) * null_args.k, -1);
+    num_avail_frags = create_frags_array(&avail_frags, encoded_data,
+                                         encoded_parity, &null_args, skips);
+
+    /* Passing k+m frags for a k+(m-1) policy, we should notice the
+     * too-high frag index and call its header "bad".
+     */
+    rc = get_fragment_partition(null_args.k, null_args.m - 1, avail_frags, num_avail_frags,
+                                encoded_data, encoded_parity, missing);
+    assert(-EBADHEADER == rc);
+
+    for(i = 0; i < null_args.m; i++) assert(missing[i] == -1);
+    // Loop already pushed us one past
+    assert(missing[i] == -1);
+
+    free(avail_frags);
+    free(missing);
+
     skips[i] = 1;
     if (i < null_args.k) {
         free(encoded_data[i]);
