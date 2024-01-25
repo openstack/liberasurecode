@@ -54,9 +54,9 @@ static bool is_fragment(char *buf)
 
 /**
  * Memory Management Methods
- * 
+ *
  * The following methods provide wrappers for allocating and deallocating
- * memory.  
+ * memory.
  */
 void *get_aligned_buffer16(int size)
 {
@@ -96,7 +96,7 @@ void * alloc_zeroed_buffer(int size)
  */
 void * alloc_and_set_buffer(int size, int value) {
     void * buf = NULL;  /* buffer to allocate and return */
-  
+
     /* Allocate and zero the buffer, or set the appropriate error */
     buf = malloc((size_t) size);
     if (buf) {
@@ -106,7 +106,7 @@ void * alloc_and_set_buffer(int size, int value) {
 }
 
 /**
- * Deallocate memory buffer if it's not NULL.  This methods returns NULL so 
+ * Deallocate memory buffer if it's not NULL.  This methods returns NULL so
  * that you can free and reset a buffer using a single line as follows:
  *
  * my_ptr = check_and_free_buffer(my_ptr);
@@ -175,9 +175,9 @@ uint64_t get_fragment_size(char *buf)
  }
 
 /**
- * Compute a size aligned to the number of data and the underlying wordsize 
+ * Compute a size aligned to the number of data and the underlying wordsize
  * of the EC algorithm.
- * 
+ *
  * @param instance - ec_backend_t instance (to extract args)
  * @param data_len - integer length of data in bytes
  * @return integer data length aligned with wordsize of EC algorithm
@@ -427,7 +427,7 @@ int set_backend_id(char *buf, ec_backend_id_t id)
     return 0;
 }
 
-int get_backend_id(char *buf, ec_backend_id_t *id) 
+int get_backend_id(char *buf, ec_backend_id_t *id)
 {
     if (!is_fragment(buf)) {
             return -1;
@@ -437,7 +437,7 @@ int get_backend_id(char *buf, ec_backend_id_t *id)
     return 0;
 }
 
-int set_backend_version(char *buf, uint32_t version) 
+int set_backend_version(char *buf, uint32_t version)
 {
     if (!is_fragment(buf)) {
             return -1;
@@ -447,7 +447,7 @@ int set_backend_version(char *buf, uint32_t version)
     return 0;
 }
 
-int get_backend_version(char *buf, uint32_t *version) 
+int get_backend_version(char *buf, uint32_t *version)
 {
     if (!is_fragment(buf)) {
             return -1;
@@ -468,7 +468,7 @@ inline int set_checksum(ec_checksum_type_t ct, char *buf, int blocksize)
     assert(NULL != header);
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
         log_error("Invalid fragment header (set chksum)!\n");
-        return -1; 
+        return -1;
     }
 
     header->meta.chksum_type = ct;
@@ -489,7 +489,7 @@ inline int set_checksum(ec_checksum_type_t ct, char *buf, int blocksize)
         default:
             break;
     }
-    
+
     return 0;
 }
 

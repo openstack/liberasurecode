@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Tushar Gohad
  *
  * Redistribution and use in source and binary forms, with or without
@@ -100,7 +100,7 @@ static int null_min_fragments(void *desc, int *missing_idxs,
 }
 
 /**
- * Return the element-size, which is the number of bits stored 
+ * Return the element-size, which is the number of bits stored
  * on a given device, per codeword.  This is usually just 'w'.
  */
 static int
@@ -164,35 +164,35 @@ static void * null_init(struct ec_backend_args *args, void *backend_sohandle)
     func_handle.vptr = dlsym(backend_sohandle, "null_code_init");
     xdesc->init_null_code = func_handle.initp;
     if (NULL == xdesc->init_null_code) {
-        goto error; 
+        goto error;
     }
 
     func_handle.vptr = NULL;
     func_handle.vptr = dlsym(backend_sohandle, "null_code_encode");
     xdesc->null_code_encode = func_handle.encodep;
     if (NULL == xdesc->null_code_encode) {
-        goto error; 
+        goto error;
     }
 
     func_handle.vptr = NULL;
     func_handle.vptr = dlsym(backend_sohandle, "null_code_decode");
     xdesc->null_code_decode = func_handle.decodep;
     if (NULL == xdesc->null_code_decode) {
-        goto error; 
+        goto error;
     }
 
     func_handle.vptr = NULL;
     func_handle.vptr = dlsym(backend_sohandle, "null_reconstruct");
     xdesc->null_reconstruct = func_handle.reconp;
     if (NULL == xdesc->null_reconstruct) {
-        goto error; 
+        goto error;
     }
 
     func_handle.vptr = NULL;
     func_handle.vptr = dlsym(backend_sohandle, "null_code_fragments_needed");
     xdesc->null_code_fragments_needed = func_handle.fragsneededp;
     if (NULL == xdesc->null_code_fragments_needed) {
-        goto error; 
+        goto error;
     }
 
     return (void *) xdesc;

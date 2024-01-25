@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2015 Kevin M Greenan
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,17 +59,17 @@ typedef int* (*make_systematic_matrix_func)(int, int);
 
 struct liberasurecode_rs_vand_descriptor {
     /* calls required for init */
-    init_liberasurecode_rs_vand_func init_liberasurecode_rs_vand; 
+    init_liberasurecode_rs_vand_func init_liberasurecode_rs_vand;
     deinit_liberasurecode_rs_vand_func deinit_liberasurecode_rs_vand;
     free_systematic_matrix_func free_systematic_matrix;
     make_systematic_matrix_func make_systematic_matrix;
- 
+
     /* calls required for encode */
     liberasurecode_rs_vand_encode_func liberasurecode_rs_vand_encode;
-     
+
     /* calls required for decode */
-    liberasurecode_rs_vand_decode_func liberasurecode_rs_vand_decode; 
-    
+    liberasurecode_rs_vand_decode_func liberasurecode_rs_vand_decode;
+
     /* calls required for reconstruct */
     liberasurecode_rs_vand_reconstruct_func liberasurecode_rs_vand_reconstruct;
 
@@ -83,7 +83,7 @@ struct liberasurecode_rs_vand_descriptor {
 static int liberasurecode_rs_vand_encode(void *desc, char **data, char **parity,
         int blocksize)
 {
-    struct liberasurecode_rs_vand_descriptor *rs_vand_desc = 
+    struct liberasurecode_rs_vand_descriptor *rs_vand_desc =
         (struct liberasurecode_rs_vand_descriptor*) desc;
 
     /* FIXME: Should this return something? */
@@ -95,11 +95,11 @@ static int liberasurecode_rs_vand_encode(void *desc, char **data, char **parity,
 static int liberasurecode_rs_vand_decode(void *desc, char **data, char **parity,
         int *missing_idxs, int blocksize)
 {
-    struct liberasurecode_rs_vand_descriptor *rs_vand_desc = 
+    struct liberasurecode_rs_vand_descriptor *rs_vand_desc =
         (struct liberasurecode_rs_vand_descriptor*) desc;
 
     /* FIXME: Should this return something? */
-    rs_vand_desc->liberasurecode_rs_vand_decode(rs_vand_desc->matrix, data, parity, 
+    rs_vand_desc->liberasurecode_rs_vand_decode(rs_vand_desc->matrix, data, parity,
         rs_vand_desc->k, rs_vand_desc->m, missing_idxs, blocksize, 1);
 
     return 0;
@@ -108,11 +108,11 @@ static int liberasurecode_rs_vand_decode(void *desc, char **data, char **parity,
 static int liberasurecode_rs_vand_reconstruct(void *desc, char **data, char **parity,
         int *missing_idxs, int destination_idx, int blocksize)
 {
-    struct liberasurecode_rs_vand_descriptor *rs_vand_desc = 
+    struct liberasurecode_rs_vand_descriptor *rs_vand_desc =
         (struct liberasurecode_rs_vand_descriptor*) desc;
 
     /* FIXME: Should this return something? */
-    rs_vand_desc->liberasurecode_rs_vand_reconstruct(rs_vand_desc->matrix, data, parity, 
+    rs_vand_desc->liberasurecode_rs_vand_reconstruct(rs_vand_desc->matrix, data, parity,
         rs_vand_desc->k, rs_vand_desc->m, missing_idxs, destination_idx, blocksize);
 
     return 0;
@@ -121,7 +121,7 @@ static int liberasurecode_rs_vand_reconstruct(void *desc, char **data, char **pa
 static int liberasurecode_rs_vand_min_fragments(void *desc, int *missing_idxs,
         int *fragments_to_exclude, int *fragments_needed)
 {
-    struct liberasurecode_rs_vand_descriptor *rs_vand_desc = 
+    struct liberasurecode_rs_vand_descriptor *rs_vand_desc =
         (struct liberasurecode_rs_vand_descriptor*)desc;
 
     uint64_t exclude_bm = convert_list_to_bitmap(fragments_to_exclude);
@@ -149,7 +149,7 @@ static void * liberasurecode_rs_vand_init(struct ec_backend_args *args,
         void *backend_sohandle)
 {
     struct liberasurecode_rs_vand_descriptor *desc = NULL;
-    
+
     desc = (struct liberasurecode_rs_vand_descriptor *)
            malloc(sizeof(struct liberasurecode_rs_vand_descriptor));
     if (NULL == desc) {
@@ -190,79 +190,79 @@ static void * liberasurecode_rs_vand_init(struct ec_backend_args *args,
     func_handle.vptr = dlsym(backend_sohandle, "init_liberasurecode_rs_vand");
     desc->init_liberasurecode_rs_vand = func_handle.initp;
     if (NULL == desc->init_liberasurecode_rs_vand) {
-        goto error; 
+        goto error;
     }
-    
+
     func_handle.vptr = NULL;
     func_handle.vptr = dlsym(backend_sohandle, "deinit_liberasurecode_rs_vand");
     desc->deinit_liberasurecode_rs_vand = func_handle.deinitp;
     if (NULL == desc->deinit_liberasurecode_rs_vand) {
-        goto error; 
+        goto error;
     }
-    
+
     func_handle.vptr = NULL;
     func_handle.vptr = dlsym(backend_sohandle, "make_systematic_matrix");
     desc->make_systematic_matrix = func_handle.makematrixp;
     if (NULL == desc->make_systematic_matrix) {
-        goto error; 
+        goto error;
     }
-    
+
     func_handle.vptr = NULL;
     func_handle.vptr = dlsym(backend_sohandle, "free_systematic_matrix");
     desc->free_systematic_matrix = func_handle.freematrixp;
     if (NULL == desc->free_systematic_matrix) {
-        goto error; 
+        goto error;
     }
-    
+
     func_handle.vptr = NULL;
     func_handle.vptr = dlsym(backend_sohandle, "liberasurecode_rs_vand_encode");
     desc->liberasurecode_rs_vand_encode = func_handle.encodep;
     if (NULL == desc->liberasurecode_rs_vand_encode) {
-        goto error; 
+        goto error;
     }
-    
+
     func_handle.vptr = NULL;
     func_handle.vptr = dlsym(backend_sohandle, "liberasurecode_rs_vand_decode");
     desc->liberasurecode_rs_vand_decode = func_handle.decodep;
     if (NULL == desc->liberasurecode_rs_vand_decode) {
-        goto error; 
+        goto error;
     }
-    
+
     func_handle.vptr = NULL;
     func_handle.vptr = dlsym(backend_sohandle, "liberasurecode_rs_vand_reconstruct");
     desc->liberasurecode_rs_vand_reconstruct = func_handle.reconstructp;
     if (NULL == desc->liberasurecode_rs_vand_reconstruct) {
-        goto error; 
+        goto error;
     }
-  
+
     desc->init_liberasurecode_rs_vand(desc->k, desc->m);
 
     desc->matrix = desc->make_systematic_matrix(desc->k, desc->m);
-            
+
     if (NULL == desc->matrix) {
-        goto error; 
+        goto error;
     }
 
     return desc;
 
 error:
     free(desc);
-    
+
     return NULL;
 }
 
 /**
- * Return the element-size, which is the number of bits stored 
- * on a given device, per codeword.  For Vandermonde, this is 
- * 'w'.  For somthing like cauchy, this is packetsize * w. 
- * 
+ * Return the element-size, which is the number of bits stored
+ * on a given device, per codeword.  For Vandermonde, this is
+ * 'w'.  For somthing like cauchy, this is packetsize * w.
+ *
  * Returns the size in bits!
  */
 static int
 liberasurecode_rs_vand_element_size(void* desc)
 {
     struct liberasurecode_rs_vand_descriptor *rs_vand_desc = NULL;
-    
+
     rs_vand_desc = (struct liberasurecode_rs_vand_descriptor*) desc;
 
     return rs_vand_desc->w;
@@ -271,7 +271,7 @@ liberasurecode_rs_vand_element_size(void* desc)
 static int liberasurecode_rs_vand_exit(void *desc)
 {
     struct liberasurecode_rs_vand_descriptor *rs_vand_desc = NULL;
-    
+
     rs_vand_desc = (struct liberasurecode_rs_vand_descriptor*) desc;
 
     rs_vand_desc->free_systematic_matrix(rs_vand_desc->matrix);

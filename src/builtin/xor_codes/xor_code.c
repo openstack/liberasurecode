@@ -68,7 +68,7 @@ int missing_elements_bm(xor_code_t *code_desc, int *missing_elements, int (*bit_
   while (missing_elements[i] > -1) {
     bm |= bit_lookup_func(code_desc, missing_elements[i]);
     i++;
-  } 
+  }
 
   return bm;
 }
@@ -94,16 +94,16 @@ failure_pattern_t get_failure_pattern(xor_code_t *code_desc, int *missing_idxs)
         pattern = (missing_idxs[i] < code_desc->k) ? FAIL_PATTERN_3D_0P : FAIL_PATTERN_2D_1P;
         break;
       case FAIL_PATTERN_3D_0P:
-        pattern = FAIL_PATTERN_GE_HD; 
+        pattern = FAIL_PATTERN_GE_HD;
         break;
       case FAIL_PATTERN_1D_1P:
         pattern = (missing_idxs[i] < code_desc->k) ? FAIL_PATTERN_2D_1P : FAIL_PATTERN_1D_2P;
         break;
       case FAIL_PATTERN_1D_2P:
-        pattern = FAIL_PATTERN_GE_HD; 
+        pattern = FAIL_PATTERN_GE_HD;
         break;
       case FAIL_PATTERN_2D_1P:
-        pattern = FAIL_PATTERN_GE_HD; 
+        pattern = FAIL_PATTERN_GE_HD;
         break;
       case FAIL_PATTERN_0D_1P:
         pattern = (missing_idxs[i] < code_desc->k) ? FAIL_PATTERN_1D_1P : FAIL_PATTERN_0D_2P;
@@ -112,19 +112,19 @@ failure_pattern_t get_failure_pattern(xor_code_t *code_desc, int *missing_idxs)
         pattern = (missing_idxs[i] < code_desc->k) ? FAIL_PATTERN_1D_2P : FAIL_PATTERN_0D_3P;
         break;
       case FAIL_PATTERN_0D_3P:
-        pattern = FAIL_PATTERN_GE_HD; 
+        pattern = FAIL_PATTERN_GE_HD;
         break;
       case FAIL_PATTERN_GE_HD:
       default:
         break;
-    } 
+    }
     if (pattern == FAIL_PATTERN_GE_HD) {
       break;
     }
     i++;
   }
 
-  return pattern; 
+  return pattern;
 }
 
 void fast_memcpy(char *dst, char *src, int size)
@@ -145,8 +145,8 @@ void xor_bufs_and_store(char *buf1, char *buf2, int blocksize)
   int fast_blocksize = blocksize > residual_bytes ? (blocksize - residual_bytes) : 0;
   int fast_int_blocksize = fast_blocksize / sizeof(__m128i);
   int i;
-  __m128i *_buf1 = (__m128i*)buf1; 
-  __m128i *_buf2 = (__m128i*)buf2; 
+  __m128i *_buf1 = (__m128i*)buf1;
+  __m128i *_buf2 = (__m128i*)buf2;
 
   /*
    * XOR aligned region using 128-bit XOR
@@ -160,9 +160,9 @@ void xor_bufs_and_store(char *buf1, char *buf2, int blocksize)
   int fast_int_blocksize = fast_blocksize / sizeof(unsigned long);
   int i;
 
-  unsigned long*_buf1 = (unsigned long*)buf1; 
-  unsigned long*_buf2 = (unsigned long*)buf2; 
-  
+  unsigned long*_buf1 = (unsigned long*)buf1;
+  unsigned long*_buf2 = (unsigned long*)buf2;
+
   for (i=0; i < fast_int_blocksize; i++) {
     _buf2[i] = _buf1[i] ^ _buf2[i];
   }
@@ -180,7 +180,7 @@ void xor_bufs_and_store(char *buf1, char *buf2, int blocksize)
 void xor_code_encode(xor_code_t *code_desc, char **data, char **parity, int blocksize)
 {
   int i, j;
-  
+
   for (i=0; i < code_desc->k; i++) {
     for (j=0; j < code_desc->m; j++) {
       if (is_data_in_parity(i, code_desc->parity_bms[j])) {
@@ -212,12 +212,12 @@ int * get_missing_parity(xor_code_t *code_desc, int *missing_idxs)
 
   while (missing_idxs[i] > -1) {
     if (missing_idxs[i] >= code_desc->k) {
-      missing_parity[j] = missing_idxs[i]; 
+      missing_parity[j] = missing_idxs[i];
       j++;
     }
     i++;
   }
-  
+
   missing_parity[j] = -1;
   return missing_parity;
 }
@@ -229,12 +229,12 @@ int * get_missing_data(xor_code_t *code_desc, int *missing_idxs)
 
   while (missing_idxs[i] > -1) {
     if (missing_idxs[i] < code_desc->k) {
-      missing_data[j] = missing_idxs[i]; 
+      missing_data[j] = missing_idxs[i];
       j++;
     }
     i++;
   }
-  
+
   missing_data[j] = -1;
   return missing_data;
 }
@@ -280,17 +280,17 @@ void xor_reconstruct_one(xor_code_t *code_desc, char **data, char **parity, int 
 
     // If it is a parity symbol, we need to figure out
     // what data symbols are needed to reconstruct the
-    // parity.  If *any* data symbols in the parity 
+    // parity.  If *any* data symbols in the parity
     // equation are missing, we are better off calling
     // the underlying decode function.
     int num_data_missing = num_missing_data_in_parity(code_desc, index_to_reconstruct, missing_data);
 
     if (num_data_missing == 0) {
       int relative_parity_idx = index_to_reconstruct - code_desc->k;
-      int parity_bm = code_desc->parity_bms[relative_parity_idx];   
+      int parity_bm = code_desc->parity_bms[relative_parity_idx];
 
       memset(parity[relative_parity_idx], 0, blocksize);
-      
+
       for (i=0; i < code_desc->k; i++) {
         if (parity_bm & (1 << i)) {
           xor_bufs_and_store(data[i], parity[relative_parity_idx], blocksize);
@@ -321,7 +321,7 @@ int num_missing_data_in_parity(xor_code_t *code_desc, int parity_idx, int *missi
     }
     i++;
   }
-  
+
   return num_missing_data;
 }
 
@@ -329,7 +329,7 @@ int index_of_connected_parity(xor_code_t *code_desc, int data_index, int *missin
 {
   int parity_index = -1;
   int i;
-  
+
   for (i=0; i < code_desc->m; i++) {
     if (num_missing_data_in_parity(code_desc, i + code_desc->k, missing_data) > 1) {
       continue;
@@ -343,8 +343,8 @@ int index_of_connected_parity(xor_code_t *code_desc, int data_index, int *missin
       }
       while (missing_parity[j] > -1) {
         if ((code_desc->k + i) == missing_parity[j]) {
-          is_missing = 1; 
-          break; 
+          is_missing = 1;
+          break;
         }
         j++;
       }
@@ -354,7 +354,7 @@ int index_of_connected_parity(xor_code_t *code_desc, int data_index, int *missin
       }
     }
   }
-  
+
   // Must add k to get the absolute
   // index of the parity in the stripe
   return parity_index > -1 ? parity_index + code_desc->k : parity_index;
@@ -365,7 +365,7 @@ void remove_from_missing_list(int element, int *missing_list)
   int i = 0;
   int elem_idx = -1;
   int num_elems = 0;
-  
+
   while (missing_list[i] > -1) {
     if (missing_list[i] == element) {
       elem_idx = i;
@@ -377,7 +377,7 @@ void remove_from_missing_list(int element, int *missing_list)
   num_elems = i;
 
   for (i=elem_idx;i < num_elems-1;i++) {
-    int tmp = missing_list[i+1]; 
+    int tmp = missing_list[i+1];
     missing_list[i+1] = missing_list[i];
     missing_list[i] = tmp;
   }

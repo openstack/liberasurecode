@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Kevin M Greenan
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,7 @@ struct ec_backend jerasure_rs_vand;
 struct ec_backend_common backend_jerasure_rs_vand;
 
 typedef int* (*reed_sol_vandermonde_coding_matrix_func)(int, int, int);
-typedef void (*jerasure_matrix_encode_func)(int, int, int, int*, char **, char **, int); 
+typedef void (*jerasure_matrix_encode_func)(int, int, int, int*, char **, char **, int);
 typedef int (*jerasure_matrix_decode_func)(int, int, int, int *, int, int*, char **, char **, int);
 typedef int (*jerasure_make_decoding_matrix_func)(int, int, int, int *, int *, int *, int *);
 typedef int * (*jerasure_erasures_to_erased_func)(int, int, int *);
@@ -67,10 +67,10 @@ struct jerasure_rs_vand_descriptor {
 
     /* calls required for encode */
     jerasure_matrix_encode_func jerasure_matrix_encode;
-    
+
     /* calls required for decode */
     jerasure_matrix_decode_func jerasure_matrix_decode;
-    
+
     /* calls required for reconstruct */
     jerasure_make_decoding_matrix_func jerasure_make_decoding_matrix;
     jerasure_erasures_to_erased_func jerasure_erasures_to_erased;
@@ -86,7 +86,7 @@ struct jerasure_rs_vand_descriptor {
 static int jerasure_rs_vand_encode(void *desc, char **data, char **parity,
         int blocksize)
 {
-    struct jerasure_rs_vand_descriptor *jerasure_desc = 
+    struct jerasure_rs_vand_descriptor *jerasure_desc =
         (struct jerasure_rs_vand_descriptor*) desc;
 
     /* FIXME - make jerasure_matrix_encode return a value */
@@ -99,7 +99,7 @@ static int jerasure_rs_vand_encode(void *desc, char **data, char **parity,
 static int jerasure_rs_vand_decode(void *desc, char **data, char **parity,
         int *missing_idxs, int blocksize)
 {
-    struct jerasure_rs_vand_descriptor *jerasure_desc = 
+    struct jerasure_rs_vand_descriptor *jerasure_desc =
         (struct jerasure_rs_vand_descriptor*)desc;
 
     /* FIXME - make jerasure_matrix_decode return a value */
@@ -119,9 +119,9 @@ static int jerasure_rs_vand_reconstruct(void *desc, char **data, char **parity,
     int *dm_ids = NULL;           /* k length list of frag ids */
     int *decoding_matrix = NULL;  /* matrix for decoding */
 
-    struct jerasure_rs_vand_descriptor *jerasure_desc = 
+    struct jerasure_rs_vand_descriptor *jerasure_desc =
         (struct jerasure_rs_vand_descriptor*) desc;
-    
+
     if (destination_idx < jerasure_desc->k) {
         dm_ids = (int *) alloc_zeroed_buffer(sizeof(int) * jerasure_desc->k);
         decoding_matrix = (int *)
@@ -137,16 +137,16 @@ static int jerasure_rs_vand_reconstruct(void *desc, char **data, char **parity,
                 erased, decoding_matrix, dm_ids);
 
         decoding_row = decoding_matrix + (destination_idx * jerasure_desc->k);
-    
+
         if (ret == 0) {
             jerasure_desc->jerasure_matrix_dotprod(jerasure_desc->k,
                     jerasure_desc->w, decoding_row, dm_ids, destination_idx,
                     data, parity, blocksize);
         } else {
             /*
-             * ToDo (KMG) I know this is not needed, but keeping to prevent future 
-             *  memory leaks, as this function will be better optimized for decoding 
-             * missing parity 
+             * ToDo (KMG) I know this is not needed, but keeping to prevent future
+             *  memory leaks, as this function will be better optimized for decoding
+             * missing parity
              */
             goto out;
         }
@@ -175,7 +175,7 @@ parity_reconstr_out:
 static int jerasure_rs_vand_min_fragments(void *desc, int *missing_idxs,
         int *fragments_to_exclude, int *fragments_needed)
 {
-    struct jerasure_rs_vand_descriptor *jerasure_desc = 
+    struct jerasure_rs_vand_descriptor *jerasure_desc =
         (struct jerasure_rs_vand_descriptor*)desc;
 
     uint64_t exclude_bm = convert_list_to_bitmap(fragments_to_exclude);
@@ -204,7 +204,7 @@ static void * jerasure_rs_vand_init(struct ec_backend_args *args,
         void *backend_sohandle)
 {
     struct jerasure_rs_vand_descriptor *desc = NULL;
-    
+
     desc = (struct jerasure_rs_vand_descriptor *)
            malloc(sizeof(struct jerasure_rs_vand_descriptor));
     if (NULL == desc) {
@@ -254,42 +254,42 @@ static void * jerasure_rs_vand_init(struct ec_backend_args *args,
     func_handle.vptr = dlsym(backend_sohandle, "jerasure_matrix_encode");
     desc->jerasure_matrix_encode = func_handle.encodep;
     if (NULL == desc->jerasure_matrix_encode) {
-        goto error; 
+        goto error;
     }
-  
+
     func_handle.vptr = NULL;
     func_handle.vptr = dlsym(backend_sohandle, "jerasure_matrix_decode");
     desc->jerasure_matrix_decode = func_handle.decodep;
     if (NULL == desc->jerasure_matrix_decode) {
-        goto error; 
+        goto error;
     }
-  
+
     func_handle.vptr = NULL;
     func_handle.vptr = dlsym(backend_sohandle, "jerasure_make_decoding_matrix");
     desc->jerasure_make_decoding_matrix = func_handle.decodematrixp;
     if (NULL == desc->jerasure_make_decoding_matrix) {
-        goto error; 
+        goto error;
     }
-  
+
     func_handle.vptr = NULL;
     func_handle.vptr = dlsym(backend_sohandle, "jerasure_matrix_dotprod");
     desc->jerasure_matrix_dotprod = func_handle.dotprodp;
     if (NULL == desc->jerasure_matrix_dotprod) {
-        goto error; 
+        goto error;
     }
-  
+
     func_handle.vptr = NULL;
     func_handle.vptr = dlsym(backend_sohandle, "jerasure_erasures_to_erased");
     desc->jerasure_erasures_to_erased = func_handle.erasep;
     if (NULL == desc->jerasure_erasures_to_erased) {
-        goto error; 
+        goto error;
     }
- 
+
     func_handle.vptr = NULL;
     func_handle.vptr = dlsym(backend_sohandle, "reed_sol_vandermonde_coding_matrix");
     desc->reed_sol_vandermonde_coding_matrix = func_handle.initp;
     if (NULL == desc->reed_sol_vandermonde_coding_matrix) {
-        goto error; 
+        goto error;
     }
 
     func_handle.vptr = NULL;
@@ -302,28 +302,28 @@ static void * jerasure_rs_vand_init(struct ec_backend_args *args,
     desc->matrix = desc->reed_sol_vandermonde_coding_matrix(
             desc->k, desc->m, desc->w);
     if (NULL == desc->matrix) {
-        goto error; 
+        goto error;
     }
 
     return desc;
 
 error:
     free(desc);
-    
+
     return NULL;
 }
 
 /**
- * Return the element-size, which is the number of bits stored 
- * on a given device, per codeword.  For Vandermonde, this is 
- * 'w'.  For somthing like cauchy, this is packetsize * w. 
- * 
+ * Return the element-size, which is the number of bits stored
+ * on a given device, per codeword.  For Vandermonde, this is
+ * 'w'.  For somthing like cauchy, this is packetsize * w.
+ *
  * Returns the size in bits!
  */
 static int
 jerasure_rs_vand_element_size(void* desc)
 {
-    struct jerasure_rs_vand_descriptor *jerasure_desc = 
+    struct jerasure_rs_vand_descriptor *jerasure_desc =
         (struct jerasure_rs_vand_descriptor*)desc;
 
     /* Note that cauchy will return pyeclib_handle->w * PYECC_CAUCHY_PACKETSIZE * 8 */
@@ -333,7 +333,7 @@ jerasure_rs_vand_element_size(void* desc)
 static int jerasure_rs_vand_exit(void *desc)
 {
     struct jerasure_rs_vand_descriptor *jerasure_desc = NULL;
-    
+
     jerasure_desc = (struct jerasure_rs_vand_descriptor*) desc;
 
     /*

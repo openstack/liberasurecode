@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2015 Kevin M Greenan
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,7 +59,7 @@ void rs_galois_init_tables()
     ilog_table_begin[i + (GROUP_SIZE*2)] = x;
     x = x << 1;
     if (x & FIELD_SIZE) {
-      x ^= PRIM_POLY; 
+      x ^= PRIM_POLY;
     }
   }
   ilog_table = &ilog_table_begin[GROUP_SIZE];
@@ -87,7 +87,7 @@ int rs_galois_div(int x, int y)
   int diff;
   if (x == 0) return 0;
   if (y == 0) return -1;
-  
+
   // This can 'underflow'.  This is handled
   // by negative overflow of ilog_table
   diff = log_table[x] - log_table[y];

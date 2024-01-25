@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014 Tushar Gohad
  *
  * Redistribution and use in source and binary forms, with or without
@@ -93,13 +93,13 @@ static int flat_xor_hd_reconstruct(void *desc,
         (struct flat_xor_hd_descriptor *) desc;
 
     xor_code_t *xor_desc = (xor_code_t *) xdesc->xor_desc;
-    xor_reconstruct_one(xor_desc, data, parity, 
+    xor_reconstruct_one(xor_desc, data, parity,
                           missing_idxs, destination_idx, blocksize);
     return 0;
 }
 
 static int flat_xor_hd_min_fragments(void *desc,
-                                     int *missing_idxs, int *fragments_to_exclude, 
+                                     int *missing_idxs, int *fragments_to_exclude,
                                      int *fragments_needed)
 {
     struct flat_xor_hd_descriptor *xdesc =
@@ -111,7 +111,7 @@ static int flat_xor_hd_min_fragments(void *desc,
 }
 
 /**
- * Return the element-size, which is the number of bits stored 
+ * Return the element-size, which is the number of bits stored
  * on a given device, per codeword.  This is usually just 'w'.
  */
 static int

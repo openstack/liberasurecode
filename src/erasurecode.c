@@ -681,7 +681,7 @@ int liberasurecode_decode(int desc,
      *
      */
     ret = prepare_fragments_for_decode(k, m,
-                                       data, parity, missing_idxs, 
+                                       data, parity, missing_idxs,
                                        &orig_data_size, &blocksize,
                                        fragment_len, &realloc_bm);
     if (ret < 0) {

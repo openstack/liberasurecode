@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2015 Kevin M Greenan
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,7 +58,7 @@ void print_matrix(int *matrix, int rows, int cols)
 void square_matrix_multiply(int *m1, int *m2, int *prod, int n)
 {
   int i, j, k;
-  
+
   for (i = 0; i < n; i++) {
     for (j = 0; j < n; j++) {
       int p = 0;
@@ -124,8 +124,8 @@ int create_decoding_matrix(int *gen_matrix, int *dec_matrix, int *missing_idxs, 
   for (i = 0, j = 0; i < n && j < k; i++) {
     if (!is_missing(missing_idxs, i)) {
       copy_row(gen_matrix, dec_matrix, i, j, k);
-      j++; 
-    } 
+      j++;
+    }
   }
 
   return j == k;
@@ -149,7 +149,7 @@ int * create_non_systematic_vand_matrix(int k, int m)
   int i, j, acc;
   int *matrix = (int*)malloc(sizeof(int)*rows*cols);
 
-  if (NULL == matrix) return NULL; 
+  if (NULL == matrix) return NULL;
 
   // First row is 1, 0, 0, ..., 0
   matrix[0] = 1;
@@ -177,14 +177,14 @@ void swap_matrix_rows(int *r1, int *r2, int num_cols)
   for (i = 0; i < num_cols; i++) {
     tmp = r1[i];
     r1[i] = r2[i];
-    r2[i] = tmp; 
+    r2[i] = tmp;
   }
 }
 
 void col_mult(int *matrix, int elem, int col_idx, int num_rows, int num_cols)
 {
   int i;
-   
+
   for (i = 0; i < num_rows; i++) {
     matrix[col_idx] = rs_galois_mult(matrix[col_idx], elem);
     col_idx += num_cols;
@@ -204,7 +204,7 @@ void row_mult(int *matrix, int elem, int row_idx, int num_rows, int num_cols)
 void col_mult_and_add(int *matrix, int elem, int from_col, int to_col, int num_rows, int num_cols)
 {
   int i;
-   
+
   for (i = 0; i < num_rows; i++) {
     matrix[to_col] = matrix[to_col] ^ rs_galois_mult(matrix[from_col], elem);
     from_col += num_cols;
@@ -218,7 +218,7 @@ void row_mult_and_add(int *matrix, int elem, int from_row, int to_row, int num_r
   from_row = from_row * num_cols;
   to_row = to_row * num_cols;
   for (i = 0; i < num_cols; i++) {
-    matrix[to_row] = matrix[to_row] ^ rs_galois_mult(matrix[from_row], elem); 
+    matrix[to_row] = matrix[to_row] ^ rs_galois_mult(matrix[from_row], elem);
     to_row++;
     from_row++;
   }
@@ -227,12 +227,12 @@ void row_mult_and_add(int *matrix, int elem, int from_row, int to_row, int num_r
 int get_non_zero_diagonal(int *matrix, int row, int num_rows, int num_cols)
 {
   int i, row_idx;
-  
+
   row_idx = (num_cols * row) + row;
   for (i = row; i < num_rows; i++) {
     if (matrix[row_idx] != 0) {
       return i;
-    } 
+    }
     row_idx += num_cols;
   }
 
@@ -243,23 +243,23 @@ int * make_systematic_matrix(int k, int m)
 {
   int rows = k + m;
   int cols = k;
-  int i, j; 
+  int i, j;
   int *matrix = create_non_systematic_vand_matrix(k, m);
 
-  if (NULL == matrix) return NULL; 
+  if (NULL == matrix) return NULL;
 
   // The first row is already 1, 0, 0, ..., 0
   for (i = 1; i < cols; i++) {
     int diag_idx = ((cols*i) + i);
     // Get next row candidate, whose diagonal entry @ i,i != 0
     int next_row = get_non_zero_diagonal(matrix, i, rows, cols);
-  
+
     // Swap candidate row with row i, if needed
     if (next_row != i) {
       swap_matrix_rows(&matrix[next_row*cols], &matrix[i*cols], cols);
     }
 
-    // Ensure the leading entry of row i is 1 by multiplying the 
+    // Ensure the leading entry of row i is 1 by multiplying the
     // column by the inverse of matrix[diag_idx]
     if (matrix[diag_idx] != 1) {
       col_mult(matrix, rs_galois_inverse(matrix[diag_idx]), i, rows, cols);
@@ -280,7 +280,7 @@ int * make_systematic_matrix(int k, int m)
     int row_val = matrix[(cols * cols) + i];
     if (row_val != 1) {
       // Multiply the parity sub-column by the inverse of row_val
-      // We then implicitly multuply row i by the inverse of row_val 
+      // We then implicitly multuply row i by the inverse of row_val
       // (not explicitly necessary, since all other entries are 0)
       col_mult(&matrix[cols*cols], rs_galois_inverse(row_val), i, rows - cols, cols);
     }
@@ -311,7 +311,7 @@ int gaussj_inversion(int *matrix, int *inverse, int n)
     int diag_idx = ((n*i) + i);
     // Get next row candidate, whose diagonal entry @ i,i != 0
     int next_row = get_non_zero_diagonal(matrix, i, n, n);
-    
+
     // Swap candidate row with row i, if needed
     if (next_row != i) {
       swap_matrix_rows(&matrix[next_row*n], &matrix[i*n], n);
@@ -324,7 +324,7 @@ int gaussj_inversion(int *matrix, int *inverse, int n)
       row_mult(matrix, leading_val_inv, i, n, n);
       row_mult(inverse, leading_val_inv, i, n, n);
     }
-    
+
     // Zero-out all other entries in column i
     for (j = 0; j < n; j++) {
       if (i != j) {
@@ -340,7 +340,7 @@ int gaussj_inversion(int *matrix, int *inverse, int n)
 void region_xor(char *from_buf, char *to_buf, int blocksize)
 {
   int i;
-  
+
   uint32_t *_from_buf = (uint32_t*)from_buf;
   uint32_t *_to_buf = (uint32_t*)to_buf;
   int adj_blocksize = blocksize / 4;
@@ -349,7 +349,7 @@ void region_xor(char *from_buf, char *to_buf, int blocksize)
   for (i = 0; i < adj_blocksize; i++) {
     _to_buf[i] = _to_buf[i] ^ _from_buf[i];
   }
-  
+
   for (i = blocksize-trailing_bytes; i < blocksize; i++) {
     to_buf[i] = to_buf[i] ^ from_buf[i];
   }
@@ -367,7 +367,7 @@ void region_multiply(char *from_buf, char *to_buf, int mult, int xor, int blocks
     for (i = 0; i < adj_blocksize; i++) {
       _to_buf[i] = _to_buf[i] ^ (uint16_t)rs_galois_mult(_from_buf[i], mult);
     }
-  
+
     if (trailing_bytes == 1) {
       i = blocksize - 1;
       to_buf[i] = to_buf[i] ^ (char)rs_galois_mult(from_buf[i], mult);
@@ -376,7 +376,7 @@ void region_multiply(char *from_buf, char *to_buf, int mult, int xor, int blocks
     for (i = 0; i < adj_blocksize; i++) {
       _to_buf[i] = (uint16_t)rs_galois_mult(_from_buf[i], mult);
     }
-  
+
     if (trailing_bytes == 1) {
       i = blocksize - 1;
       to_buf[i] = (char)rs_galois_mult(from_buf[i], mult);
@@ -387,7 +387,7 @@ void region_multiply(char *from_buf, char *to_buf, int mult, int xor, int blocks
 void region_dot_product(char **from_bufs, char *to_buf, int *matrix_row, int num_entries, int blocksize)
 {
   int i;
-  
+
   for (i = 0; i < num_entries; i++) {
     int mult = matrix_row[i];
     if (mult == 1) {
@@ -402,11 +402,11 @@ int liberasurecode_rs_vand_encode(int *generator_matrix, char **data, char **par
 {
   int i;
   int n = k + m;
-  
+
   for (i = k; i < n; i++) {
     memset(parity[i - k], 0, blocksize);
     region_dot_product(data, parity[i - k], &generator_matrix[(i * k)], k, blocksize);
-  } 
+  }
 
   return 0;
 }
@@ -415,7 +415,7 @@ char **get_first_k_available(char **data, char **parity, int *missing, int k)
 {
   int i, j;
   char **first_k_available = (char**)malloc(sizeof(char*)*k);
-  
+
   for (i = 0, j = 0; j < k; i++) {
     if (!missing[i]) {
       first_k_available[j] = i < k ? data[i] : parity[i - k];
@@ -450,7 +450,7 @@ int liberasurecode_rs_vand_decode(int *generator_matrix, char **data, char **par
   decoding_matrix = (int*)malloc(sizeof(int)*k*k);
   inverse_decoding_matrix = (int*)malloc(sizeof(int)*k*k);
   first_k_available = get_first_k_available(data, parity, _missing, k);
-  
+
   create_decoding_matrix(generator_matrix, decoding_matrix, missing, k, m);
   gaussj_inversion(decoding_matrix, inverse_decoding_matrix, k);
 
@@ -461,7 +461,7 @@ int liberasurecode_rs_vand_decode(int *generator_matrix, char **data, char **par
       region_dot_product(first_k_available, data[i], &inverse_decoding_matrix[(i * k)], k, blocksize);
     }
   }
-  
+
   // Rebuild parity fragments
   if (rebuild_parity) {
     for (i = k; i < n; i++) {
@@ -471,7 +471,7 @@ int liberasurecode_rs_vand_decode(int *generator_matrix, char **data, char **par
       }
     }
   }
-  
+
   free(decoding_matrix);
   free(inverse_decoding_matrix);
   free(first_k_available);
@@ -506,7 +506,7 @@ int liberasurecode_rs_vand_reconstruct(int *generator_matrix, char **data, char 
   decoding_matrix = (int*)malloc(sizeof(int)*k*k);
   inverse_decoding_matrix = (int*)malloc(sizeof(int)*k*k);
   first_k_available = get_first_k_available(data, parity, _missing, k);
-  
+
   create_decoding_matrix(generator_matrix, decoding_matrix, missing, k, m);
   gaussj_inversion(decoding_matrix, inverse_decoding_matrix, k);
 
@@ -527,7 +527,7 @@ int liberasurecode_rs_vand_reconstruct(int *generator_matrix, char **data, char 
       if (!_missing[i]) {
         parity_row[j] = generator_matrix[(destination_idx * k) + i];
         j++;
-      } 
+      }
     }
 
     i = 0;

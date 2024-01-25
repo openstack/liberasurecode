@@ -127,9 +127,9 @@ alg_sig_t *init_alg_sig_w8(void *jerasure_sohandle, int sig_len)
       alg_sig_handle->tbl3_l = (int*)malloc(sizeof(int) * num_gf_lr_table_syms);
       alg_sig_handle->tbl3_r = (int*)malloc(sizeof(int) * num_gf_lr_table_syms);
     }
-    
+
     /*
-     * Note that \alpha = 2 
+     * Note that \alpha = 2
      * Note that \beta = 4 (\alpha ^ 2)
      * Note that \gamme = 8 (\alpha ^ 3)
      */
@@ -140,7 +140,7 @@ alg_sig_t *init_alg_sig_w8(void *jerasure_sohandle, int sig_len)
 
         alg_sig_handle->tbl2_l[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned char) (i << 4) & 0xf0, beta, w);
         alg_sig_handle->tbl2_r[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned char) i, beta, w);
-      
+
         alg_sig_handle->tbl3_l[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned char) (i << 4) & 0xf0, gamma, w);
         alg_sig_handle->tbl3_r[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned char) i, gamma, w);
       }
@@ -162,7 +162,7 @@ alg_sig_t *init_alg_sig_w16(void *jerasure_sohandle, int sig_len)
     if (NULL == jerasure_sohandle) {
         return NULL;
     }
-    
+
     alg_sig_handle = (alg_sig_t *)malloc(sizeof(alg_sig_t));
     if (NULL == alg_sig_handle) {
       return NULL;
@@ -191,9 +191,9 @@ alg_sig_t *init_alg_sig_w16(void *jerasure_sohandle, int sig_len)
       alg_sig_handle->tbl3_l = (int*)malloc(sizeof(int) * num_gf_lr_table_syms);
       alg_sig_handle->tbl3_r = (int*)malloc(sizeof(int) * num_gf_lr_table_syms);
     }
-    
+
     /*
-     * Note that \alpha = 2 
+     * Note that \alpha = 2
      * Note that \beta = 4 (\alpha ^ 2 MOD 2^16)
      * Note that \gamme = 8 (\alpha ^ 3 MOD 2^16)
      */
@@ -204,7 +204,7 @@ alg_sig_t *init_alg_sig_w16(void *jerasure_sohandle, int sig_len)
       if (num_components >= 4) {
         alg_sig_handle->tbl2_l[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned short) (i << 8), beta, w);
         alg_sig_handle->tbl2_r[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned short) i, beta, w);
-      
+
         alg_sig_handle->tbl3_l[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned short) (i << 8), gamma, w);
         alg_sig_handle->tbl3_r[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned short) i, gamma, w);
       }
@@ -224,7 +224,7 @@ alg_sig_t *init_alg_sig(int sig_len, int gf_w)
   }
 
   while (valid_pairs[i][0] > -1) {
-    if (gf_w == valid_pairs[i][0] && 
+    if (gf_w == valid_pairs[i][0] &&
         sig_len == valid_pairs[i][1]) {
       break;
     }

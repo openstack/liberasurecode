@@ -81,7 +81,7 @@ static int fragments_needed_two_data(xor_code_t *code_desc, int *missing_data, i
   ret = fragments_needed_one_data(code_desc, missing_data, missing_parity, data_bm, parity_bm);
 
   *data_bm &= ~((unsigned int)1 << data_index);
-  
+
   return ret;
 }
 
@@ -175,10 +175,10 @@ static int fragments_needed_three_data(xor_code_t *code_desc, int *missing_data,
   return ret;
 }
 
-static int fragments_needed_one_data_local(xor_code_t *code_desc, 
+static int fragments_needed_one_data_local(xor_code_t *code_desc,
                                            int fragment_to_reconstruct,
                                            int *fragments_to_exclude,
-                                           unsigned int *data_bm, 
+                                           unsigned int *data_bm,
                                            unsigned int *parity_bm)
 {
   int *missing_data = get_missing_data(code_desc, fragments_to_exclude);
@@ -211,7 +211,7 @@ int xor_hd_fragments_needed(xor_code_t *code_desc, int *fragments_to_reconstruct
 
   /**
    * Re-visit this decision (KMG): This is non-optimal, but good enough in most cases.
-   * If there is a single data item to reconstruct, then try to find a connected parity 
+   * If there is a single data item to reconstruct, then try to find a connected parity
    * with no items in fragments_to_exclude.  If there is a single parity item to reconsturct
    * or more than 1 data/parity element missing, then just work fragments_to_exclude into
    * missing_idxs.
@@ -220,10 +220,10 @@ int xor_hd_fragments_needed(xor_code_t *code_desc, int *fragments_to_reconstruct
   if (pattern == FAIL_PATTERN_1D_0P) {
     // Since we have landed on this failure pattern, fragments_to_reconstruct[0] is defined.
     ret = fragments_needed_one_data_local(code_desc, fragments_to_reconstruct[0], fragments_to_exclude, &data_bm, &parity_bm);
-  } 
+  }
 
   /**
-   * There is either more than one failed element, a failed parity element or 
+   * There is either more than one failed element, a failed parity element or
    * we were unable to return the fragments needed for a simple reconstruction.
    */
   if (ret == -1) {
@@ -235,7 +235,7 @@ int xor_hd_fragments_needed(xor_code_t *code_desc, int *fragments_to_reconstruct
       ret = -1;
       goto out;
     }
-    
+
     i = 0;
     j = 0;
     while (fragments_to_reconstruct[i] > -1) {
@@ -251,8 +251,8 @@ int xor_hd_fragments_needed(xor_code_t *code_desc, int *fragments_to_reconstruct
     }
     // End of list
     missing_idxs[j] = -1;
-    
-    pattern = get_failure_pattern(code_desc, missing_idxs); 
+
+    pattern = get_failure_pattern(code_desc, missing_idxs);
 
 	  switch(pattern) {
 	    case FAIL_PATTERN_0D_0P:
@@ -330,7 +330,7 @@ int xor_hd_fragments_needed(xor_code_t *code_desc, int *fragments_to_reconstruct
 	      break;
 	    }
 	    case FAIL_PATTERN_0D_1P:
-	    { 
+	    {
 	      int *missing_parity = get_missing_parity(code_desc, missing_idxs);
 	      // OR all of the parities
 	      i=0;
@@ -385,7 +385,7 @@ int xor_hd_fragments_needed(xor_code_t *code_desc, int *fragments_to_reconstruct
 	    i++;
 	    data_bm >>= 1;
 	  }
-	
+
 	  i=0;
 	  while (parity_bm) {
 	    if (parity_bm & 1) {
@@ -395,7 +395,7 @@ int xor_hd_fragments_needed(xor_code_t *code_desc, int *fragments_to_reconstruct
 	    i++;
 	    parity_bm >>= 1;
 	  }
-	
+
 	  fragments_needed[j] = -1;
   }
 
@@ -413,7 +413,7 @@ out:
  */
 static void decode_one_data(xor_code_t *code_desc, char **data, char **parity, int *missing_data, int *missing_parity, int blocksize)
 {
-  // Verify that missing_data[1] == -1? 
+  // Verify that missing_data[1] == -1?
   int data_index = missing_data[0];
   int parity_index = index_of_connected_parity(code_desc, data_index, missing_parity, missing_data);
   int i;
@@ -434,7 +434,7 @@ static int decode_two_data(xor_code_t *code_desc, char **data, char **parity, in
   int data_index = missing_data[0];
   int parity_index = index_of_connected_parity(code_desc, data_index, missing_parity, missing_data);
   int i;
-  
+
   if (parity_index < 0) {
     data_index = missing_data[1];
     parity_index = index_of_connected_parity(code_desc, data_index, missing_parity, missing_data);
@@ -447,7 +447,7 @@ static int decode_two_data(xor_code_t *code_desc, char **data, char **parity, in
     missing_data[0] = missing_data[1];
     missing_data[1] = -1;
   }
-  
+
   // Copy the appropriate parity into the data buffer
   fast_memcpy(data[data_index], parity[parity_index-code_desc->k], blocksize);
 
@@ -470,11 +470,11 @@ static int decode_three_data(xor_code_t *code_desc, char **data, char **parity, 
   char *parity_buffer = NULL;
 
   /*
-   * Try to find a parity that only contains 
+   * Try to find a parity that only contains
    * one of the missing data elements.
    */
   while (missing_data[i] > -1) {
-    parity_index = index_of_connected_parity(code_desc, missing_data[i], missing_parity, missing_data);  
+    parity_index = index_of_connected_parity(code_desc, missing_data[i], missing_parity, missing_data);
     if (parity_index > -1) {
       data_index = missing_data[i];
       parity_buffer = parity[parity_index-code_desc->k];
@@ -487,15 +487,15 @@ static int decode_three_data(xor_code_t *code_desc, char **data, char **parity, 
   /*
    * If we cannot find a parity that is connected to only
    * one missing element, we must find a parity that is
-   * connected to exactly 2 (P) and another that is connected 
+   * connected to exactly 2 (P) and another that is connected
    * to exactly 3 (Q) (it should exist!!!).
-   * 
+   *
    * We XOR those parities together and use it to recover
    * the element that is not connected to P.
    */
   if (parity_index < 0) {
-    int contains_2d = -1; 
-    int contains_3d = -1; 
+    int contains_2d = -1;
+    int contains_3d = -1;
 
     for (i=0;i < code_desc->m;i++) {
       int num_missing = num_missing_data_in_parity(code_desc, code_desc->k+i, missing_data);
@@ -546,7 +546,7 @@ static int decode_three_data(xor_code_t *code_desc, char **data, char **parity, 
     fast_memcpy(data[data_index], parity_buffer, blocksize);
   }
 
-  
+
   for (i=0; i < code_desc->k; i++) {
     if (i != data_index && is_data_in_parity(i, parity_bm)) {
       xor_bufs_and_store(data[i], data[data_index], blocksize);
@@ -564,30 +564,30 @@ int xor_hd_decode(xor_code_t *code_desc, char **data, char **parity, int *missin
   failure_pattern_t pattern = get_failure_pattern(code_desc, missing_idxs);
 
   switch(pattern) {
-    case FAIL_PATTERN_0D_0P: 
+    case FAIL_PATTERN_0D_0P:
       break;
-    case FAIL_PATTERN_1D_0P: 
+    case FAIL_PATTERN_1D_0P:
     {
       int *missing_data = get_missing_data(code_desc, missing_idxs);
       decode_one_data(code_desc, data, parity, missing_data, NULL, blocksize);
       free(missing_data);
       break;
     }
-    case FAIL_PATTERN_2D_0P: 
+    case FAIL_PATTERN_2D_0P:
     {
       int *missing_data = get_missing_data(code_desc, missing_idxs);
       ret = decode_two_data(code_desc, data, parity, missing_data, NULL, blocksize);
       free(missing_data);
       break;
     }
-    case FAIL_PATTERN_3D_0P: 
+    case FAIL_PATTERN_3D_0P:
     {
       int *missing_data = get_missing_data(code_desc, missing_idxs);
       ret = decode_three_data(code_desc, data, parity, missing_data, NULL, blocksize);
       free(missing_data);
       break;
     }
-    case FAIL_PATTERN_1D_1P: 
+    case FAIL_PATTERN_1D_1P:
     {
       int *missing_data = get_missing_data(code_desc, missing_idxs);
       int *missing_parity = get_missing_parity(code_desc, missing_idxs);
@@ -599,7 +599,7 @@ int xor_hd_decode(xor_code_t *code_desc, char **data, char **parity, int *missin
       free(missing_data);
       break;
     }
-    case FAIL_PATTERN_1D_2P: 
+    case FAIL_PATTERN_1D_2P:
     {
       int *missing_data = get_missing_data(code_desc, missing_idxs);
       int *missing_parity = get_missing_parity(code_desc, missing_idxs);
@@ -611,7 +611,7 @@ int xor_hd_decode(xor_code_t *code_desc, char **data, char **parity, int *missin
       free(missing_parity);
       break;
     }
-    case FAIL_PATTERN_2D_1P: 
+    case FAIL_PATTERN_2D_1P:
     {
       int *missing_data = get_missing_data(code_desc, missing_idxs);
       int *missing_parity = get_missing_parity(code_desc, missing_idxs);
@@ -623,14 +623,14 @@ int xor_hd_decode(xor_code_t *code_desc, char **data, char **parity, int *missin
       free(missing_data);
       break;
     }
-    case FAIL_PATTERN_0D_1P: 
+    case FAIL_PATTERN_0D_1P:
       if (decode_parity) {
         int *missing_parity = get_missing_parity(code_desc, missing_idxs);
         selective_encode(code_desc, data, parity, missing_parity, blocksize);
         free(missing_parity);
       }
       break;
-    case FAIL_PATTERN_0D_2P: 
+    case FAIL_PATTERN_0D_2P:
       if (decode_parity) {
         int *missing_parity = get_missing_parity(code_desc, missing_idxs);
         selective_encode(code_desc, data, parity, missing_parity, blocksize);
@@ -644,7 +644,7 @@ int xor_hd_decode(xor_code_t *code_desc, char **data, char **parity, int *missin
         free(missing_parity);
       }
       break;
-    case FAIL_PATTERN_GE_HD: 
+    case FAIL_PATTERN_GE_HD:
     default:
       break;
   }
@@ -670,7 +670,7 @@ xor_code_t* init_xor_hd_code(int k, int m, int hd)
       is_valid = 1;
     }
   }
-  
+
   if (hd == 4) {
     if (m == 6) {
       if (k <= 20 && k >= 6) {

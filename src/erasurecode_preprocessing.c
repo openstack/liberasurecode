@@ -64,10 +64,10 @@ int prepare_fragments_for_encode(ec_backend_t instance,
             ret = -ENOMEM;
             goto out_error;
         }
-      
+
         /* Copy existing data into clean, zero'd out buffer */
         encoded_data[i] = get_data_ptr_from_fragment(fragment);
-      
+
         if (data_len > 0) {
             memcpy(encoded_data[i] + data_offset, orig_data, copy_size);
         }
@@ -110,7 +110,7 @@ out_error:
     goto out;
 }
 
-/* 
+/*
  * Note that the caller should always check realloc_bm during success or
  * failure to free buffers allocated here.  We could free up in this function,
  * but it is internal to this library and only used in a few places.  In any
@@ -244,7 +244,7 @@ int get_fragment_partition(
 
     /*
      * Fill in data and parity with available fragments
-     */ 
+     */
     for (i = 0; i < num_fragments; i++) {
         index = get_fragment_idx(fragments[i]);
         if (index < 0 || index > (k + m)) {
@@ -296,7 +296,7 @@ int fragments_to_string(int k, int m,
          * This is not necessarily an error condition, so *do not log here*
          * We can maybe debug log, if necessary.
          */
-        goto out; 
+        goto out;
     }
 
     data = (char **) get_aligned_buffer16(sizeof(char *) * k);
@@ -304,9 +304,9 @@ int fragments_to_string(int k, int m,
     if (NULL == data) {
         log_error("Could not allocate buffer for data!!");
         ret = -ENOMEM;
-        goto out; 
+        goto out;
     }
-    
+
     for (i = 0; i < num_fragments; i++) {
         index = get_fragment_idx(fragments[i]);
         data_size = get_fragment_payload_size(fragments[i]);
@@ -326,7 +326,7 @@ int fragments_to_string(int k, int m,
                 goto out;
             }
         }
-   
+
         /* Skip parity fragments, put data fragments in index order */
         if (index >= k) {
             continue;
@@ -355,7 +355,7 @@ int fragments_to_string(int k, int m,
         ret = -ENOMEM;
         goto out;
     }
-    
+
     /* Pass the original data length back */
     *payload_len = orig_data_size;
 
