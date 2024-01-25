@@ -51,13 +51,13 @@ Install dependencies -
  Debian/Ubuntu hosts:
 
 ```sh
- $ sudo apt-get install build-essential autoconf automake libtool
+ $ sudo apt-get install build-essential autoconf automake libtool zlib1g-dev
 ```
 
  Fedora/RedHat/CentOS hosts:
 
 ```sh
- $ sudo yum install -y gcc make autoconf automake libtool
+ $ sudo yum install -y gcc make autoconf automake libtool zlib-devel
 ```
 
 To build the liberasurecode repository, perform the following from the 
