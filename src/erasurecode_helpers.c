@@ -201,7 +201,7 @@ int get_aligned_data_size(ec_backend_t instance, int data_len)
     }
 
     aligned_size = ((data_len + alignment_multiple - 1) / alignment_multiple)
-	* alignment_multiple;
+    * alignment_multiple;
 
     return aligned_size;
 }

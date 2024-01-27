@@ -254,149 +254,149 @@ int xor_hd_fragments_needed(xor_code_t *code_desc, int *fragments_to_reconstruct
 
     pattern = get_failure_pattern(code_desc, missing_idxs);
 
-	  switch(pattern) {
-	    case FAIL_PATTERN_0D_0P:
-	      break;
-	    case FAIL_PATTERN_1D_0P:
-	    {
-	      int *missing_data = get_missing_data(code_desc, missing_idxs);
-	      ret = fragments_needed_one_data(code_desc, missing_data, NULL, &data_bm, &parity_bm);
-	      free(missing_data);
-	      break;
-	    }
-	    case FAIL_PATTERN_2D_0P:
-	    {
-	      int *missing_data = get_missing_data(code_desc, missing_idxs);
-	      ret = fragments_needed_two_data(code_desc, missing_data, NULL, &data_bm, &parity_bm);
-	      free(missing_data);
-	      break;
-	    }
-	    case FAIL_PATTERN_3D_0P:
-	    {
-	      int *missing_data = get_missing_data(code_desc, missing_idxs);
-	      ret = fragments_needed_three_data(code_desc, missing_data, NULL, &data_bm, &parity_bm);
-	      free(missing_data);
-	      break;
-	    }
-	    case FAIL_PATTERN_1D_1P:
-	    {
-	      int *missing_data = get_missing_data(code_desc, missing_idxs);
-	      int *missing_parity = get_missing_parity(code_desc, missing_idxs);
-	      unsigned int missing_data_bm = missing_elements_bm(code_desc, missing_data, data_bit_lookup);
-	      ret = fragments_needed_one_data(code_desc, missing_data, missing_parity, &data_bm, &parity_bm);
-	      // OR all parities
-	      i=0;
-	      while (missing_parity[i] > -1) {
-	        data_bm |= code_desc->parity_bms[missing_parity[i]-code_desc->k];
-	        data_bm &= ~(missing_data_bm);
-	        i++;
-	      }
-	      free(missing_parity);
-	      free(missing_data);
-	      break;
-	    }
-	    case FAIL_PATTERN_1D_2P:
-	    {
-	      int *missing_data = get_missing_data(code_desc, missing_idxs);
-	      int *missing_parity = get_missing_parity(code_desc, missing_idxs);
-	      int missing_data_bm = missing_elements_bm(code_desc, missing_data, data_bit_lookup);
-	      ret = fragments_needed_one_data(code_desc, missing_data, missing_parity, &data_bm, &parity_bm);
-	      // OR all parities
-	      i=0;
-	      while (missing_parity[i] > -1) {
-	        data_bm |= code_desc->parity_bms[missing_parity[i]-code_desc->k];
-	        data_bm &= ~(missing_data_bm);
-	        i++;
-	      }
-	      free(missing_parity);
-	      free(missing_data);
-	      break;
-	    }
-	    case FAIL_PATTERN_2D_1P:
-	    {
-	      int *missing_data = get_missing_data(code_desc, missing_idxs);
-	      int *missing_parity = get_missing_parity(code_desc, missing_idxs);
-	      unsigned int missing_data_bm = missing_elements_bm(code_desc, missing_data, data_bit_lookup);
-	      ret = fragments_needed_two_data(code_desc, missing_data, missing_parity, &data_bm, &parity_bm);
-	      // OR all parities
-	      i=0;
-	      while (missing_parity[i] > -1) {
-	        data_bm |= code_desc->parity_bms[missing_parity[i]-code_desc->k];
-	        data_bm &= ~(missing_data_bm);
-	        i++;
-	      }
-	      free(missing_parity);
-	      free(missing_data);
-	      break;
-	    }
-	    case FAIL_PATTERN_0D_1P:
-	    {
-	      int *missing_parity = get_missing_parity(code_desc, missing_idxs);
-	      // OR all of the parities
-	      i=0;
-	      while (missing_parity[i] > -1) {
-	        data_bm |= code_desc->parity_bms[missing_parity[i]-code_desc->k];
-	        i++;
-	      }
-	      free(missing_parity);
-        ret = 0;
-	      break;
-	    }
-	    case FAIL_PATTERN_0D_2P:
-	    {
-	      int *missing_parity = get_missing_parity(code_desc, missing_idxs);
-	      // OR all of the parities
-	      i=0;
-	      while (missing_parity[i] > -1) {
-	        data_bm |= code_desc->parity_bms[missing_parity[i]-code_desc->k];
-	        i++;
-	      }
-	      free(missing_parity);
-        ret = 0;
-	      break;
-	    }
-	    case FAIL_PATTERN_0D_3P:
-	    {
-	      int *missing_parity = get_missing_parity(code_desc, missing_idxs);
-	      // OR all of the parities
-	      i=0;
-	      while (missing_parity[i] > -1) {
-	        data_bm |= code_desc->parity_bms[missing_parity[i]-code_desc->k];
-	        i++;
-	      }
-	      free(missing_parity);
-        ret = 0;
-	      break;
-	    }
-	    case FAIL_PATTERN_GE_HD:
-	    default:
-	      break;
-	  }
+    switch(pattern) {
+      case FAIL_PATTERN_0D_0P:
+        break;
+      case FAIL_PATTERN_1D_0P:
+      {
+        int *missing_data = get_missing_data(code_desc, missing_idxs);
+        ret = fragments_needed_one_data(code_desc, missing_data, NULL, &data_bm, &parity_bm);
+        free(missing_data);
+        break;
+      }
+      case FAIL_PATTERN_2D_0P:
+      {
+        int *missing_data = get_missing_data(code_desc, missing_idxs);
+        ret = fragments_needed_two_data(code_desc, missing_data, NULL, &data_bm, &parity_bm);
+        free(missing_data);
+        break;
+      }
+      case FAIL_PATTERN_3D_0P:
+      {
+        int *missing_data = get_missing_data(code_desc, missing_idxs);
+        ret = fragments_needed_three_data(code_desc, missing_data, NULL, &data_bm, &parity_bm);
+        free(missing_data);
+        break;
+      }
+      case FAIL_PATTERN_1D_1P:
+      {
+        int *missing_data = get_missing_data(code_desc, missing_idxs);
+        int *missing_parity = get_missing_parity(code_desc, missing_idxs);
+        unsigned int missing_data_bm = missing_elements_bm(code_desc, missing_data, data_bit_lookup);
+        ret = fragments_needed_one_data(code_desc, missing_data, missing_parity, &data_bm, &parity_bm);
+        // OR all parities
+        i=0;
+        while (missing_parity[i] > -1) {
+          data_bm |= code_desc->parity_bms[missing_parity[i]-code_desc->k];
+          data_bm &= ~(missing_data_bm);
+          i++;
+        }
+        free(missing_parity);
+        free(missing_data);
+        break;
+      }
+      case FAIL_PATTERN_1D_2P:
+      {
+        int *missing_data = get_missing_data(code_desc, missing_idxs);
+        int *missing_parity = get_missing_parity(code_desc, missing_idxs);
+        int missing_data_bm = missing_elements_bm(code_desc, missing_data, data_bit_lookup);
+        ret = fragments_needed_one_data(code_desc, missing_data, missing_parity, &data_bm, &parity_bm);
+        // OR all parities
+        i=0;
+        while (missing_parity[i] > -1) {
+          data_bm |= code_desc->parity_bms[missing_parity[i]-code_desc->k];
+          data_bm &= ~(missing_data_bm);
+          i++;
+        }
+        free(missing_parity);
+        free(missing_data);
+        break;
+      }
+      case FAIL_PATTERN_2D_1P:
+      {
+        int *missing_data = get_missing_data(code_desc, missing_idxs);
+        int *missing_parity = get_missing_parity(code_desc, missing_idxs);
+        unsigned int missing_data_bm = missing_elements_bm(code_desc, missing_data, data_bit_lookup);
+        ret = fragments_needed_two_data(code_desc, missing_data, missing_parity, &data_bm, &parity_bm);
+        // OR all parities
+        i=0;
+        while (missing_parity[i] > -1) {
+          data_bm |= code_desc->parity_bms[missing_parity[i]-code_desc->k];
+          data_bm &= ~(missing_data_bm);
+          i++;
+        }
+        free(missing_parity);
+        free(missing_data);
+        break;
+      }
+      case FAIL_PATTERN_0D_1P:
+      {
+        int *missing_parity = get_missing_parity(code_desc, missing_idxs);
+        // OR all of the parities
+        i=0;
+        while (missing_parity[i] > -1) {
+          data_bm |= code_desc->parity_bms[missing_parity[i]-code_desc->k];
+          i++;
+        }
+        free(missing_parity);
+      ret = 0;
+        break;
+      }
+      case FAIL_PATTERN_0D_2P:
+      {
+        int *missing_parity = get_missing_parity(code_desc, missing_idxs);
+        // OR all of the parities
+        i=0;
+        while (missing_parity[i] > -1) {
+          data_bm |= code_desc->parity_bms[missing_parity[i]-code_desc->k];
+          i++;
+        }
+        free(missing_parity);
+      ret = 0;
+        break;
+      }
+      case FAIL_PATTERN_0D_3P:
+      {
+        int *missing_parity = get_missing_parity(code_desc, missing_idxs);
+        // OR all of the parities
+        i=0;
+        while (missing_parity[i] > -1) {
+          data_bm |= code_desc->parity_bms[missing_parity[i]-code_desc->k];
+          i++;
+        }
+        free(missing_parity);
+      ret = 0;
+        break;
+      }
+      case FAIL_PATTERN_GE_HD:
+      default:
+        break;
+    }
   }
 
   if (ret >= 0) {
-	  i=0;
-	  j=0;
-	  while (data_bm) {
-	    if (data_bm & 1) {
-	      fragments_needed[j] = i;
-	      j++;
-	    }
-	    i++;
-	    data_bm >>= 1;
-	  }
+    i=0;
+    j=0;
+    while (data_bm) {
+      if (data_bm & 1) {
+        fragments_needed[j] = i;
+        j++;
+      }
+      i++;
+      data_bm >>= 1;
+    }
 
-	  i=0;
-	  while (parity_bm) {
-	    if (parity_bm & 1) {
-	      fragments_needed[j] = i + code_desc->k;
-	      j++;
-	    }
-	    i++;
-	    parity_bm >>= 1;
-	  }
+    i=0;
+    while (parity_bm) {
+      if (parity_bm & 1) {
+        fragments_needed[j] = i + code_desc->k;
+        j++;
+      }
+      i++;
+      parity_bm >>= 1;
+    }
 
-	  fragments_needed[j] = -1;
+    fragments_needed[j] = -1;
   }
 
 out:
