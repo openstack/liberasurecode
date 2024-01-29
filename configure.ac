@@ -164,42 +164,42 @@ if test x$mmi = xtrue ; then
 
     SUPPORTED_FLAGS=""
     $CC - -E -mmmx </dev/null >/dev/null 2>&1
-    if [[ $? = 0 ]]; then
+    if test $? = 0; then
       SUPPORTED_FLAGS="-mmmx"
       AC_MSG_RESULT([$CC supports -mmmx])
     fi
     $CC - -E -msse </dev/null >/dev/null 2>&1
-    if [[ $? = 0 ]]; then
+    if test $? = 0; then
       SUPPORTED_FLAGS="$SUPPORTED_FLAGS -msse"
       AC_MSG_RESULT([$CC supports -msse])
     fi
     $CC - -E -msse2 </dev/null >/dev/null 2>&1
-    if [[ $? = 0 ]]; then
+    if test $? = 0; then
       SUPPORTED_FLAGS="$SUPPORTED_FLAGS -msse2"
       AC_MSG_RESULT([$CC supports -msse2])
     fi
     $CC - -E -msse3 </dev/null >/dev/null 2>&1
-    if [[ $? = 0 ]]; then
+    if test $? = 0; then
       SUPPORTED_FLAGS="$SUPPORTED_FLAGS -msse3"
       AC_MSG_RESULT([$CC supports -msse3])
     fi
     $CC - -E -mssse3 </dev/null >/dev/null 2>&1
-    if [[ $? = 0 ]]; then
+    if test $? = 0; then
       SUPPORTED_FLAGS="$SUPPORTED_FLAGS -mssse3"
       AC_MSG_RESULT([$CC supports -mssse3])
     fi
     $CC - -E -msse4.1 </dev/null >/dev/null 2>&1
-    if [[ $? = 0 ]]; then
+    if test $? = 0; then
       SUPPORTED_FLAGS="$SUPPORTED_FLAGS -msse4.1"
       AC_MSG_RESULT([$CC supports -msse4.1])
     fi
     $CC - -E -msse4.2 </dev/null >/dev/null 2>&1
-    if [[ $? = 0 ]]; then
+    if test $? = 0; then
       SUPPORTED_FLAGS="$SUPPORTED_FLAGS -msse4.2"
       AC_MSG_RESULT([$CC supports -msse4.2])
     fi
     $CC - -E -mavx </dev/null >/dev/null 2>&1
-    if [[ $? = 0 ]]; then
+    if test $? = 0; then
       SUPPORTED_FLAGS="$SUPPORTED_FLAGS -mavx"
       AC_MSG_RESULT([$CC supports -mavx])
     fi
