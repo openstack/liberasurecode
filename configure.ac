@@ -3,7 +3,7 @@
 ################################################################################
 
 AC_PREREQ([2.61])
-AC_INIT(liberasurecode, [-], 
+AC_INIT(liberasurecode, [-],
         [tusharsg AT gmail DOT com, kmgreen2 AT gmail DOT com],
         [], [https://github.com/openstack/liberasurecode])
 AM_MAINTAINER_MODE([disable])
@@ -164,42 +164,42 @@ if test x$mmi = xtrue ; then
 
     SUPPORTED_FLAGS=""
     $CC - -E -mmmx </dev/null >/dev/null 2>&1
-    if [[ $? == "0" ]]; then
+    if [[ $? = 0 ]]; then
       SUPPORTED_FLAGS="-mmmx"
       AC_MSG_RESULT([$CC supports -mmmx])
     fi
     $CC - -E -msse </dev/null >/dev/null 2>&1
-    if [[ $? == "0" ]]; then
+    if [[ $? = 0 ]]; then
       SUPPORTED_FLAGS="$SUPPORTED_FLAGS -msse"
       AC_MSG_RESULT([$CC supports -msse])
     fi
     $CC - -E -msse2 </dev/null >/dev/null 2>&1
-    if [[ $? == "0" ]]; then
+    if [[ $? = 0 ]]; then
       SUPPORTED_FLAGS="$SUPPORTED_FLAGS -msse2"
       AC_MSG_RESULT([$CC supports -msse2])
     fi
     $CC - -E -msse3 </dev/null >/dev/null 2>&1
-    if [[ $? == "0" ]]; then
+    if [[ $? = 0 ]]; then
       SUPPORTED_FLAGS="$SUPPORTED_FLAGS -msse3"
       AC_MSG_RESULT([$CC supports -msse3])
     fi
     $CC - -E -mssse3 </dev/null >/dev/null 2>&1
-    if [[ $? == "0" ]]; then
+    if [[ $? = 0 ]]; then
       SUPPORTED_FLAGS="$SUPPORTED_FLAGS -mssse3"
       AC_MSG_RESULT([$CC supports -mssse3])
     fi
     $CC - -E -msse4.1 </dev/null >/dev/null 2>&1
-    if [[ $? == "0" ]]; then
+    if [[ $? = 0 ]]; then
       SUPPORTED_FLAGS="$SUPPORTED_FLAGS -msse4.1"
       AC_MSG_RESULT([$CC supports -msse4.1])
     fi
     $CC - -E -msse4.2 </dev/null >/dev/null 2>&1
-    if [[ $? == "0" ]]; then
+    if [[ $? = 0 ]]; then
       SUPPORTED_FLAGS="$SUPPORTED_FLAGS -msse4.2"
       AC_MSG_RESULT([$CC supports -msse4.2])
     fi
     $CC - -E -mavx </dev/null >/dev/null 2>&1
-    if [[ $? == "0" ]]; then
+    if [[ $? = 0 ]]; then
       SUPPORTED_FLAGS="$SUPPORTED_FLAGS -mavx"
       AC_MSG_RESULT([$CC supports -mavx])
     fi
@@ -227,7 +227,7 @@ if test x$mmi = xtrue ; then
     CFLAGS="$CFLAGS $SIMD_FLAGS"
 fi
 
-# Certain code may be dependent on 32 vs. 64-bit arch, so add a 
+# Certain code may be dependent on 32 vs. 64-bit arch, so add a
 # flag for 64-bit
 AC_CHECK_SIZEOF([long])
 if test "$ac_cv_sizeof_long" -eq 8; then
