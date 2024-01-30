@@ -6,7 +6,7 @@
       sudo bash -c "echo /usr/local/lib >> /etc/ld.so.conf"
       sudo ldconfig
       ./autogen.sh
-      ./configure
+      CONFIG_SHELL=/bin/sh ./configure
       make
       make test
       make valgrind-test
