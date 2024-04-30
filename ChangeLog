@@ -1,3 +1,11 @@
+Release 1.6.4
+-------------
+
+ . Fixed a bounds check in get_fragment_partition that could lead to stray
+   writes or segmentation faults.
+ . Fixed builds on non-Bash shells.
+ . Other minor fixes and updates.
+
 Release 1.6.3
 -------------
 
