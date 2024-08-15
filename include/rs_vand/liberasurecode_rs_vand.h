@@ -34,7 +34,7 @@ int rs_galois_div(int x, int y);
 int rs_galois_inverse(int x);
 int rs_galois_mult(int x, int y);
 void init_liberasurecode_rs_vand(int k, int m);
-void deinit_liberasurecode_rs_vand();
+void deinit_liberasurecode_rs_vand(void);
 void print_matrix(int *matrix, int rows, int cols);
 void square_matrix_multiply(int *m1, int *m2, int *prod, int n);
 int create_decoding_matrix(int *gen_matrix, int *dec_matrix, int *missing_idxs, int k, int m);

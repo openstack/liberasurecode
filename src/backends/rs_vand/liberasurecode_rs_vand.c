@@ -52,7 +52,7 @@ typedef int (*liberasurecode_rs_vand_encode_func)(int *, char **, char **, int, 
 typedef int (*liberasurecode_rs_vand_decode_func)(int *, char **, char **, int, int, int *, int, int);
 typedef int (*liberasurecode_rs_vand_reconstruct_func)(int *, char **, char **, int, int, int *, int, int);
 typedef void (*init_liberasurecode_rs_vand_func)(int, int);
-typedef void (*deinit_liberasurecode_rs_vand_func)();
+typedef void (*deinit_liberasurecode_rs_vand_func)(void);
 typedef void (*free_systematic_matrix_func)(int *);
 typedef int* (*make_systematic_matrix_func)(int, int);
 

@@ -118,11 +118,11 @@ esac],[debug=false])
 if test x$debug = xtrue ; then
     DEBUG=1
     CXXFLAGS=""
-    CFLAGS="-O0 -ggdb -g3 ${werror_flag} -D_GNU_SOURCE=1 -Wall -pedantic -std=c99 ${CFLAGS}"
+    CFLAGS="-O0 -ggdb -g3 ${werror_flag} -D_GNU_SOURCE=1 -Wall -Wstrict-prototypes -pedantic -std=c99 ${CFLAGS}"
 else
     DEBUG=0
     CXXFLAGS=""
-    CFLAGS="-O2 -g ${werror_flag} -D_GNU_SOURCE=1 -Wall -pedantic -std=c99 ${CFLAGS}"
+    CFLAGS="-O2 -g ${werror_flag} -D_GNU_SOURCE=1 -Wall -Wstrict-prototypes -pedantic -std=c99 ${CFLAGS}"
 fi
 
 AC_ARG_ENABLE([gcov],

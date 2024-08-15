@@ -29,7 +29,7 @@
 #include <string.h>
 #include <rs_galois.h>
 
-int test_inverse()
+int test_inverse(void)
 {
   int *uniq = (int*)malloc(sizeof(int)*FIELD_SIZE);
   int i = 0;

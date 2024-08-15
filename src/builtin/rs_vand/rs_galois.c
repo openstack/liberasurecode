@@ -45,7 +45,7 @@ int *log_table = NULL;
 int *ilog_table = NULL;
 int *ilog_table_begin = NULL;
 
-void rs_galois_init_tables()
+void rs_galois_init_tables(void)
 {
   log_table = (int*)malloc(sizeof(int)*FIELD_SIZE);
   ilog_table_begin = (int*)malloc(sizeof(int)*FIELD_SIZE*3);
@@ -65,7 +65,7 @@ void rs_galois_init_tables()
   ilog_table = &ilog_table_begin[GROUP_SIZE];
 }
 
-void rs_galois_deinit_tables()
+void rs_galois_deinit_tables(void)
 {
   free(log_table);
   free(ilog_table_begin);

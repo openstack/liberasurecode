@@ -461,7 +461,7 @@ static int run_test(int k, int m, int hd)
     return ret; 
 }
 
-int main()
+int main(void)
 {
     int ret = 0;
     int i;

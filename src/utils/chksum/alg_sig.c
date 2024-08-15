@@ -64,7 +64,7 @@ galois_uninit_field_func get_galois_uninit_func(void *handle) {
 }
 
 
-void *get_jerasure_sohandle()
+void *get_jerasure_sohandle(void)
 {
     return dlopen(JERASURE_SONAME, RTLD_LAZY | RTLD_LOCAL);
 }

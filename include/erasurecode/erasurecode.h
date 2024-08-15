@@ -383,7 +383,7 @@ int liberasurecode_get_fragment_size(int desc, int data_len);
  * @return version uint32_t - from erasurecode_version.h
  */
 
-uint32_t liberasurecode_get_version();
+uint32_t liberasurecode_get_version(void);
 
 /* ==~=*=~===~=*=~==~=*=~== liberasurecode Error codes =~=*=~==~=~=*=~==~== */
 
