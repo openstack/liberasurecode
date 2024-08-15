@@ -25,6 +25,7 @@
 #ifndef _ALG_SIG_H
 #define _ALG_SIG_H
 
+#include <stddef.h>
 typedef int (*galois_single_multiply_func)(int, int, int);
 typedef void (*galois_uninit_field_func)(int);
 
@@ -57,7 +58,7 @@ alg_sig_t *init_alg_sig(int sig_len, int gf_w);
 void destroy_alg_sig(alg_sig_t* alg_sig_handle);
 
 int compute_alg_sig(alg_sig_t* alg_sig_handle, char *buf, int len, char *sig);
-int liberasurecode_crc32_alt(int crc, const void *buf, int size);
+int liberasurecode_crc32_alt(int crc, const void *buf, size_t size);
 
 #endif
 
