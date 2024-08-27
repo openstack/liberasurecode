@@ -295,7 +295,7 @@ int test_reconstruct(int k, int m, int num_missing, int blocksize)
 
 int matrix_dimensions[][2] = { {12, 6}, {12, 3}, {12, 2}, {12, 1}, {5, 3}, {5, 2}, {5, 1}, {1, 1}, {-1, -1} };
 
-int main()
+int main(void)
 {
   int i = 0;
   int blocksize = 4096;

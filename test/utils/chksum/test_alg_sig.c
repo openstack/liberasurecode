@@ -80,7 +80,7 @@ int check_parity_of_sigs(char **sigs, int num_data, int size)
   return ret;
 }
 
-static int basic_xor_test_8_32()
+static int basic_xor_test_8_32(void)
 {
   int blocksize = 65536;
   int num_data = 12;
@@ -131,7 +131,7 @@ out:
   return ret;
 }
 
-static int basic_xor_test_16_64()
+static int basic_xor_test_16_64(void)
 {
   int blocksize = 65536;
   int num_data = 12;
@@ -182,7 +182,7 @@ out:
   return ret;
 }
 
-static int basic_xor_test_16_32()
+static int basic_xor_test_16_32(void)
 {
   int blocksize = 65536;
   int num_data = 12;
