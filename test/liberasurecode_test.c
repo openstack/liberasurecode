@@ -514,6 +514,25 @@ static void test_create_and_destroy_backend(
     assert(0 == liberasurecode_instance_destroy(desc));
 }
 
+static void test_create_and_destroy_multiple_backends(
+        ec_backend_id_t be_id,
+        struct ec_args *args)
+{
+    int desc1 = liberasurecode_instance_create(be_id, args);
+    int desc2;
+    if (-EBACKENDNOTAVAIL == desc1) {
+        fprintf(stderr, "Backend library not available!\n");
+        return;
+    }
+    assert(desc1 > 0);
+    desc2 = liberasurecode_instance_create(be_id, args);
+    assert(desc2 > 0);
+    assert(desc1 != desc2);
+    assert(0 == liberasurecode_instance_destroy(desc1));
+    /* TODO: check that we can still use desc2 */
+    assert(0 == liberasurecode_instance_destroy(desc2));
+}
+
 static void test_backend_available(void) {
     assert(1 == liberasurecode_backend_available(EC_BACKEND_NULL));
 }
@@ -1891,6 +1910,7 @@ static void test_metadata_crcs_be(void)
 /* Block of common tests for the "real" backends */
 #define TEST_SUITE(backend) \
     TEST({.with_args = test_create_and_destroy_backend},               backend, CHKSUM_NONE), \
+    TEST({.with_args = test_create_and_destroy_multiple_backends},     backend, CHKSUM_NONE), \
     TEST({.with_args = test_simple_encode_decode},                     backend, CHKSUM_NONE), \
     TEST({.with_args = test_decode_with_missing_data},                 backend, CHKSUM_NONE), \
     TEST({.with_args = test_decode_with_missing_parity},               backend, CHKSUM_NONE), \
