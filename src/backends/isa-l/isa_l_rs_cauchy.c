@@ -44,8 +44,6 @@
 #endif
 
 /* Forward declarations */
-struct ec_backend_op_stubs isa_l_rs_cauchy_ops;
-struct ec_backend isa_l_rs_cauchy;
 struct ec_backend_common backend_isa_l_rs_cauchy;
 
 static void * isa_l_rs_cauchy_init(struct ec_backend_args *args,
@@ -62,7 +60,7 @@ static bool isa_l_rs_cauchy_is_compatible_with(uint32_t version) {
     return version == backend_isa_l_rs_cauchy.ec_backend_version;
 }
 
-struct ec_backend_op_stubs isa_l_rs_cauchy_op_stubs = {
+static struct ec_backend_op_stubs isa_l_rs_cauchy_op_stubs = {
     .INIT                       = isa_l_rs_cauchy_init,
     .EXIT                       = isa_l_exit,
     .ENCODE                     = isa_l_encode,

@@ -134,26 +134,6 @@ typedef struct ec_backend {
 
 /* ~=*=~==~=*=~==~=*=~==~=*= frontend <-> backend API =*=~==~=*=~==~=*=~==~= */
 
-/* Register a backend instance with liberasurecode */
-int liberasurecode_backend_instance_register(ec_backend_t instance);
-
-/* Unregister a backend instance */
-int liberasurecode_backend_instance_unregister(ec_backend_t instance);
-
-
-/* Generic dlopen/dlclose routines */
-void* liberasurecode_backend_open(ec_backend_t instance);
-int liberasurecode_backend_close(ec_backend_t instance);
-
-
-/* Backend query interface */
-
-/* Name to ID mapping for EC backend */
-ec_backend_id_t liberasurecode_backend_lookup_id(const char *name);
-
-/* Get EC backend by name */
-ec_backend_t liberasurecode_backend_lookup_by_name(const char *name);
-
 /**
  * Look up a backend instance by descriptor
  *

@@ -30,10 +30,10 @@
 #define GALOIS_SINGLE_MULTIPLY "galois_single_multiply"
 #define GALOIS_UNINIT "galois_uninit_field"
 
-int valid_gf_w[] = { 8, 16, -1 };
-int valid_pairs[][2] = { { 8, 32}, {16, 32}, {16, 64}, {-1, -1} };
+/* valid GF w values: 8, 16 */
+static int valid_pairs[][2] = { { 8, 32}, {16, 32}, {16, 64}, {-1, -1} };
 
-galois_single_multiply_func get_galois_multi_func(void *handle) {
+static galois_single_multiply_func get_galois_multi_func(void *handle) {
     /*
      * ISO C forbids casting a void* to a function pointer.
      * Since dlsym return returns a void*, we use this union to
@@ -47,9 +47,9 @@ galois_single_multiply_func get_galois_multi_func(void *handle) {
     return func_handle.fptr;
 }
 
-void stub_galois_uninit_field(int w){}
+static void stub_galois_uninit_field(int w){}
 
-galois_uninit_field_func get_galois_uninit_func(void *handle) {
+static galois_uninit_field_func get_galois_uninit_func(void *handle) {
     /*
      * ISO C forbids casting a void* to a function pointer.
      * Since dlsym return returns a void*, we use this union to
@@ -64,12 +64,12 @@ galois_uninit_field_func get_galois_uninit_func(void *handle) {
 }
 
 
-void *get_jerasure_sohandle(void)
+static void *get_jerasure_sohandle(void)
 {
     return dlopen(JERASURE_SONAME, RTLD_LAZY | RTLD_LOCAL);
 }
 
-int load_gf_functions(void *sohandle, struct jerasure_mult_routines *routines)
+static int load_gf_functions(void *sohandle, struct jerasure_mult_routines *routines)
 {
     routines->galois_single_multiply = get_galois_multi_func(sohandle);
     routines->galois_uninit_field = get_galois_uninit_func(sohandle);

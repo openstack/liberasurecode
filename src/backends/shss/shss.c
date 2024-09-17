@@ -38,8 +38,6 @@
 #include "erasurecode_backend.h"
 
 /* Forward declarations */
-struct ec_backend shss;
-struct ec_backend_op_stubs shss_ops;
 struct ec_backend_common backend_shss;
 
 typedef int (*shss_encode_func)(char **, size_t, int, int, int, int, long long *);
@@ -290,7 +288,7 @@ static size_t shss_get_backend_metadata_size(void *desc, int blocksize) {
     return METADATA;
 }
 
-struct ec_backend_op_stubs shss_op_stubs = {
+static struct ec_backend_op_stubs shss_op_stubs = {
     .INIT                       = shss_init,
     .EXIT                       = shss_exit,
     .ENCODE                     = shss_encode,

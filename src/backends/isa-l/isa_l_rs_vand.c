@@ -43,8 +43,6 @@
 #endif
 
 /* Forward declarations */
-struct ec_backend_op_stubs isa_l_rs_vand_ops;
-struct ec_backend isa_l_rs_vand;
 struct ec_backend_common backend_isa_l_rs_vand;
 
 static void * isa_l_rs_vand_init(struct ec_backend_args *args,
@@ -61,7 +59,7 @@ static bool isa_l_rs_vand_is_compatible_with(uint32_t version) {
     return version == backend_isa_l_rs_vand.ec_backend_version;
 }
 
-struct ec_backend_op_stubs isa_l_rs_vand_op_stubs = {
+static struct ec_backend_op_stubs isa_l_rs_vand_op_stubs = {
     .INIT                       = isa_l_rs_vand_init,
     .EXIT                       = isa_l_exit,
     .ENCODE                     = isa_l_encode,

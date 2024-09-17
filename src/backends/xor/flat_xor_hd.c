@@ -46,8 +46,6 @@
 #define DEFAULT_W 32
 
 /* Forward declarations */
-struct ec_backend_op_stubs flat_xor_hd_ops;
-struct ec_backend flat_xor_hd;
 struct ec_backend_common backend_flat_xor_hd;
 
 typedef xor_code_t* (*init_xor_hd_code_func)(int, int, int);
@@ -169,7 +167,7 @@ static bool flat_xor_is_compatible_with(uint32_t version) {
     return version == backend_flat_xor_hd.ec_backend_version;
 }
 
-struct ec_backend_op_stubs flat_xor_hd_op_stubs = {
+static struct ec_backend_op_stubs flat_xor_hd_op_stubs = {
     .INIT                       = flat_xor_hd_init,
     .EXIT                       = flat_xor_hd_exit,
     .ENCODE                     = flat_xor_hd_encode,

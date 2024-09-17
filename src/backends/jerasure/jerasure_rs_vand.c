@@ -46,8 +46,6 @@
 #endif
 
 /* Forward declarations */
-struct ec_backend_op_stubs jerasure_rs_vand_ops;
-struct ec_backend jerasure_rs_vand;
 struct ec_backend_common backend_jerasure_rs_vand;
 
 typedef int* (*reed_sol_vandermonde_coding_matrix_func)(int, int, int);
@@ -359,7 +357,7 @@ static bool jerasure_rs_vand_is_compatible_with(uint32_t version) {
     return version == backend_jerasure_rs_vand.ec_backend_version;
 }
 
-struct ec_backend_op_stubs jerasure_rs_vand_op_stubs = {
+static struct ec_backend_op_stubs jerasure_rs_vand_op_stubs = {
     .INIT                       = jerasure_rs_vand_init,
     .EXIT                       = jerasure_rs_vand_exit,
     .ENCODE                     = jerasure_rs_vand_encode,

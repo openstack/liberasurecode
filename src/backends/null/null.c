@@ -42,8 +42,6 @@
 #define NULL_SO_NAME "libnullcode" LIBERASURECODE_SO_SUFFIX ".so.1"
 #endif
 /* Forward declarations */
-struct ec_backend null;
-struct ec_backend_op_stubs null_ops;
 
 typedef void* (*init_null_code_func)(int, int, int);
 typedef int (*null_code_encode_func)(void *, char **, char **, int);
@@ -215,7 +213,7 @@ static bool null_is_compatible_with(uint32_t version) {
     return true;
 }
 
-struct ec_backend_op_stubs null_op_stubs = {
+static struct ec_backend_op_stubs null_op_stubs = {
     .INIT                       = null_init,
     .EXIT                       = null_exit,
     .ENCODE                     = null_encode,

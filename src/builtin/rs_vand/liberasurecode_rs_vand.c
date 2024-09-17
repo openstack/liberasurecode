@@ -91,12 +91,12 @@ int is_identity_matrix(int *matrix, int n)
   return 1;
 }
 
-int* get_matrix_row(int *matrix, int row_idx, int num_cols)
+static int* get_matrix_row(int *matrix, int row_idx, int num_cols)
 {
   return &matrix[row_idx * num_cols];
 }
 
-void copy_row(int *from_matrix, int *to_matrix, int from_row_idx, int to_row_idx, int num_cols)
+static void copy_row(int *from_matrix, int *to_matrix, int from_row_idx, int to_row_idx, int num_cols)
 {
   int *from_row = get_matrix_row(from_matrix, from_row_idx, num_cols);
   int *to_row = get_matrix_row(to_matrix, to_row_idx, num_cols);
@@ -142,7 +142,7 @@ void deinit_liberasurecode_rs_vand(void)
   rs_galois_deinit_tables();
 }
 
-int * create_non_systematic_vand_matrix(int k, int m)
+static int * create_non_systematic_vand_matrix(int k, int m)
 {
   int rows = k + m;
   int cols = k;
@@ -169,7 +169,7 @@ int * create_non_systematic_vand_matrix(int k, int m)
 }
 
 // Swap the entries of two rows in a matrix
-void swap_matrix_rows(int *r1, int *r2, int num_cols)
+static void swap_matrix_rows(int *r1, int *r2, int num_cols)
 {
   int i;
   int tmp;
@@ -181,7 +181,7 @@ void swap_matrix_rows(int *r1, int *r2, int num_cols)
   }
 }
 
-void col_mult(int *matrix, int elem, int col_idx, int num_rows, int num_cols)
+static void col_mult(int *matrix, int elem, int col_idx, int num_rows, int num_cols)
 {
   int i;
 
@@ -191,7 +191,7 @@ void col_mult(int *matrix, int elem, int col_idx, int num_rows, int num_cols)
   }
 }
 
-void row_mult(int *matrix, int elem, int row_idx, int num_rows, int num_cols)
+static void row_mult(int *matrix, int elem, int row_idx, int num_rows, int num_cols)
 {
   int i, to_row = row_idx * num_cols;
 
@@ -201,7 +201,7 @@ void row_mult(int *matrix, int elem, int row_idx, int num_rows, int num_cols)
   }
 }
 
-void col_mult_and_add(int *matrix, int elem, int from_col, int to_col, int num_rows, int num_cols)
+static void col_mult_and_add(int *matrix, int elem, int from_col, int to_col, int num_rows, int num_cols)
 {
   int i;
 
@@ -212,7 +212,7 @@ void col_mult_and_add(int *matrix, int elem, int from_col, int to_col, int num_r
   }
 }
 
-void row_mult_and_add(int *matrix, int elem, int from_row, int to_row, int num_rows, int num_cols)
+static void row_mult_and_add(int *matrix, int elem, int from_row, int to_row, int num_rows, int num_cols)
 {
   int i;
   from_row = from_row * num_cols;
@@ -224,7 +224,7 @@ void row_mult_and_add(int *matrix, int elem, int from_row, int to_row, int num_r
   }
 }
 
-int get_non_zero_diagonal(int *matrix, int row, int num_rows, int num_cols)
+static int get_non_zero_diagonal(int *matrix, int row, int num_rows, int num_cols)
 {
   int i, row_idx;
 
@@ -337,7 +337,7 @@ int gaussj_inversion(int *matrix, int *inverse, int n)
   return 0;
 }
 
-void region_xor(char *from_buf, char *to_buf, int blocksize)
+static void region_xor(char *from_buf, char *to_buf, int blocksize)
 {
   int i;
 
@@ -355,7 +355,7 @@ void region_xor(char *from_buf, char *to_buf, int blocksize)
   }
 }
 
-void region_multiply(char *from_buf, char *to_buf, int mult, int xor, int blocksize)
+static void region_multiply(char *from_buf, char *to_buf, int mult, int xor, int blocksize)
 {
   int i;
   uint16_t *_from_buf = (uint16_t*)from_buf;
@@ -384,7 +384,7 @@ void region_multiply(char *from_buf, char *to_buf, int mult, int xor, int blocks
   }
 }
 
-void region_dot_product(char **from_bufs, char *to_buf, int *matrix_row, int num_entries, int blocksize)
+static void region_dot_product(char **from_bufs, char *to_buf, int *matrix_row, int num_entries, int blocksize)
 {
   int i;
 
@@ -411,7 +411,7 @@ int liberasurecode_rs_vand_encode(int *generator_matrix, char **data, char **par
   return 0;
 }
 
-char **get_first_k_available(char **data, char **parity, int *missing, int k)
+static char **get_first_k_available(char **data, char **parity, int *missing, int k)
 {
   int i, j;
   char **first_k_available = (char**)malloc(sizeof(char*)*k);

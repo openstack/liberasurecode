@@ -40,6 +40,5 @@
 void rs_galois_init_tables(void);
 void rs_galois_deinit_tables(void);
 int rs_galois_mult(int x, int y);
-int rs_galois_div(int x, int y);
 int rs_galois_inverse(int x);
 

@@ -53,7 +53,7 @@ extern struct ec_backend_common backend_liberasurecode_rs_vand;
 extern struct ec_backend_common backend_isa_l_rs_cauchy;
 extern struct ec_backend_common backend_libphazr;
 
-ec_backend_t ec_backends_supported[] = {
+static ec_backend_t ec_backends_supported[] = {
     (ec_backend_t) &backend_null,
     (ec_backend_t) &backend_jerasure_rs_vand,
     (ec_backend_t) &backend_jerasure_rs_cauchy,
@@ -66,19 +66,15 @@ ec_backend_t ec_backends_supported[] = {
     NULL,
 };
 
-/* backend list to return to the caller */
-int num_supported_backends = 0;
-char *ec_backends_supported_str[EC_BACKENDS_MAX];
-
 /* =~=*=~==~=*=~==~=*=~= EC backend instance management =~=*=~==~=*=~==~=*= */
 
 /* Registered erasure code backend instances */
-SLIST_HEAD(backend_list, ec_backend) active_instances =
+static SLIST_HEAD(backend_list, ec_backend) active_instances =
     SLIST_HEAD_INITIALIZER(active_instances);
-rwlock_t active_instances_rwlock = RWLOCK_INITIALIZER;
+static rwlock_t active_instances_rwlock = RWLOCK_INITIALIZER;
 
 /* Backend instance id */
-int next_backend_desc = 0;
+static int next_backend_desc = 0;
 
 /**
  * Look up a backend instance by descriptor
@@ -102,7 +98,7 @@ ec_backend_t liberasurecode_backend_instance_get_by_desc(int desc)
  * Returns a unique descriptor for a new backend.
  * The caller must hold active_instances_rwlock
  */
-int liberasurecode_backend_alloc_desc(void)
+static int liberasurecode_backend_alloc_desc(void)
 {
     for (;;) {
         if (++next_backend_desc <= 0)
@@ -119,7 +115,7 @@ int liberasurecode_backend_alloc_desc(void)
  *
  * @returns new backend descriptor
  */
-int liberasurecode_backend_instance_register(ec_backend_t instance)
+static int liberasurecode_backend_instance_register(ec_backend_t instance)
 {
     int desc = -1;  /* descriptor to return */
     int rc = 0;     /* return call value */
@@ -146,7 +142,7 @@ exit:
  *
  * @returns 0 on success, non-0 on error
  */
-int liberasurecode_backend_instance_unregister(ec_backend_t instance)
+static int liberasurecode_backend_instance_unregister(ec_backend_t instance)
 {
     int rc = 0;  /* return call value */
 
@@ -174,7 +170,7 @@ static void print_dlerror(const char *caller)
 }
 
 /* Generic dlopen/dlclose routines */
-void* liberasurecode_backend_open(ec_backend_t instance)
+static void* liberasurecode_backend_open(ec_backend_t instance)
 {
     if (NULL == instance)
         return NULL;
@@ -182,7 +178,7 @@ void* liberasurecode_backend_open(ec_backend_t instance)
     return dlopen(instance->common.soname, RTLD_LAZY | RTLD_LOCAL);
 }
 
-int liberasurecode_backend_close(ec_backend_t instance)
+static int liberasurecode_backend_close(ec_backend_t instance)
 {
     if (NULL == instance || NULL == instance->desc.backend_sohandle)
         return 0;
@@ -200,23 +196,10 @@ void __attribute__ ((constructor))
 liberasurecode_init(void) {
     /* init logging */
     openlog("liberasurecode", LOG_PID | LOG_CONS, LOG_USER);
-
-    /* populate supported backends list as a string */
-    {
-        int i;
-        for (i = 0; ec_backends_supported[i]; ++i) {
-            ec_backends_supported_str[i] = strdup(
-                    ec_backends_supported[i]->common.name);
-        }
-        num_supported_backends = i;
-    }
 }
 
 void __attribute__ ((destructor))
 liberasurecode_exit(void) {
-    int i;
-    for (i = 0; i < num_supported_backends; ++i)
-        free(ec_backends_supported_str[i]);
     closelog();
 }
 
@@ -1165,7 +1148,7 @@ int liberasurecode_verify_fragment_metadata(ec_backend_t be,
     return 0;
 }
 
-int is_invalid_fragment_metadata(int desc, fragment_metadata_t *fragment_metadata)
+static int is_invalid_fragment_metadata(int desc, fragment_metadata_t *fragment_metadata)
 {
     ec_backend_t be = liberasurecode_backend_instance_get_by_desc(desc);
     if (!be) {
