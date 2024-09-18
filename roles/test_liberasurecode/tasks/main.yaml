@@ -10,5 +10,6 @@
       make
       make test
       make valgrind-test
+      ./check-symbols.sh check
     executable: /bin/bash
     chdir: '{{ zuul.project.src_dir }}'
