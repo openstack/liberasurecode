@@ -10,8 +10,4 @@ T liberasurecode_rs_vand_encode
 T liberasurecode_rs_vand_reconstruct
 T make_systematic_matrix
 T print_matrix
-T rs_galois_deinit_tables
-T rs_galois_init_tables
-T rs_galois_inverse
-T rs_galois_mult
 T square_matrix_multiply

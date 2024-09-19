@@ -370,6 +370,7 @@ static struct ec_backend_op_stubs jerasure_rs_vand_op_stubs = {
     .GETENCODEOFFSET            = get_encode_offset_zero,
 };
 
+__attribute__ ((visibility ("internal")))
 struct ec_backend_common backend_jerasure_rs_vand = {
     .id                         = EC_BACKEND_JERASURE_RS_VAND,
     .name                       = JERASURE_RS_VAND_LIB_NAME,

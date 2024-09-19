@@ -300,6 +300,7 @@ static struct ec_backend_op_stubs liberasurecode_rs_vand_op_stubs = {
     .GETENCODEOFFSET            = get_encode_offset_zero,
 };
 
+__attribute__ ((visibility ("internal")))
 struct ec_backend_common backend_liberasurecode_rs_vand = {
     .id                         = EC_BACKEND_LIBERASURECODE_RS_VAND,
     .name                       = LIBERASURECODE_RS_VAND_LIB_NAME,

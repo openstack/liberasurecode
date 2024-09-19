@@ -180,6 +180,7 @@ static struct ec_backend_op_stubs flat_xor_hd_op_stubs = {
     .GETENCODEOFFSET            = get_encode_offset_zero,
 };
 
+__attribute__ ((visibility ("internal")))
 struct ec_backend_common backend_flat_xor_hd = {
     .id                         = EC_BACKEND_FLAT_XOR_HD,
     .name                       = FLAT_XOR_LIB_NAME,

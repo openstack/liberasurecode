@@ -40,26 +40,31 @@ static const int g_bit_lookup[] = {0x1, 0x2, 0x4, 0x8,
                                    0x1000000, 0x2000000, 0x4000000, 0x8000000,
                                    0x10000000, 0x20000000, 0x40000000, 0x80000000};
 
+__attribute__ ((visibility ("internal")))
 int is_data_in_parity(int data_idx, unsigned int parity_bm)
 {
   return ((g_bit_lookup[data_idx] & parity_bm) == g_bit_lookup[data_idx]);
 }
 
+__attribute__ ((visibility ("internal")))
 int does_parity_have_data(int parity_idx, unsigned int data_bm)
 {
   return ((g_bit_lookup[parity_idx] & data_bm) == g_bit_lookup[parity_idx]);
 }
 
+__attribute__ ((visibility ("internal")))
 int parity_bit_lookup(xor_code_t *code_desc, int index)
 {
   return g_bit_lookup[code_desc->k - index];
 }
 
+__attribute__ ((visibility ("internal")))
 int data_bit_lookup(xor_code_t *code_desc, int index)
 {
   return g_bit_lookup[index];
 }
 
+__attribute__ ((visibility ("internal")))
 int missing_elements_bm(xor_code_t *code_desc, int *missing_elements, int (*bit_lookup_func)(xor_code_t *code_desc, int index))
 {
   int i = 0;
@@ -73,6 +78,7 @@ int missing_elements_bm(xor_code_t *code_desc, int *missing_elements, int (*bit_
   return bm;
 }
 
+__attribute__ ((visibility ("internal")))
 failure_pattern_t get_failure_pattern(xor_code_t *code_desc, int *missing_idxs)
 {
   int i = 0;
@@ -127,6 +133,7 @@ failure_pattern_t get_failure_pattern(xor_code_t *code_desc, int *missing_idxs)
   return pattern;
 }
 
+__attribute__ ((visibility ("internal")))
 void fast_memcpy(char *dst, char *src, int size)
 {
     // Use _mm_stream_si128((__m128i*) _buf2, sum);
@@ -138,6 +145,7 @@ void fast_memcpy(char *dst, char *src, int size)
  *
  * Store in buf2 (opposite of memcpy convention...  Maybe change?)
  */
+__attribute__ ((visibility ("internal")))
 void xor_bufs_and_store(char *buf1, char *buf2, int blocksize)
 {
 #ifdef INTEL_SSE2
@@ -190,6 +198,7 @@ void xor_code_encode(xor_code_t *code_desc, char **data, char **parity, int bloc
   }
 }
 
+__attribute__ ((visibility ("internal")))
 void selective_encode(xor_code_t *code_desc, char **data, char **parity, int *missing_parity, int blocksize)
 {
   int i;
@@ -205,6 +214,7 @@ void selective_encode(xor_code_t *code_desc, char **data, char **parity, int *mi
   }
 }
 
+__attribute__ ((visibility ("internal")))
 int * get_missing_parity(xor_code_t *code_desc, int *missing_idxs)
 {
   int *missing_parity = (int*)malloc(sizeof(int)*MAX_PARITY);
@@ -222,6 +232,7 @@ int * get_missing_parity(xor_code_t *code_desc, int *missing_idxs)
   return missing_parity;
 }
 
+__attribute__ ((visibility ("internal")))
 int * get_missing_data(xor_code_t *code_desc, int *missing_idxs)
 {
   int *missing_data = (int*)malloc(sizeof(int)*MAX_DATA);
@@ -306,6 +317,7 @@ void xor_reconstruct_one(xor_code_t *code_desc, char **data, char **parity, int 
   free(missing_parity);
 }
 
+__attribute__ ((visibility ("internal")))
 int num_missing_data_in_parity(xor_code_t *code_desc, int parity_idx, int *missing_data)
 {
   int i = 0;
@@ -325,6 +337,7 @@ int num_missing_data_in_parity(xor_code_t *code_desc, int parity_idx, int *missi
   return num_missing_data;
 }
 
+__attribute__ ((visibility ("internal")))
 int index_of_connected_parity(xor_code_t *code_desc, int data_index, int *missing_parity, int *missing_data)
 {
   int parity_index = -1;
@@ -360,6 +373,7 @@ int index_of_connected_parity(xor_code_t *code_desc, int data_index, int *missin
   return parity_index > -1 ? parity_index + code_desc->k : parity_index;
 }
 
+__attribute__ ((visibility ("internal")))
 void remove_from_missing_list(int element, int *missing_list)
 {
   int i = 0;

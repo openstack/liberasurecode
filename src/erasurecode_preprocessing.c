@@ -33,6 +33,7 @@
 #include "erasurecode_preprocessing.h"
 #include "erasurecode_stdinc.h"
 
+__attribute__ ((visibility ("internal")))
 int prepare_fragments_for_encode(ec_backend_t instance,
         int k, int m,
         const char *orig_data, uint64_t orig_data_size, /* input */
@@ -117,6 +118,7 @@ out_error:
  * case, the caller has to free up in the success case, so it may as well do
  * so in the failure case.
  */
+__attribute__ ((visibility ("internal")))
 int prepare_fragments_for_decode(
         int k, int m,
         char **data, char **parity,
@@ -277,6 +279,7 @@ int get_fragment_partition(
     return (num_missing > m) ? -EINSUFFFRAGS : 0;
 }
 
+__attribute__ ((visibility ("internal")))
 int fragments_to_string(int k, int m,
         char **fragments, int num_fragments,
         char **orig_payload, uint64_t *payload_len)

@@ -462,6 +462,7 @@ static struct ec_backend_op_stubs jerasure_rs_cauchy_op_stubs = {
     .GETENCODEOFFSET            = get_encode_offset_zero,
 };
 
+__attribute__ ((visibility ("internal")))
 struct ec_backend_common backend_jerasure_rs_cauchy = {
     .id                         = EC_BACKEND_JERASURE_RS_CAUCHY,
     .name                       = JERASURE_RS_CAUCHY_LIB_NAME,

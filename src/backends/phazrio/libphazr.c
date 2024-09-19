@@ -377,6 +377,7 @@ static struct ec_backend_op_stubs libphazr_op_stubs = {
     .GETENCODEOFFSET            = pio_get_encode_offset,
 };
 
+__attribute__ ((visibility ("internal")))
 struct ec_backend_common backend_libphazr = {
     .id                         = EC_BACKEND_LIBPHAZR,
     .name                       = LIBPHAZR_LIB_NAME,

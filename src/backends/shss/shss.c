@@ -301,6 +301,7 @@ static struct ec_backend_op_stubs shss_op_stubs = {
     .GETENCODEOFFSET            = get_encode_offset_zero,
 };
 
+__attribute__ ((visibility ("internal")))
 struct ec_backend_common backend_shss = {
     .id                         = EC_BACKEND_SHSS,
     .name                       = SHSS_LIB_NAME,
