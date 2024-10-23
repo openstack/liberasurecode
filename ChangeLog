@@ -1,3 +1,11 @@
+Release 1.6.5
+-------------
+
+ . Fixed a segmentation fault when multiple liberasurecode_rs_vand descriptors
+   have been created then one of them is destroyed.
+ . Fixed several compiler warnings regarding strict prototypes.
+ . Other minor fixes and updates.
+
 Release 1.6.4
 -------------
 
