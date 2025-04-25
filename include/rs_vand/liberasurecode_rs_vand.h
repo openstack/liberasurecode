@@ -24,13 +24,10 @@
  * vi: set noai tw=79 ts=4 sw=4:
  */
 
-int* create_non_systematic_vand_matrix(int k, int m);
 void free_systematic_matrix(int *matrix);
 int* make_systematic_matrix(int k, int m);
 int is_missing(int *missing_idxs, int index_to_check);
 int gaussj_inversion(int *matrix, int *inverse, int n);
-int get_non_zero_diagonal(int *matrix, int row, int num_rows, int num_cols);
-int rs_galois_div(int x, int y);
 int rs_galois_inverse(int x);
 int rs_galois_mult(int x, int y);
 void init_liberasurecode_rs_vand(int k, int m);

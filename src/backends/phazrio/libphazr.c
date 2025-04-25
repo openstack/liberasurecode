@@ -45,8 +45,6 @@
 #endif
 
 /* Forward declarations */
-struct ec_backend libphazr;
-struct ec_backend_op_stubs libphazr_ops;
 struct ec_backend_common backend_libphazr;
 
 typedef int (*pio_matrix_encode_func)(char *, char *, char **, int, int, int, int, int, int);
@@ -366,7 +364,7 @@ static size_t pio_get_encode_offset(void *desc, int metadata_size)
 }
 
 
-struct ec_backend_op_stubs libphazr_op_stubs = {
+static struct ec_backend_op_stubs libphazr_op_stubs = {
     .INIT                       = pio_init,
     .EXIT                       = pio_exit,
     .ENCODE                     = pio_matrix_encode,

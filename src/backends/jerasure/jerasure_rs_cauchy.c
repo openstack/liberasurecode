@@ -46,8 +46,6 @@
 #endif
 
 /* Forward declarations */
-struct ec_backend_op_stubs jerasure_rs_cauchy_ops;
-struct ec_backend jerasure_rs_cauchy;
 struct ec_backend_common backend_jerasure_rs_cauchy;
 
 typedef int* (*cauchy_original_coding_matrix_func)(int, int, int);
@@ -451,7 +449,7 @@ static bool jerasure_rs_cauchy_is_compatible_with(uint32_t version) {
     return version == backend_jerasure_rs_cauchy.ec_backend_version;
 }
 
-struct ec_backend_op_stubs jerasure_rs_cauchy_op_stubs = {
+static struct ec_backend_op_stubs jerasure_rs_cauchy_op_stubs = {
     .INIT                       = jerasure_rs_cauchy_init,
     .EXIT                       = jerasure_rs_cauchy_exit,
     .ENCODE                     = jerasure_rs_cauchy_encode,

@@ -44,8 +44,6 @@
 #endif
 
 /* Forward declarations */
-struct ec_backend_op_stubs liberasurecode_rs_vand_ops;
-struct ec_backend liberasurecode_rs_vand;
 struct ec_backend_common backend_liberasurecode_rs_vand;
 
 typedef int (*liberasurecode_rs_vand_encode_func)(int *, char **, char **, int, int, int);
@@ -289,7 +287,7 @@ static bool liberasurecode_rs_vand_is_compatible_with(uint32_t version) {
     return version == backend_liberasurecode_rs_vand.ec_backend_version;
 }
 
-struct ec_backend_op_stubs liberasurecode_rs_vand_op_stubs = {
+static struct ec_backend_op_stubs liberasurecode_rs_vand_op_stubs = {
     .INIT                       = liberasurecode_rs_vand_init,
     .EXIT                       = liberasurecode_rs_vand_exit,
     .ENCODE                     = liberasurecode_rs_vand_encode,

@@ -41,9 +41,9 @@
 #define FIELD_SIZE (1 << 16)
 #define GROUP_SIZE (FIELD_SIZE - 1)
 
-int *log_table = NULL;
-int *ilog_table = NULL;
-int *ilog_table_begin = NULL;
+static int *log_table = NULL;
+static int *ilog_table = NULL;
+static int *ilog_table_begin = NULL;
 static int init_counter = 0;
 
 void rs_galois_init_tables(void)
@@ -98,7 +98,7 @@ int rs_galois_mult(int x, int y)
   return ilog_table[sum];
 }
 
-int rs_galois_div(int x, int y)
+static int rs_galois_div(int x, int y)
 {
   int diff;
   if (x == 0) return 0;
