@@ -213,6 +213,7 @@ alg_sig_t *init_alg_sig_w16(void *jerasure_sohandle, int sig_len)
     return alg_sig_handle;
 }
 
+__attribute__ ((visibility ("internal")))
 alg_sig_t *init_alg_sig(int sig_len, int gf_w)
 {
   int i=0;
@@ -243,6 +244,7 @@ alg_sig_t *init_alg_sig(int sig_len, int gf_w)
   return NULL;
 }
 
+__attribute__ ((visibility ("internal")))
 void destroy_alg_sig(alg_sig_t* alg_sig_handle)
 {
   if (alg_sig_handle == NULL) {
@@ -422,6 +424,7 @@ int compute_alg_sig_64(alg_sig_t *alg_sig_handle, char *buf, int len, char *sig)
   return -1;
 }
 
+__attribute__ ((visibility ("internal")))
 int compute_alg_sig(alg_sig_t *alg_sig_handle, char *buf, int len, char *sig)
 {
   if (alg_sig_handle->sig_len == 32) {

@@ -72,6 +72,7 @@ static struct ec_backend_op_stubs isa_l_rs_vand_op_stubs = {
     .GETENCODEOFFSET            = get_encode_offset_zero,
 };
 
+__attribute__ ((visibility ("internal")))
 struct ec_backend_common backend_isa_l_rs_vand = {
     .id                         = EC_BACKEND_ISA_L_RS_VAND,
     .name                       = ISA_L_RS_VAND_LIB_NAME,

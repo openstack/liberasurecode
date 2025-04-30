@@ -58,6 +58,7 @@ static bool is_fragment(char *buf)
  * The following methods provide wrappers for allocating and deallocating
  * memory.
  */
+__attribute__ ((visibility ("internal")))
 void *get_aligned_buffer16(int size)
 {
     void *buf;
@@ -81,6 +82,7 @@ void *get_aligned_buffer16(int size)
  * @param size integer size in bytes of buffer to allocate
  * @return pointer to start of allocated buffer or NULL on error
  */
+__attribute__ ((visibility ("internal")))
 void * alloc_zeroed_buffer(int size)
 {
     return alloc_and_set_buffer(size, 0);
@@ -113,6 +115,7 @@ void * alloc_and_set_buffer(int size, int value) {
  *
  * @return NULL
  */
+__attribute__ ((visibility ("internal")))
 void * check_and_free_buffer(void * buf)
 {
     if (buf)
@@ -120,6 +123,7 @@ void * check_and_free_buffer(void * buf)
     return NULL;
 }
 
+__attribute__ ((visibility ("internal")))
 char *alloc_fragment_buffer(int size)
 {
     char *buf;
@@ -136,6 +140,7 @@ char *alloc_fragment_buffer(int size)
     return buf;
 }
 
+__attribute__ ((visibility ("internal")))
 int free_fragment_buffer(char *buf)
 {
     fragment_header_t *header;
@@ -165,6 +170,7 @@ int free_fragment_buffer(char *buf)
  *
  * @return fragment size on disk
  */
+__attribute__ ((visibility ("internal")))
 uint64_t get_fragment_size(char *buf)
 {
 
@@ -182,6 +188,7 @@ uint64_t get_fragment_size(char *buf)
  * @param data_len - integer length of data in bytes
  * @return integer data length aligned with wordsize of EC algorithm
  */
+__attribute__ ((visibility ("internal")))
 int get_aligned_data_size(ec_backend_t instance, int data_len)
 {
     int k = instance->args.uargs.k;
@@ -215,6 +222,7 @@ char *get_data_ptr_from_fragment(char *buf)
     return buf;
 }
 
+__attribute__ ((visibility ("internal")))
 int get_data_ptr_array_from_fragments(char **data_array, char **fragments,
                                       int num_fragments)
 {
@@ -231,6 +239,7 @@ int get_data_ptr_array_from_fragments(char **data_array, char **fragments,
     return num;
 }
 
+__attribute__ ((visibility ("internal")))
 int get_fragment_ptr_array_from_data(char **frag_array, char **data,
                                      int num_data)
 {
@@ -247,6 +256,7 @@ int get_fragment_ptr_array_from_data(char **frag_array, char **data,
     return num;
 }
 
+__attribute__ ((visibility ("internal")))
 char *get_fragment_ptr_from_data_novalidate(char *buf)
 {
     buf -= sizeof(fragment_header_t);
@@ -254,6 +264,7 @@ char *get_fragment_ptr_from_data_novalidate(char *buf)
     return buf;
 }
 
+__attribute__ ((visibility ("internal")))
 char *get_fragment_ptr_from_data(char *buf)
 {
     fragment_header_t *header;
@@ -272,6 +283,7 @@ char *get_fragment_ptr_from_data(char *buf)
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
+__attribute__ ((visibility ("internal")))
 int set_fragment_idx(char *buf, int idx)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
@@ -287,6 +299,7 @@ int set_fragment_idx(char *buf, int idx)
     return 0;
 }
 
+__attribute__ ((visibility ("internal")))
 int get_fragment_idx(char *buf)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
@@ -300,6 +313,7 @@ int get_fragment_idx(char *buf)
     return header->meta.idx;
 }
 
+__attribute__ ((visibility ("internal")))
 int set_fragment_payload_size(char *buf, int size)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
@@ -315,6 +329,7 @@ int set_fragment_payload_size(char *buf, int size)
     return 0;
 }
 
+__attribute__ ((visibility ("internal")))
 int get_fragment_payload_size(char *buf)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
@@ -328,6 +343,7 @@ int get_fragment_payload_size(char *buf)
     return header->meta.size;
 }
 
+__attribute__ ((visibility ("internal")))
 int set_fragment_backend_metadata_size(char *buf, int size)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
@@ -343,6 +359,7 @@ int set_fragment_backend_metadata_size(char *buf, int size)
     return 0;
 }
 
+__attribute__ ((visibility ("internal")))
 int get_fragment_backend_metadata_size(char *buf)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
@@ -356,6 +373,7 @@ int get_fragment_backend_metadata_size(char *buf)
     return header->meta.frag_backend_metadata_size;
 }
 
+__attribute__ ((visibility ("internal")))
 int get_fragment_buffer_size(char *buf)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
@@ -369,6 +387,7 @@ int get_fragment_buffer_size(char *buf)
     return header->meta.size + header->meta.frag_backend_metadata_size;
 }
 
+__attribute__ ((visibility ("internal")))
 int set_orig_data_size(char *buf, int orig_data_size)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
@@ -384,6 +403,7 @@ int set_orig_data_size(char *buf, int orig_data_size)
     return 0;
 }
 
+__attribute__ ((visibility ("internal")))
 int get_orig_data_size(char *buf)
 {
     fragment_header_t *header = (fragment_header_t *) buf;
@@ -397,6 +417,7 @@ int get_orig_data_size(char *buf)
     return header->meta.orig_data_size;
 }
 
+__attribute__ ((visibility ("internal")))
 int set_libec_version(char *buf)
 {
     if (!is_fragment(buf)) {
@@ -417,6 +438,7 @@ int get_libec_version(char *buf, uint32_t *ver)
     return 0;
 }
 
+__attribute__ ((visibility ("internal")))
 int set_backend_id(char *buf, ec_backend_id_t id)
 {
     if (!is_fragment(buf)) {
@@ -437,6 +459,7 @@ int get_backend_id(char *buf, ec_backend_id_t *id)
     return 0;
 }
 
+__attribute__ ((visibility ("internal")))
 int set_backend_version(char *buf, uint32_t version)
 {
     if (!is_fragment(buf)) {
@@ -459,6 +482,7 @@ int get_backend_version(char *buf, uint32_t *version)
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
+__attribute__ ((visibility ("internal")))
 inline int set_checksum(ec_checksum_type_t ct, char *buf, int blocksize)
 {
     fragment_header_t* header = (fragment_header_t*) buf;

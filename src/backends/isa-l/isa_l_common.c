@@ -36,6 +36,7 @@
 #include "erasurecode_helpers_ext.h"
 #include "isa_l_common.h"
 
+__attribute__ ((visibility ("internal")))
 int isa_l_encode(void *desc, char **data, char **parity,
         int blocksize)
 {
@@ -176,6 +177,7 @@ static unsigned char* get_inverse_rows(int k,
     return inverse_rows;
 }
 
+__attribute__ ((visibility ("internal")))
 int isa_l_decode(void *desc, char **data, char **parity,
         int *missing_idxs, int blocksize)
 {
@@ -280,6 +282,7 @@ out:
     return ret;
 }
 
+__attribute__ ((visibility ("internal")))
 int isa_l_reconstruct(void *desc, char **data, char **parity,
         int *missing_idxs, int destination_idx, int blocksize)
 {
@@ -392,6 +395,7 @@ out:
     return ret;
 }
 
+__attribute__ ((visibility ("internal")))
 int isa_l_min_fragments(void *desc, int *missing_idxs,
         int *fragments_to_exclude, int *fragments_needed)
 {
@@ -424,11 +428,13 @@ int isa_l_min_fragments(void *desc, int *missing_idxs,
  *
  * Returns the size in bits!
  */
+__attribute__ ((visibility ("internal")))
 int isa_l_element_size(void* desc)
 {
   return 8;
 }
 
+__attribute__ ((visibility ("internal")))
 int isa_l_exit(void *desc)
 {
     isa_l_descriptor *isa_l_desc = NULL;
@@ -443,6 +449,7 @@ int isa_l_exit(void *desc)
 }
 
 
+__attribute__ ((visibility ("internal")))
 void * isa_l_common_init(struct ec_backend_args *args, void *backend_sohandle,
         const char* gen_matrix_func_name)
 {

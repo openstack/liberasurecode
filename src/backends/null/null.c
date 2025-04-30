@@ -226,6 +226,7 @@ static struct ec_backend_op_stubs null_op_stubs = {
     .GETENCODEOFFSET            = get_encode_offset_zero,
 };
 
+__attribute__ ((visibility ("internal")))
 struct ec_backend_common backend_null = {
     .id                         = EC_BACKEND_NULL,
     .name                       = NULL_LIB_NAME,

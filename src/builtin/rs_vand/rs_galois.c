@@ -46,6 +46,7 @@ static int *ilog_table = NULL;
 static int *ilog_table_begin = NULL;
 static int init_counter = 0;
 
+__attribute__ ((visibility ("internal")))
 void rs_galois_init_tables(void)
 {
   if (init_counter++ > 0) {
@@ -70,6 +71,7 @@ void rs_galois_init_tables(void)
   ilog_table = &ilog_table_begin[GROUP_SIZE];
 }
 
+__attribute__ ((visibility ("internal")))
 void rs_galois_deinit_tables(void)
 {
   init_counter--;
@@ -87,6 +89,7 @@ void rs_galois_deinit_tables(void)
   }
 }
 
+__attribute__ ((visibility ("internal")))
 int rs_galois_mult(int x, int y)
 {
   int sum;
@@ -111,6 +114,7 @@ static int rs_galois_div(int x, int y)
   return ilog_table[diff];
 }
 
+__attribute__ ((visibility ("internal")))
 int rs_galois_inverse(int x)
 {
   return rs_galois_div(1, x);

@@ -34,6 +34,7 @@
 #include "erasurecode_stdinc.h"
 #include "alg_sig.h"
 
+__attribute__ ((visibility ("internal")))
 void add_fragment_metadata(ec_backend_t be, char *fragment,
         int idx, uint64_t orig_data_size, int blocksize,
         ec_checksum_type_t ct, int add_chksum)
@@ -70,6 +71,7 @@ void add_fragment_metadata(ec_backend_t be, char *fragment,
     }
 }
 
+__attribute__ ((visibility ("internal")))
 int finalize_fragments_after_encode(ec_backend_t instance,
         int k, int m, int blocksize, uint64_t orig_data_size,
         char **encoded_data, char **encoded_parity)
