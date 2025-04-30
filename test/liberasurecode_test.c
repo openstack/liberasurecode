@@ -599,6 +599,51 @@ static void test_multi_thread_destroy_backend(
     free(rc2);
 }
 
+struct create_state {
+    ec_backend_id_t be_id;
+    struct ec_args *args;
+};
+
+void* create_backend_in_thread(void* arg)
+{
+    struct create_state *s = arg;
+    int *desc = malloc(sizeof(int));
+    *desc = liberasurecode_instance_create(s->be_id, s->args);
+    return desc;
+}
+
+static void test_multi_thread_create_backend(
+        ec_backend_id_t be_id,
+        struct ec_args *args)
+{
+    pthread_t tid1, tid2;
+    int *desc1, *desc2;
+
+    struct create_state s = {
+        be_id,
+        args
+    };
+    if (!liberasurecode_backend_available(be_id)) {
+        fprintf(stderr, "Backend library not available!\n");
+        return;
+    }
+
+    pthread_create(&tid1, NULL, create_backend_in_thread, &s);
+    pthread_create(&tid2, NULL, create_backend_in_thread, &s);
+    pthread_join(tid1, (void *) &desc1);
+    pthread_join(tid2, (void *) &desc2);
+    assert(*desc1 > 0);
+    assert(*desc2 > 0);
+    assert(*desc1 != *desc2);
+    /**
+     * Each can be destroyed, showing that each was properly added to the
+     * registry */
+    assert(0 == liberasurecode_instance_destroy(*desc1));
+    assert(0 == liberasurecode_instance_destroy(*desc2));
+    free(desc1);
+    free(desc2);
+}
+
 static void test_backend_available(void) {
     assert(1 == liberasurecode_backend_available(EC_BACKEND_NULL));
 }
@@ -2052,6 +2097,7 @@ static void test_metadata_crcs_be(void)
     TEST({.with_args = test_create_and_destroy_backend},               backend, CHKSUM_NONE), \
     TEST({.with_args = test_create_and_destroy_multiple_backends},     backend, CHKSUM_NONE), \
     TEST({.with_args = test_multi_thread_destroy_backend},             backend, CHKSUM_NONE), \
+    TEST({.with_args = test_multi_thread_create_backend},              backend, CHKSUM_NONE), \
     TEST({.with_args = test_simple_encode_decode},                     backend, CHKSUM_NONE), \
     TEST({.with_args = test_decode_with_missing_data},                 backend, CHKSUM_NONE), \
     TEST({.with_args = test_decode_with_missing_parity},               backend, CHKSUM_NONE), \
