@@ -13,7 +13,11 @@
 set -e
 
 get() {
-    nm --dynamic --defined-only $1 | cut -c18- | LC_COLLATE=C sort
+    if [ "$( uname -s )" == "Darwin" ]; then
+        nm $1 | cut -c18- | grep -v '^[a-zU]' | sed -e 's/ _/ /' | LC_COLLATE=C sort
+    else
+        nm --dynamic --defined-only $1 | cut -c18- | LC_COLLATE=C sort
+    fi
 }
 
 check() {
@@ -36,10 +40,16 @@ case $1 in
         exit 1
 esac
 
+if [ "$( uname -s )" == "Darwin" ]; then
+    ext=dylib
+else
+    ext=so
+fi
+
 rc=0
-for lib in $(find . -name '*.so') ; do
+for lib in $(find . -name '*.so' -or -name '*.dylib' -not -name '*.1.dylib') ; do
     echo "${func}ing $( basename $lib )"
-    if ! $func $lib $( basename ${lib/%.so/.sym} ) ; then
+    if ! $func $lib $( basename ${lib/%.$ext/.sym} ) ; then
         rc=1
         echo
     fi
