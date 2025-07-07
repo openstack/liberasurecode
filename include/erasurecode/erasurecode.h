@@ -50,6 +50,7 @@ typedef enum {
     EC_BACKEND_LIBERASURECODE_RS_VAND = 6,
     EC_BACKEND_ISA_L_RS_CAUCHY        = 7,
     EC_BACKEND_LIBPHAZR               = 8,
+    EC_BACKEND_ISA_L_RS_VAND_INV      = 9,
     EC_BACKENDS_MAX,
 } ec_backend_id_t;
 
