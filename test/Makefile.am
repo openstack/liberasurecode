@@ -1,5 +1,5 @@
 noinst_HEADERS = builtin/xor_codes/test_xor_hd_code.h
-noinst_PROGRAMS = test_xor_hd_code alg_sig_test liberasurecode_test libec_slap rs_galois_test liberasurecode_rs_vand_test
+noinst_PROGRAMS = test_xor_hd_code alg_sig_test liberasurecode_test libec_slap rs_galois_test liberasurecode_rs_vand_test liberasurecode_rs_isal_stress_test
 
 test_xor_hd_code_SOURCES = \
 	builtin/xor_codes/test_xor_hd_code.c \
@@ -33,6 +33,10 @@ liberasurecode_rs_vand_test_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/i
 liberasurecode_rs_vand_test_LDFLAGS = @GCOV_LDFLAGS@ -static-libtool-libs $(top_builddir)/src/builtin/rs_vand/liberasurecode_rs_vand.la
 check_PROGRAMS += liberasurecode_rs_vand_test
 
+liberasurecode_rs_isal_stress_test_SOURCES = liberasure_rs_isal_stress_test.c
+liberasurecode_rs_isal_stress_test_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/include/erasurecode  @GCOV_FLAGS@
+liberasurecode_rs_isal_stress_test_LDFLAGS = @GCOV_LDFLAGS@ $(top_builddir)/src/liberasurecode.la -ldl -lpthread -lz
+check_PROGRAMS += liberasurecode_rs_isal_stress_test
 MOSTLYCLEANFILES = *.gcda *.gcno *.gcov \
                    ./builtin/xor_codes/*.gcda ./builtin/xor_codes/*.gcno ./builtin/xor_codes/*.gcov \
                    ./utils/chksum/*.gcda ./utils/chksum/*.gcno ./utils/chksum/*.gcov
