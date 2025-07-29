@@ -86,6 +86,7 @@ failure_pattern_t get_failure_pattern(xor_code_t *code_desc, int *missing_idxs)
   failure_pattern_t pattern = FAIL_PATTERN_0D_0P;
 
   while (missing_idxs[i] > -1) {
+    num_failures++;
     if (num_failures >= code_desc->hd) {
       pattern = FAIL_PATTERN_GE_HD;
     }

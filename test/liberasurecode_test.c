@@ -1620,6 +1620,54 @@ static void test_flat_xor_hd3_init_failure(void)
     }
 }
 
+static void test_flat_xor_too_many_failures(void)
+{
+    int desc = -1;
+    int orig_data_size = 1024 * 1024;
+    char *orig_data = NULL;
+    char **encoded_data = NULL, **encoded_parity = NULL;
+    uint64_t encoded_fragment_len = 0;
+    uint64_t decoded_data_len = 0;
+    char *decoded_data = NULL;
+    char **avail_frags = NULL;
+    int num_avail_frags = 0;
+    int rc = -1;
+    struct ec_args bad_args[] = {
+        {.k = 5, .m = 5, .hd=3},
+        {.k = 5, .m = 5, .hd=4},
+    };
+    int *skip = create_skips_array(bad_args,-1);
+    skip[0] = skip[1] = skip[2] = skip[3] = 1;
+
+    for (int i = 0; i < sizeof(bad_args)/sizeof(bad_args[0]); ++i) {
+        desc = liberasurecode_instance_create(
+            EC_BACKEND_FLAT_XOR_HD, &bad_args[i]);
+        assert(desc > 0);
+        orig_data = create_buffer(orig_data_size, 'x');
+        assert(orig_data != NULL);
+        rc = liberasurecode_encode(desc, orig_data, orig_data_size,
+                &encoded_data, &encoded_parity, &encoded_fragment_len);
+        assert(0 == rc);
+
+        num_avail_frags = create_frags_array(&avail_frags, encoded_data,
+                                             encoded_parity, &bad_args[i], skip);
+        assert(num_avail_frags > 0);
+        rc = liberasurecode_decode(desc, avail_frags, num_avail_frags,
+                                   encoded_fragment_len, 1,
+                                   &decoded_data, &decoded_data_len);
+        assert(-1 == rc);
+        assert(decoded_data == NULL);
+        assert(decoded_data_len == 0);
+        rc = liberasurecode_encode_cleanup(desc, encoded_data, encoded_parity);
+        assert(rc == 0);
+
+        assert(0 == liberasurecode_instance_destroy(desc));
+        free(orig_data);
+        free(avail_frags);
+    }
+    free(skip);
+}
+
 static void test_simple_encode_decode(const ec_backend_id_t be_id,
                                      struct ec_args *args)
 {
@@ -1955,6 +2003,7 @@ struct testcase testcases[] = {
     // Flat XOR backend tests
     TEST_SUITE(EC_BACKEND_FLAT_XOR_HD),
     TEST({.no_args = test_flat_xor_hd3_init_failure}, EC_BACKENDS_MAX, 0),
+    TEST({.no_args = test_flat_xor_too_many_failures}, EC_BACKENDS_MAX, 0),
     // Jerasure RS Vand backend tests
     TEST_SUITE(EC_BACKEND_JERASURE_RS_VAND),
     TEST({.no_args = test_jerasure_rs_vand_simple_encode_decode_over32}, EC_BACKENDS_MAX, 0),

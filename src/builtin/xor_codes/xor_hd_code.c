@@ -370,6 +370,7 @@ int xor_hd_fragments_needed(xor_code_t *code_desc, int *fragments_to_reconstruct
       }
       case FAIL_PATTERN_GE_HD:
       default:
+        ret = -1;
         break;
     }
   }
@@ -646,6 +647,7 @@ int xor_hd_decode(xor_code_t *code_desc, char **data, char **parity, int *missin
       break;
     case FAIL_PATTERN_GE_HD:
     default:
+      ret = -1;
       break;
   }
 
