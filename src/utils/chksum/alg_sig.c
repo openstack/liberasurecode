@@ -183,6 +183,12 @@ alg_sig_t *init_alg_sig_w16(void *jerasure_sohandle, int sig_len)
     if (num_components >= 2) {
       alg_sig_handle->tbl1_l = (int*)malloc(sizeof(int) * num_gf_lr_table_syms);
       alg_sig_handle->tbl1_r = (int*)malloc(sizeof(int) * num_gf_lr_table_syms);
+      if (NULL == alg_sig_handle->tbl1_l || NULL == alg_sig_handle->tbl1_r) {
+        free(alg_sig_handle->tbl1_l);
+        free(alg_sig_handle->tbl1_r);
+        free(alg_sig_handle);
+        return NULL;
+      }
     }
 
     if (num_components >= 4) {
@@ -190,6 +196,15 @@ alg_sig_t *init_alg_sig_w16(void *jerasure_sohandle, int sig_len)
       alg_sig_handle->tbl2_r = (int*)malloc(sizeof(int) * num_gf_lr_table_syms);
       alg_sig_handle->tbl3_l = (int*)malloc(sizeof(int) * num_gf_lr_table_syms);
       alg_sig_handle->tbl3_r = (int*)malloc(sizeof(int) * num_gf_lr_table_syms);
+      if (NULL == alg_sig_handle->tbl2_l || NULL == alg_sig_handle->tbl2_r ||
+          NULL == alg_sig_handle->tbl3_l || NULL == alg_sig_handle->tbl3_r) {
+        free(alg_sig_handle->tbl2_l);
+        free(alg_sig_handle->tbl2_r);
+        free(alg_sig_handle->tbl3_l);
+        free(alg_sig_handle->tbl3_r);
+        free(alg_sig_handle);
+        return NULL;
+      }
     }
 
     /*
@@ -198,8 +213,10 @@ alg_sig_t *init_alg_sig_w16(void *jerasure_sohandle, int sig_len)
      * Note that \gamme = 8 (\alpha ^ 3 MOD 2^16)
      */
     for (i = 0; i < 256; i++) {
-      alg_sig_handle->tbl1_l[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned short) (i << 8), alpha, w);
-      alg_sig_handle->tbl1_r[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned short) i, alpha, w);
+      if (num_components >= 2) {
+        alg_sig_handle->tbl1_l[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned short) (i << 8), alpha, w);
+        alg_sig_handle->tbl1_r[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned short) i, alpha, w);
+      }
 
       if (num_components >= 4) {
         alg_sig_handle->tbl2_l[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned short) (i << 8), beta, w);
@@ -260,8 +277,10 @@ void destroy_alg_sig(alg_sig_t* alg_sig_handle)
 
   int num_components = alg_sig_handle->sig_len / alg_sig_handle->gf_w;
 
-  free(alg_sig_handle->tbl1_l);
-  free(alg_sig_handle->tbl1_r);
+  if (num_components >= 2) {
+    free(alg_sig_handle->tbl1_l);
+    free(alg_sig_handle->tbl1_r);
+  }
   if (num_components >= 4) {
     free(alg_sig_handle->tbl2_l);
     free(alg_sig_handle->tbl2_r);
