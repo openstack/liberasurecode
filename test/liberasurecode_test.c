@@ -40,6 +40,7 @@
 #define JERASURE_RS_VAND_BACKEND "jerasure_rs_vand"
 #define JERASURE_RS_CAUCHY_BACKEND "jerasure_rs_cauchy"
 #define ISA_L_RS_VAND_BACKEND "isa_l_rs_vand"
+#define ISA_L_RS_VAND_INV_BACKEND "isa_l_rs_vand_inv"
 #define ISA_L_RS_CAUCHY_BACKEND "isa_l_rs_cauchy"
 #define SHSS_BACKEND "shss"
 #define RS_VAND_BACKEND "liberasurecode_rs_vand"
@@ -174,9 +175,24 @@ struct ec_args isa_l_1010_args = {
     .hd = 11,
 };
 
+struct ec_args isa_l_75_args = {
+    .k = 7,
+    .m = 5,
+    .w = 8,
+    .hd = 6,
+};
+struct ec_args isa_l_85_args = {
+    .k = 8,
+    .m = 5,
+    .w = 8,
+    .hd = 6,
+};
+
 struct ec_args *isa_l_test_args[] = { &isa_l_args,
                                       &isa_l_44_args,
                                       &isa_l_1010_args,
+                                      &isa_l_75_args,
+                                      &isa_l_85_args,
                                       NULL };
 
 int priv = 128;
@@ -296,6 +312,8 @@ char * get_name_from_backend_id(ec_backend_id_t be) {
             return FLAT_XOR_HD_BACKEND;
         case EC_BACKEND_ISA_L_RS_VAND:
             return ISA_L_RS_VAND_BACKEND;
+        case EC_BACKEND_ISA_L_RS_VAND_INV:
+            return ISA_L_RS_VAND_INV_BACKEND;
         case EC_BACKEND_ISA_L_RS_CAUCHY:
             return ISA_L_RS_CAUCHY_BACKEND;
         case EC_BACKEND_SHSS:
@@ -333,6 +351,9 @@ struct ec_args *create_ec_args(ec_backend_id_t be, ec_checksum_type_t ct, int ba
             backend_args_array = flat_xor_test_args;
             break;
         case EC_BACKEND_ISA_L_RS_VAND:
+            backend_args_array = isa_l_test_args;
+            break;
+        case EC_BACKEND_ISA_L_RS_VAND_INV:
             backend_args_array = isa_l_test_args;
             break;
         case EC_BACKEND_ISA_L_RS_CAUCHY:
@@ -1485,6 +1506,32 @@ static void test_decode_with_missing_multi_data_parity(
     }
 }
 
+static void test_decode_with_missing_multi_data_parity_fail_with_isal(
+    const ec_backend_id_t be_id, struct ec_args *args)
+{
+    int i,j;
+    struct ec_args specific_75_args = {
+        .k = 7,
+        .m = 5,
+    };
+    int bad_positions[4][5] = {
+        {0, 3, 5, 9, 10 },
+        {0, 2, 5, 8, 9 },
+        {1, 3, 6, 8, 9},
+        {1, 4, 6, 9, 10}
+    };
+    for (i = 0; i < 4; i++) {
+        int *skips = create_skips_array(&specific_75_args,-1);
+        assert(skips != NULL);
+        for (j = 0; j < 5; j++) {
+            int skipped = bad_positions[i][j];
+            skips[skipped]=1;
+        }
+        encode_decode_test_impl(be_id, &specific_75_args, skips);
+        free(skips);
+    }
+}
+
 static void test_isa_l_rs_vand_decode_reconstruct_specific_error_case(void)
 {
     struct ec_args specific_1010_args = {
@@ -2015,6 +2062,10 @@ struct testcase testcases[] = {
     TEST({.no_args = test_isa_l_rs_vand_decode_reconstruct_specific_error_case}, EC_BACKENDS_MAX, 0),
     // ISA-L rs cauchy tests
     TEST_SUITE(EC_BACKEND_ISA_L_RS_CAUCHY),
+    TEST({.with_args = test_decode_with_missing_multi_data_parity_fail_with_isal},    EC_BACKEND_ISA_L_RS_CAUCHY, 0),
+    // ISA-L rs vand inv tests
+    TEST_SUITE(EC_BACKEND_ISA_L_RS_VAND_INV),
+    TEST({.with_args = test_decode_with_missing_multi_data_parity_fail_with_isal},    EC_BACKEND_ISA_L_RS_VAND_INV, 0),
     // shss tests
     TEST_SUITE(EC_BACKEND_SHSS),
     // Internal RS Vand backend tests

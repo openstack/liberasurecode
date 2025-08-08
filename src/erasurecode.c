@@ -52,6 +52,7 @@ extern struct ec_backend_common backend_shss;
 extern struct ec_backend_common backend_liberasurecode_rs_vand;
 extern struct ec_backend_common backend_isa_l_rs_cauchy;
 extern struct ec_backend_common backend_libphazr;
+extern struct ec_backend_common backend_isa_l_rs_vand_inv;
 
 static ec_backend_t ec_backends_supported[] = {
     (ec_backend_t) &backend_null,
@@ -63,6 +64,7 @@ static ec_backend_t ec_backends_supported[] = {
     (ec_backend_t) &backend_liberasurecode_rs_vand,
     (ec_backend_t) &backend_isa_l_rs_cauchy,
     (ec_backend_t) &backend_libphazr,
+    (ec_backend_t) &backend_isa_l_rs_vand_inv,
     NULL,
 };
 
