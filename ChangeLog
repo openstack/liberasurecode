@@ -1,3 +1,13 @@
+Release 1.7.0
+-------------
+
+ . Added a new ISA-L backend based on Vandermonde matrices but allowing optimal
+   codes even with more than four parity.
+ . Properly fail when there are too many failures for flat_xor_hd to handle.
+   Previously, this could segmentation fault or return corrupt data.
+ . Fixed compiler warning about maybe-uninitialized tables.
+ . Other minor fixes and updates.
+
 Release 1.6.5
 -------------
 
