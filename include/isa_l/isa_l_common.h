@@ -27,6 +27,8 @@
  * vi: set noai tw=79 ts=4 sw=4:
  */
 
+#include "erasurecode_backend.h"
+
 #define ISA_L_W 8
 
 /* Forward declarations */
