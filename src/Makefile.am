@@ -27,6 +27,7 @@ liberasurecode_la_SOURCES = \
 		backends/isa-l/isa_l_common.c \
 		backends/isa-l/isa_l_rs_vand.c \
 		backends/isa-l/isa_l_rs_vand_inv.c \
+		backends/isa-l/isa_l_rs_lrc.c \
 		backends/isa-l/isa_l_rs_cauchy.c \
 		backends/rs_vand/liberasurecode_rs_vand.c \
 		backends/shss/shss.c \

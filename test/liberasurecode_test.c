@@ -43,6 +43,7 @@
 #define JERASURE_RS_CAUCHY_BACKEND "jerasure_rs_cauchy"
 #define ISA_L_RS_VAND_BACKEND "isa_l_rs_vand"
 #define ISA_L_RS_VAND_INV_BACKEND "isa_l_rs_vand_inv"
+#define ISA_L_RS_LRC_BACKEND "isa_l_rs_lrc"
 #define ISA_L_RS_CAUCHY_BACKEND "isa_l_rs_cauchy"
 #define SHSS_BACKEND "shss"
 #define RS_VAND_BACKEND "liberasurecode_rs_vand"
@@ -197,6 +198,37 @@ struct ec_args *isa_l_test_args[] = { &isa_l_args,
                                       &isa_l_85_args,
                                       NULL };
 
+struct ec_args isa_l_lrc_75_args = {
+    .k = 7,
+    .m = 5,
+    .w = 8,
+    .hd =6,
+    .priv_args1.lrc_args.l = 2,
+};
+struct ec_args isa_l_lrc_84_args = {
+    .k = 8,
+    .m = 4,
+    .w = 8,
+    .hd = 5,
+    .priv_args1.lrc_args.l = 2,
+};
+
+struct ec_args isa_l_lrc_123_args = {
+    .k = 12,
+    .m = 12,
+    .w = 8,
+    .hd =13,
+    .priv_args1.lrc_args.l = 3,
+};
+struct ec_args isa_l_lrc_155_args = {
+    .k = 15,
+    .m = 5,
+    .w = 8,
+    .hd =5,
+    .priv_args1.lrc_args.l = 2,
+};
+struct ec_args *isa_l_lrc_test_args[] = { &isa_l_lrc_75_args, &isa_l_lrc_84_args, &isa_l_lrc_123_args,
+                                          &isa_l_lrc_155_args, NULL };
 int priv = 128;
 struct ec_args shss_args = {
     .k = 6,
@@ -316,6 +348,8 @@ char * get_name_from_backend_id(ec_backend_id_t be) {
             return ISA_L_RS_VAND_BACKEND;
         case EC_BACKEND_ISA_L_RS_VAND_INV:
             return ISA_L_RS_VAND_INV_BACKEND;
+        case EC_BACKEND_ISA_L_RS_LRC:
+            return ISA_L_RS_LRC_BACKEND;
         case EC_BACKEND_ISA_L_RS_CAUCHY:
             return ISA_L_RS_CAUCHY_BACKEND;
         case EC_BACKEND_SHSS:
@@ -357,6 +391,9 @@ struct ec_args *create_ec_args(ec_backend_id_t be, ec_checksum_type_t ct, int ba
             break;
         case EC_BACKEND_ISA_L_RS_VAND_INV:
             backend_args_array = isa_l_test_args;
+            break;
+        case EC_BACKEND_ISA_L_RS_LRC:
+            backend_args_array = isa_l_lrc_test_args;
             break;
         case EC_BACKEND_ISA_L_RS_CAUCHY:
             backend_args_array = isa_l_test_args;
@@ -1292,7 +1329,7 @@ static void encode_decode_test_impl(const ec_backend_id_t be_id,
  * and 5 are assumed unavailable.
  *
  * We only mark at most 2 as unavailable, as we cannot guarantee every situation
- * will be able to habndle 3 failures.
+ * will be able to handle 3 failures.
  */
 static void reconstruct_test_impl(const ec_backend_id_t be_id,
                                  struct ec_args *args,
@@ -1607,8 +1644,13 @@ static void test_decode_with_missing_parity(const ec_backend_id_t be_id,
 static void test_decode_with_missing_multi_data(const ec_backend_id_t be_id,
                                                 struct ec_args *args)
 {
-    int max_num_missing = args->k <= (args->hd - 1) ? args->k : args->hd - 1;
+
     int i,j;
+    int max_num_missing = args->k <= (args->hd - 1) ? args->k : args->hd - 1;
+    // for LRC backend, we test up to g+1 missing data, g is the nubmer of global parities.
+    if (be_id == EC_BACKEND_ISA_L_RS_LRC) {
+        max_num_missing = (args->m - args->priv_args1.lrc_args.l + 1);
+    }
     for (i = 0; i < args->k - max_num_missing + 1; i++) {
         int *skip = create_skips_array(args,-1);
         assert(skip != NULL);
@@ -1641,6 +1683,9 @@ static void test_decode_with_missing_multi_data_parity(
 {
     int i,j;
     int max_num_missing = args->hd - 1;
+    if (be_id == EC_BACKEND_ISA_L_RS_LRC) {
+        max_num_missing = (args->m - args->priv_args1.lrc_args.l + 1);
+    }
     int end = (args->k + args->m) - max_num_missing + 1;
     for (i = 0; i < end; i++) {
         int *skip = create_skips_array(args,-1);
@@ -2272,6 +2317,112 @@ static void test_metadata_crcs_be(void)
     assert(is_invalid_fragment_header((fragment_header_t *) header) == 1);
 }
 
+static void test_isa_l_rs_lrc_local_only_reconstruct(void)
+{
+    int rc = 0;
+    int desc = -1;
+    int orig_data_size = 1024 * 1024;
+    char *orig_data = NULL;
+    char **encoded_data = NULL, **encoded_parity = NULL;
+    uint64_t encoded_fragment_len = 0;
+    char **avail_frags = NULL;
+    int num_avail_frags = 0;
+    char *out = NULL;
+    int skip[] = {
+        0, 0, 0, 0, 0, 0, 0, 1, // local data group 1
+        1, 1, 1, 1, 1, 1, 1,    // local data group 2
+        1, 1, 1,                // global parities
+        0, 1,                   // local parities
+    };
+
+    desc = liberasurecode_instance_create(EC_BACKEND_ISA_L_RS_LRC, &isa_l_lrc_155_args);
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf(stderr, "Backend library not available!\n");
+        return;
+    }
+    assert(desc > 0);
+
+    orig_data = create_buffer(orig_data_size, 'x');
+    assert(orig_data != NULL);
+    rc = liberasurecode_encode(desc, orig_data, orig_data_size,
+            &encoded_data, &encoded_parity, &encoded_fragment_len);
+    assert(rc == 0);
+    out = malloc(encoded_fragment_len);
+    assert(out != NULL);
+    char *cmp = encoded_data[7];
+    num_avail_frags = create_frags_array(&avail_frags, encoded_data,
+                                     encoded_parity, &isa_l_lrc_155_args, skip);
+    memset(out, 0, encoded_fragment_len);
+    rc = liberasurecode_reconstruct_fragment(
+        desc, avail_frags, num_avail_frags, encoded_fragment_len, 7, out);
+    assert(rc == 0);
+    assert(memcmp(out, cmp, encoded_fragment_len) == 0);
+    free(avail_frags);
+
+    free(orig_data);
+    free(out);
+    liberasurecode_encode_cleanup(desc, encoded_data, encoded_parity);
+    liberasurecode_instance_destroy(desc);
+}
+
+static void test_isa_l_rs_lrc_combine_local_frags(void)
+{
+    int rc = 0;
+    int desc = -1;
+    int orig_data_size = 1024 * 1024;
+    char *orig_data = NULL;
+    char **encoded_data = NULL, **encoded_parity = NULL;
+    uint64_t encoded_fragment_len = 0;
+    char *decoded_data = NULL;
+    uint64_t decoded_data_len = 0;
+    char **avail_frags = NULL;
+    int num_avail_frags = 0;
+    char *out = NULL;
+    int skip[] = {
+        0, 0, 1, 0, 0, 0, 0, 1, // local data group 1
+        0, 0, 1, 0, 1, 0, 0,    // local data group 2
+        0, 0, 0,                // global parities
+        0, 0,                   // local parities
+    };
+
+    desc = liberasurecode_instance_create(EC_BACKEND_ISA_L_RS_LRC, &isa_l_lrc_155_args);
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf(stderr, "Backend library not available!\n");
+        return;
+    }
+    assert(desc > 0);
+
+    orig_data = create_buffer(orig_data_size, 'x');
+    assert(orig_data != NULL);
+    rc = liberasurecode_encode(desc, orig_data, orig_data_size,
+            &encoded_data, &encoded_parity, &encoded_fragment_len);
+    assert(rc == 0);
+    out = malloc(encoded_fragment_len);
+    assert(out != NULL);
+    num_avail_frags = create_frags_array(&avail_frags, encoded_data,
+                                     encoded_parity, &isa_l_lrc_155_args, skip);
+    memset(out, 0, encoded_fragment_len);
+
+    rc = liberasurecode_decode(desc, avail_frags, num_avail_frags,
+                               encoded_fragment_len, 1,
+                               &decoded_data, &decoded_data_len);
+    assert(0 == rc);
+    assert(decoded_data_len == orig_data_size);
+    assert(memcmp(decoded_data, orig_data, orig_data_size) == 0);
+
+    rc = liberasurecode_reconstruct_fragment(
+        desc, avail_frags, num_avail_frags, encoded_fragment_len, 2, out);
+    assert(rc == 0);
+    assert(memcmp(out, encoded_data[2], encoded_fragment_len) == 0);
+    free(avail_frags);
+
+    free(orig_data);
+    free(out);
+    liberasurecode_encode_cleanup(desc, encoded_data, encoded_parity);
+    liberasurecode_decode_cleanup(desc, decoded_data);
+    liberasurecode_instance_destroy(desc);
+}
+
 //static void test_verify_str
 
 /* An individual test, useful to ensure the reported name
@@ -2346,6 +2497,10 @@ struct testcase testcases[] = {
     // ISA-L rs vand inv tests
     TEST_SUITE(EC_BACKEND_ISA_L_RS_VAND_INV),
     TEST({.with_args = test_decode_with_missing_multi_data_parity_fail_with_isal},    EC_BACKEND_ISA_L_RS_VAND_INV, 0),
+    // ISA-L rs lrc tests
+    TEST_SUITE(EC_BACKEND_ISA_L_RS_LRC),
+    TEST({.no_args = test_isa_l_rs_lrc_local_only_reconstruct}, EC_BACKENDS_MAX, 0),
+    TEST({.no_args = test_isa_l_rs_lrc_combine_local_frags}, EC_BACKENDS_MAX, 0),
     // shss tests
     TEST_SUITE(EC_BACKEND_SHSS),
     // Internal RS Vand backend tests
