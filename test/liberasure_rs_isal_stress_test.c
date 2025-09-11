@@ -27,7 +27,9 @@
  */
 
 #include <assert.h>
+#include <fcntl.h>
 #include <stdbool.h>
+#include <unistd.h>
 #include "erasurecode.h"
 #include "erasurecode_helpers.h"
 #include "erasurecode_helpers_ext.h"
@@ -40,7 +42,14 @@ char *create_buffer(int size, int fill)
     if (buf == NULL) {
         return NULL;
     }
-    memset(buf, fill, size);
+    int urand = open("/dev/urandom", O_RDONLY);
+    if (urand < 0 || read(urand, buf, size) != size) {
+        for(size_t i = 0; i < size; i++)
+            buf[i] = rand() % 256;
+    }
+    if (urand >= 0) {
+        close(urand);
+    }
     return buf;
 }
 

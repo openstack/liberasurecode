@@ -27,7 +27,9 @@
  */
 
 #include <assert.h>
+#include <fcntl.h>
 #include <stdbool.h>
+#include <unistd.h>
 #include <zlib.h>
 #include "erasurecode.h"
 #include "erasurecode_helpers.h"
@@ -391,7 +393,17 @@ struct ec_args *create_ec_args(ec_backend_id_t be, ec_checksum_type_t ct, int ba
 char *create_buffer(int size, int fill)
 {
     char *buf = malloc(size);
-    memset(buf, fill, size);
+    if (buf == NULL) {
+        return NULL;
+    }
+    int urand = open("/dev/urandom", O_RDONLY);
+    if (urand < 0 || read(urand, buf, size) != size) {
+        for(size_t i = 0; i < size; i++)
+            buf[i] = rand() % 256;
+    }
+    if (urand >= 0) {
+        close(urand);
+    }
     return buf;
 }
 
