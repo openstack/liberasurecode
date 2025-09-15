@@ -29,6 +29,8 @@
 #ifndef _ERASURECODE_POSTPROCESSING_H_
 #define _ERASURECODE_POSTPROCESSING_H_
 
+#include "erasurecode_backend.h"
+
 int finalize_fragments_after_encode(ec_backend_t instance,
         int k, int m, int blocksize,  uint64_t orig_data_size,
         char **encoded_data, char **encoded_parity);
