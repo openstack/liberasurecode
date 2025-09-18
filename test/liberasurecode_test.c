@@ -700,6 +700,291 @@ static void test_multi_thread_create_backend(
     free(desc2);
 }
 
+
+
+struct decode_state {
+    int desc1;
+    int desc2;
+    char **available_fragments;
+    int num_fragments;
+    uint64_t fragment_len;
+};
+
+void* decode_in_thread(void* arg)
+{
+    struct decode_state *s = arg;
+    int *rc = malloc(sizeof(int));
+    char *decoded_data = NULL;
+    uint64_t decoded_data_len = 0;
+    *rc = liberasurecode_decode(s->desc1, s->available_fragments,
+            s->num_fragments, s->fragment_len, 0, /* force_metadata_checks */
+            &decoded_data, &decoded_data_len);
+    assert(0 == *rc || -EBACKENDNOTAVAIL == *rc);
+    if (*rc == 0) {
+        assert(liberasurecode_decode_cleanup(s->desc2, decoded_data) == 0);
+    }
+    return rc;
+}
+
+static void test_multi_thread_decode_and_destroy_backend(
+        ec_backend_id_t be_id,
+        struct ec_args *args)
+{
+    pthread_t tid1, tid2;
+    int *rc1, *rc2;
+    int desc = liberasurecode_instance_create(be_id, args);
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf(stderr, "Backend library not available!\n");
+        return;
+    }
+    assert(desc > 0);
+
+    int orig_data_size = 1024 * 1024;
+    char *orig_data = create_buffer(orig_data_size, 'x');
+    assert(orig_data != NULL);
+
+    char **encoded_data = NULL, **encoded_parity = NULL;
+    uint64_t encoded_fragment_len = 0;
+    int rc = liberasurecode_encode(desc, orig_data, orig_data_size,
+            &encoded_data, &encoded_parity, &encoded_fragment_len);
+    assert(rc == 0);
+
+    /* Create available fragments array using the same method as existing tests */
+    char **available_fragments = NULL;
+    int *skip = create_skips_array(args, -1);
+    assert(skip != NULL);
+    int num_avail_frags = create_frags_array(&available_fragments, encoded_data,
+                                            encoded_parity, args, skip);
+    assert(num_avail_frags > 0);
+
+    struct decode_state s = {
+        desc,
+        /* need a second descriptor so we can clean up
+         * even after first descriptor is destroyed */
+        liberasurecode_instance_create(be_id, args),
+        available_fragments,
+        num_avail_frags,
+        encoded_fragment_len
+    };
+    assert(s.desc2 > 0);
+
+    pthread_create(&tid2, NULL, decode_in_thread, &s);
+    pthread_create(&tid1, NULL, destroy_backend_in_thread, &desc);
+    pthread_join(tid1, (void *) &rc1);
+    pthread_join(tid2, (void *) &rc2);
+    /* The threads race, but destroy always succeeds */
+    assert(*rc1 == 0);
+
+    liberasurecode_encode_cleanup(s.desc2, encoded_data, encoded_parity);
+    assert(liberasurecode_instance_destroy(s.desc2) == 0);
+
+    free(available_fragments);
+    free(skip);
+    free(rc1);
+    free(rc2);
+    free(orig_data);
+}
+
+struct reconstruct_state {
+    int desc1;
+    int desc2;
+    char **available_fragments;
+    int num_fragments;
+    uint64_t fragment_len;
+    int missing_idx;
+    char *out_fragment;
+};
+
+void* reconstruct_in_thread(void* arg)
+{
+    struct reconstruct_state *s = arg;
+    int *rc = malloc(sizeof(int));
+    *rc = liberasurecode_reconstruct_fragment(s->desc1, s->available_fragments,
+            s->num_fragments, s->fragment_len, s->missing_idx, s->out_fragment);
+    assert(0 == *rc || -EBACKENDNOTAVAIL == *rc);
+    return rc;
+}
+
+static void test_multi_thread_reconstruct_and_destroy_backend(
+        ec_backend_id_t be_id,
+        struct ec_args *args)
+{
+    pthread_t tid1, tid2;
+    int *rc1, *rc2;
+    int desc = liberasurecode_instance_create(be_id, args);
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf(stderr, "Backend library not available!\n");
+        return;
+    }
+    assert(desc > 0);
+
+    int orig_data_size = 1024 * 1024;
+    char *orig_data = create_buffer(orig_data_size, 'x');
+    assert(orig_data != NULL);
+
+    char **encoded_data = NULL, **encoded_parity = NULL;
+    uint64_t encoded_fragment_len = 0;
+    int rc = liberasurecode_encode(desc, orig_data, orig_data_size,
+            &encoded_data, &encoded_parity, &encoded_fragment_len);
+    assert(rc == 0);
+
+    /* Create available fragments array with one missing fragment */
+    char **available_fragments = NULL;
+    int *skip = create_skips_array(args, -1);
+    assert(skip != NULL);
+    skip[0] = 1; /* skip first fragment */
+    int num_avail_frags = create_frags_array(&available_fragments, encoded_data,
+                                            encoded_parity, args, skip);
+    assert(num_avail_frags > 0);
+
+    /* Allocate output fragment buffer */
+    char *out_fragment = malloc(encoded_fragment_len);
+    assert(out_fragment != NULL);
+
+    struct reconstruct_state s = {
+        desc,
+        /* need a second descriptor so we can clean up
+         * even after first descriptor is destroyed */
+        liberasurecode_instance_create(be_id, args),
+        available_fragments,
+        num_avail_frags,
+        encoded_fragment_len,
+        0,  /* missing fragment index */
+        out_fragment
+    };
+    assert(s.desc2 > 0);
+
+    pthread_create(&tid2, NULL, reconstruct_in_thread, &s);
+    pthread_create(&tid1, NULL, destroy_backend_in_thread, &desc);
+    pthread_join(tid1, (void *) &rc1);
+    pthread_join(tid2, (void *) &rc2);
+    /* The threads race, but destroy always succeeds */
+    assert(*rc1 == 0);
+
+    liberasurecode_encode_cleanup(s.desc2, encoded_data, encoded_parity);
+    assert(liberasurecode_instance_destroy(s.desc2) == 0);
+
+    free(available_fragments);
+    free(out_fragment);
+    free(skip);
+    free(rc1);
+    free(rc2);
+    free(orig_data);
+}
+
+struct fragments_needed_state {
+    int desc1;
+    int desc2;
+    int *fragments_to_reconstruct;
+    int *fragments_to_exclude;
+    int *fragments_needed;
+};
+
+void* fragments_needed_in_thread(void* arg)
+{
+    struct fragments_needed_state *s = arg;
+    int *rc = malloc(sizeof(int));
+    *rc = liberasurecode_fragments_needed(s->desc1, s->fragments_to_reconstruct,
+            s->fragments_to_exclude, s->fragments_needed);
+    assert(0 == *rc || -EBACKENDNOTAVAIL == *rc);
+    return rc;
+}
+
+static void test_multi_thread_fragments_needed_and_destroy_backend(
+        ec_backend_id_t be_id,
+        struct ec_args *args)
+{
+    pthread_t tid1, tid2;
+    int *rc1, *rc2;
+    int desc = liberasurecode_instance_create(be_id, args);
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf(stderr, "Backend library not available!\n");
+        return;
+    }
+    assert(desc > 0);
+
+    int fragments_to_reconstruct[] = {0, -1};
+    int fragments_to_exclude[] = {-1};
+    int *fragments_needed = malloc(sizeof(int) * (args->k + args->m + 1));
+    assert(fragments_needed != NULL);
+
+    struct fragments_needed_state s = {
+        desc,
+        /* need a second descriptor so we can clean up
+         * even after first descriptor is destroyed */
+        liberasurecode_instance_create(be_id, args),
+        fragments_to_reconstruct,
+        fragments_to_exclude,
+        fragments_needed
+    };
+    assert(s.desc2 > 0);
+
+    pthread_create(&tid2, NULL, fragments_needed_in_thread, &s);
+    pthread_create(&tid1, NULL, destroy_backend_in_thread, &desc);
+    pthread_join(tid1, (void *) &rc1);
+    pthread_join(tid2, (void *) &rc2);
+    /* The threads race, but destroy always succeeds */
+    assert(*rc1 == 0);
+
+    assert(liberasurecode_instance_destroy(s.desc2) == 0);
+    free(fragments_needed);
+    free(rc1);
+    free(rc2);
+}
+
+struct get_fragment_size_state {
+    int desc1;
+    int desc2;
+    int data_len;
+};
+
+void* get_fragment_size_in_thread(void* arg)
+{
+    struct get_fragment_size_state *s = arg;
+    int *rc = malloc(sizeof(int));
+    *rc = liberasurecode_get_fragment_size(s->desc1, s->data_len);
+    /* This function returns size on success or negative error code on failure */
+    assert(*rc > 0 || *rc == -EBACKENDNOTAVAIL);
+    return rc;
+}
+
+static void test_multi_thread_get_fragment_size_and_destroy_backend(
+        ec_backend_id_t be_id,
+        struct ec_args *args)
+{
+    pthread_t tid1, tid2;
+    int *rc1, *rc2;
+    int desc = liberasurecode_instance_create(be_id, args);
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf(stderr, "Backend library not available!\n");
+        return;
+    }
+    assert(desc > 0);
+
+    struct get_fragment_size_state s = {
+        desc,
+        /* need a second descriptor so we can clean up
+         * even after first descriptor is destroyed */
+        liberasurecode_instance_create(be_id, args),
+        1024 * 1024  /* data length */
+    };
+    assert(s.desc2 > 0);
+
+    pthread_create(&tid2, NULL, get_fragment_size_in_thread, &s);
+    pthread_create(&tid1, NULL, destroy_backend_in_thread, &desc);
+    pthread_join(tid1, (void *) &rc1);
+    pthread_join(tid2, (void *) &rc2);
+    /* The threads race, but destroy always succeeds */
+    assert(*rc1 == 0);
+
+    assert(liberasurecode_instance_destroy(s.desc2) == 0);
+    free(rc1);
+    free(rc2);
+}
+
+
+
+
 static void test_backend_available(void) {
     assert(1 == liberasurecode_backend_available(EC_BACKEND_NULL));
 }
@@ -2156,6 +2441,10 @@ static void test_metadata_crcs_be(void)
     TEST({.with_args = test_multi_thread_create_backend},              backend, CHKSUM_NONE), \
     TEST({.with_args = test_simple_encode_decode},                     backend, CHKSUM_NONE), \
     TEST({.with_args = test_multi_thread_encode_and_destroy_backend},  backend, CHKSUM_NONE), \
+    TEST({.with_args = test_multi_thread_decode_and_destroy_backend},  backend, CHKSUM_NONE), \
+    TEST({.with_args = test_multi_thread_reconstruct_and_destroy_backend}, backend, CHKSUM_NONE), \
+    TEST({.with_args = test_multi_thread_fragments_needed_and_destroy_backend}, backend, CHKSUM_NONE), \
+    TEST({.with_args = test_multi_thread_get_fragment_size_and_destroy_backend}, backend, CHKSUM_NONE), \
     TEST({.with_args = test_decode_with_missing_data},                 backend, CHKSUM_NONE), \
     TEST({.with_args = test_decode_with_missing_parity},               backend, CHKSUM_NONE), \
     TEST({.with_args = test_decode_with_missing_multi_data},           backend, CHKSUM_NONE), \
