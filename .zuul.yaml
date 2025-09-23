@@ -8,6 +8,14 @@
     timeout: 2400
 
 - job:
+    name: liberasurecode-check-format
+    parent: liberasurecode-unittests
+    description: |
+      Check code formatting for liberasurecode.
+    vars:
+      make_target: check-format
+
+- job:
     name: liberasurecode-unittests-memcheck
     parent: liberasurecode-unittests
     description: |
@@ -76,6 +84,7 @@
 - project:
     check:
       jobs:
+        - liberasurecode-check-format
         - liberasurecode-check-symbols
         - liberasurecode-check-headers
         - liberasurecode-unittests
@@ -88,6 +97,7 @@
         - liberasurecode-unittests-arm64
     gate:
       jobs:
+        - liberasurecode-check-format
         - liberasurecode-check-symbols
         - liberasurecode-check-headers
         - liberasurecode-unittests

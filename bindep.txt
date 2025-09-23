@@ -9,5 +9,6 @@ gcc [platform:rpm]
 make [platform:rpm]
 autoconf
 automake
+clang-format-18 [platform:dpkg]
 libtool
 valgrind

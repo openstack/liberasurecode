@@ -76,6 +76,10 @@ check-symbols: all
 check-headers:
 	@find include -name '*.h' | xargs -L 1 gcc -Werror -I include -I include/erasurecode
 
+check-format:
+	clang-format-18 --version
+	git clang-format-18 --binary `which clang-format-18` --diff 76a551dc -- src include
+
 format:
 	clang-format-18 --version
 	git clang-format-18 --binary `which clang-format-18` 76a551dc -- src include
