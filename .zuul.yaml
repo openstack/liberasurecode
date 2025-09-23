@@ -10,13 +10,25 @@
     name: liberasurecode-unittests-memcheck
     parent: liberasurecode-unittests
     description: |
-      Build and run valgrind-test for liberasurecode.
+      Build and run memcheck-test for liberasurecode.
     dependencies:
       # Don't bother doing the more-intensive valgrind checks
       # if tests aren't even passing
       - liberasurecode-unittests
     vars:
-      make_target: valgrind-test
+      make_target: memcheck-test
+
+- job:
+    name: liberasurecode-unittests-helgrind
+    parent: liberasurecode-unittests
+    description: |
+      Build and run helgrind-test for liberasurecode.
+    dependencies:
+      # Don't bother doing the more-intensive valgrind checks
+      # if tests aren't even passing
+      - liberasurecode-unittests
+    vars:
+      make_target: helgrind-test
 
 - job:
     name: liberasurecode-check-symbols
@@ -57,6 +69,7 @@
         - liberasurecode-check-symbols
         - liberasurecode-unittests
         - liberasurecode-unittests-memcheck
+        - liberasurecode-unittests-helgrind
         - liberasurecode-unittests-centos-9-stream
         - liberasurecode-unittests-centos-9-stream-fips
     check-arm64:
@@ -67,5 +80,6 @@
         - liberasurecode-check-symbols
         - liberasurecode-unittests
         - liberasurecode-unittests-memcheck
+        - liberasurecode-unittests-helgrind
         - liberasurecode-unittests-centos-9-stream
         - liberasurecode-unittests-centos-9-stream-fips

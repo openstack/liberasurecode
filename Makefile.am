@@ -53,16 +53,22 @@ test: check
 	@./test/libec_slap
  
 LIBTOOL_COMMAND = $(LIBTOOL) --mode execute
-VALGRIND_EXEC_COMMAND = $(LIBTOOL_COMMAND) valgrind --tool=memcheck \
+MEMCHECK_EXEC_COMMAND = $(LIBTOOL_COMMAND) valgrind --tool=memcheck \
 	--error-exitcode=1 --leak-check=yes --track-fds=yes \
 	--malloc-fill=A5 --free-fill=DE --fullpath-after=. --trace-children=yes
 
-valgrind-test: check
-	@$(VALGRIND_EXEC_COMMAND) ./test/alg_sig_test
-	@$(VALGRIND_EXEC_COMMAND) ./test/liberasurecode_test
-	@$(VALGRIND_EXEC_COMMAND) ./test/liberasurecode_threaded_test
-	@$(VALGRIND_EXEC_COMMAND) ./test/test_xor_hd_code
-	@$(VALGRIND_EXEC_COMMAND) ./test/libec_slap
+memcheck-test: check
+	@$(MEMCHECK_EXEC_COMMAND) ./test/alg_sig_test
+	@$(MEMCHECK_EXEC_COMMAND) ./test/liberasurecode_test
+	@$(MEMCHECK_EXEC_COMMAND) ./test/liberasurecode_threaded_test
+	@$(MEMCHECK_EXEC_COMMAND) ./test/test_xor_hd_code
+	@$(MEMCHECK_EXEC_COMMAND) ./test/libec_slap
+
+HELGRIND_EXEC_COMMAND = $(LIBTOOL_COMMAND) valgrind --tool=helgrind \
+	--error-exitcode=1 --fullpath-after=. --trace-children=yes
+
+helgrind-test: check
+	@$(HELGRIND_EXEC_COMMAND) ./test/liberasurecode_threaded_test
 
 check-symbols: all
 	@./check-symbols.sh check
