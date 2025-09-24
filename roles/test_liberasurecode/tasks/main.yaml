@@ -7,9 +7,6 @@
       sudo ldconfig
       ./autogen.sh
       CONFIG_SHELL=/bin/sh ./configure
-      make
-      make test
-      make valgrind-test
-      ./check-symbols.sh check
+      make {{ make_target }}
     executable: /bin/bash
     chdir: '{{ zuul.project.src_dir }}'
