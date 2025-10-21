@@ -1458,9 +1458,9 @@ static void test_decode_with_missing_parity(const ec_backend_id_t be_id,
                                             struct ec_args *args)
 {
     int i;
-    int *skip = create_skips_array(args,args->k);
+    int *skip = create_skips_array(args, -1);
     assert(skip != NULL);
-    for (i = args->k; i < args->m; i++)
+    for (i = args->k; i < args->k + args->m; i++)
     {
         skip[i] = 1;
         encode_decode_test_impl(be_id, args, skip);
