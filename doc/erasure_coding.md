@@ -109,7 +109,7 @@ Provided by isa-l
 - `isa_l_rs_cauchy` (added in liberasurecode 1.4.0, pyeclib 1.4.0)
 
   Uses the Reed-Solomon functions provided by isa-l with
-  [an encoding matrix also provided by isa-l](https://github.com/intel/isa-l/blob/v2.31.1/erasure_code/ec_base.c#L78-L96).
+  [an encoding matrix also provided by isa-l](https://github.com/intel/isa-l/blob/v2.31.1/erasure_code/ec_base.c#L98-L114).
   Being a Cauchy matrix, it forms an optimal code for all `k` and `m`.
 
 Provided by jerasure
