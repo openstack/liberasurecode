@@ -1182,7 +1182,8 @@ static void test_get_fragment_partition(void)
     for(i = 0; i < null_args.m + 1; i++) assert(missing[i] == i);
     assert(missing[++i] == -1);
 
-    assert(rc < 0);
+    // get_fragment_partition is no longer responsible for deciding EINSUFFFRAGS
+    assert(rc == 0);
 
     free(missing);
     free(skips);

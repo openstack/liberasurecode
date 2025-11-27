@@ -880,6 +880,13 @@ int liberasurecode_reconstruct_fragment(int desc,
         goto destination_available;
     }
 
+    if (num_fragments < k) {
+        // TODO: In general, it is possible to reconstruct one or more fragments
+        // when more than m fragments are missing (e.g. flat XOR codes)
+        ret = -EINSUFFFRAGS;
+        goto out;
+    }
+
     /*
      * Preparing the fragments for reconstruction.  This will alloc aligned
      * buffers when unaligned buffers were passed in available_fragments.
