@@ -367,6 +367,7 @@ static size_t pio_get_encode_offset(void *desc, int metadata_size)
 static struct ec_backend_op_stubs libphazr_op_stubs = {
     .INIT                       = pio_init,
     .EXIT                       = pio_exit,
+    .ISSYSTEMATIC               = 0,
     .ENCODE                     = pio_matrix_encode,
     .DECODE                     = pio_matrix_decode,
     .FRAGSNEEDED                = pio_min_fragments,

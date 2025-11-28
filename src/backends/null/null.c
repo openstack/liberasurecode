@@ -216,6 +216,7 @@ static bool null_is_compatible_with(uint32_t version) {
 static struct ec_backend_op_stubs null_op_stubs = {
     .INIT                       = null_init,
     .EXIT                       = null_exit,
+    .ISSYSTEMATIC               = 1,
     .ENCODE                     = null_encode,
     .DECODE                     = null_decode,
     .FRAGSNEEDED                = null_min_fragments,

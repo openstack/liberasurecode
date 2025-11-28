@@ -64,6 +64,7 @@ struct ec_backend_args {
 #define RECONSTRUCT     reconstruct
 #define ELEMENTSIZE     element_size
 #define ISCOMPATIBLEWITH    is_compatible_with
+#define ISSYSTEMATIC        is_systematic
 #define GETMETADATASIZE     get_backend_metadata_size
 #define GETENCODEOFFSET     get_encode_offset
 
@@ -79,6 +80,9 @@ struct ec_backend_op_stubs {
 
     /* Private backend cleanup routine */
     int (*EXIT)(void *);
+
+    /* Flag for quick-decode optimization */
+    bool ISSYSTEMATIC;
 
     /* Backend stub declarations */
     int (*ENCODE)(void *desc,

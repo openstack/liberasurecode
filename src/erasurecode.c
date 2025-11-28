@@ -594,9 +594,7 @@ int liberasurecode_decode(int desc,
         }
     }
 
-    if (instance->common.id != EC_BACKEND_SHSS && instance->common.id != EC_BACKEND_LIBPHAZR) {
-        /* shss (ntt_backend) & libphazr backend must force to decode */
-        // TODO: Add a frag and function to handle whether the backend want to decode or not.
+    if (instance->common.ops->is_systematic) {
         /*
          * Try to re-assebmle the original data before attempting a decode
          */

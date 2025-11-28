@@ -452,6 +452,7 @@ static bool jerasure_rs_cauchy_is_compatible_with(uint32_t version) {
 static struct ec_backend_op_stubs jerasure_rs_cauchy_op_stubs = {
     .INIT                       = jerasure_rs_cauchy_init,
     .EXIT                       = jerasure_rs_cauchy_exit,
+    .ISSYSTEMATIC               = 1,
     .ENCODE                     = jerasure_rs_cauchy_encode,
     .DECODE                     = jerasure_rs_cauchy_decode,
     .FRAGSNEEDED                = jerasure_rs_cauchy_min_fragments,
