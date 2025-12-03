@@ -880,11 +880,20 @@ int liberasurecode_reconstruct_fragment(int desc,
         goto destination_available;
     }
 
-    if (num_fragments < k) {
-        // TODO: In general, it is possible to reconstruct one or more fragments
-        // when more than m fragments are missing (e.g. flat XOR codes)
-        ret = -EINSUFFFRAGS;
-        goto out;
+    if (instance->common.ops->check_reconstruct_fragments == NULL) {
+        if (num_fragments < k) {
+            ret = -EINSUFFFRAGS;
+            goto out;
+        }
+    } else {
+        ret = instance->common.ops->check_reconstruct_fragments(
+            instance->desc.backend_desc,
+            missing_idxs,
+            destination_idx
+        );
+        if (ret < 0) {
+            goto out;
+        }
     }
 
     /*

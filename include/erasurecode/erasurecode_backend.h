@@ -62,6 +62,7 @@ struct ec_backend_args {
 #define DECODE          decode
 #define FRAGSNEEDED     fragments_needed
 #define RECONSTRUCT     reconstruct
+#define CHECKRECONSTRUCTFRAGMENTS   check_reconstruct_fragments
 #define ELEMENTSIZE     element_size
 #define ISCOMPATIBLEWITH    is_compatible_with
 #define ISSYSTEMATIC        is_systematic
@@ -100,6 +101,13 @@ struct ec_backend_op_stubs {
 
     size_t (*GETMETADATASIZE)(void *desc, int blocksize);
     size_t (*GETENCODEOFFSET)(void *desc, int metadata_size);
+
+    /**
+     * Optional function to check whether caller provided enough fragments to
+     * reconstruct. Should return 0 for success or -EINSUFFFRAGS. If NULL,
+     * default to checking for at least k fragments.
+     */
+    int (*CHECKRECONSTRUCTFRAGMENTS)(void *desc, int *missing_idxs, int destination_idx);
 };
 
 /* ==~=*=~==~=*=~==~=*=~= backend struct definitions =~=*=~==~=*=~==~=*==~== */

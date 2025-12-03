@@ -32,6 +32,7 @@
 
 #include "erasurecode.h"
 #include "erasurecode_backend.h"
+#include "erasurecode_helpers.h"
 
 #define FLAT_XOR_LIB_MAJOR 1
 #define FLAT_XOR_LIB_MINOR 0
@@ -93,6 +94,55 @@ static int flat_xor_hd_reconstruct(void *desc,
     xor_code_t *xor_desc = (xor_code_t *) xdesc->xor_desc;
     return xor_reconstruct_one(xor_desc, data, parity,
                                missing_idxs, destination_idx, blocksize);
+}
+
+static int flat_xor_hd_check_reconstruct_fragments(void *desc,
+                                                   int *missing_idxs,
+                                                   int destination_idx)
+{
+    struct flat_xor_hd_descriptor *xdesc =
+        (struct flat_xor_hd_descriptor *) desc;
+
+    xor_code_t *xor_desc = (xor_code_t *) xdesc->xor_desc;
+
+    uint64_t missing_bm = convert_list_to_bitmap(missing_idxs);
+    int num_available = xor_desc->k + xor_desc->m;
+    for (int i = 0; i < EC_MAX_FRAGMENTS; i++)
+        if ((1LLU << i) & missing_bm)
+            num_available--;
+
+    if (xor_desc->hd == 3) {
+        if (num_available < 2)
+            return -EINSUFFFRAGS;
+
+        if (xor_desc->m == 5) {
+            if ((xor_desc->k == 8 || xor_desc->k == 9) && num_available < 3)
+                return -EINSUFFFRAGS;
+            if (xor_desc->k == 10 && num_available < 4)
+                return -EINSUFFFRAGS;
+        } else if (xor_desc->m == 6) {
+            if (xor_desc->k >= 9 && xor_desc->k <= 11 && num_available < 3)
+                return -EINSUFFFRAGS;
+            if (xor_desc->k >= 12 && xor_desc->k <= 14 && num_available < 4)
+                return -EINSUFFFRAGS;
+            if (xor_desc->k == 15 && num_available < 5)
+                return -EINSUFFFRAGS;
+        }
+    } else { /* hd == 4 */
+        if (num_available < 3)
+            return -EINSUFFFRAGS;
+
+        if (xor_desc->m == 5) {
+            if ((xor_desc->k == 7 || xor_desc->k == 8) && num_available < 4)
+                return -EINSUFFFRAGS;
+            if (xor_desc->k + xor_desc->m - num_available > 9)
+                return -EINSUFFFRAGS;
+        } else if (xor_desc->m == 6) {
+            if (num_available < (xor_desc->k + xor_desc->m) / 2 - 3)
+                return -EINSUFFFRAGS;
+        }
+    }
+    return 0;
 }
 
 static int flat_xor_hd_min_fragments(void *desc,
@@ -178,6 +228,7 @@ static struct ec_backend_op_stubs flat_xor_hd_op_stubs = {
     .ISCOMPATIBLEWITH           = flat_xor_is_compatible_with,
     .GETMETADATASIZE            = get_backend_metadata_size_zero,
     .GETENCODEOFFSET            = get_encode_offset_zero,
+    .CHECKRECONSTRUCTFRAGMENTS  = flat_xor_hd_check_reconstruct_fragments,
 };
 
 __attribute__ ((visibility ("internal")))
