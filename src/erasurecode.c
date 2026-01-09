@@ -110,35 +110,6 @@ static int liberasurecode_backend_alloc_desc(void)
     }
 }
 
-/**
- * Register a backend instance with liberasurecode
- *
- * @param instance - backend enum
- *
- * @returns new backend descriptor
- */
-static int liberasurecode_backend_instance_register(ec_backend_t instance)
-{
-    int desc = -1;  /* descriptor to return */
-    int rc = 0;     /* return call value */
-
-    rc = rwlock_wrlock(&active_instances_rwlock);
-    if (rc == 0) {
-        SLIST_INSERT_HEAD(&active_instances, instance, link);
-        desc = liberasurecode_backend_alloc_desc();
-        if (desc <= 0)
-            goto register_out;
-        instance->idesc = desc;
-    } else {
-        goto exit;
-    }
-
-register_out:
-    rwlock_unlock(&active_instances_rwlock);
-exit:
-    return desc;
-}
-
 /* =~=*=~==~=*=~== liberasurecode backend API helpers =~=*=~==~=*=~== */
 
 static void print_dlerror(const char *caller)
@@ -232,6 +203,8 @@ int liberasurecode_instance_create(const ec_backend_id_t id,
 {
     ec_backend_t instance = NULL;
     struct ec_backend_args bargs;
+    int desc = -1;  /* descriptor to return */
+    int rc = 0;     /* return call value */
     if (!args)
         return -EINVALIDPARAMS;
 
@@ -263,23 +236,42 @@ int liberasurecode_instance_create(const ec_backend_id_t id,
         if (!instance->desc.backend_sohandle) {
             /* ignore during init, return the same handle */
             print_dlerror(__func__);
+            liberasurecode_backend_close(instance);
             free(instance);
             return -EBACKENDNOTAVAIL;
         }
     }
 
-    /* Call private init() for the backend */
-    instance->desc.backend_desc = instance->common.ops->init(
-            &instance->args, instance->desc.backend_sohandle);
-    if (NULL == instance->desc.backend_desc) {
-        free (instance);
-        return -EBACKENDINITERR;
+    rc = rwlock_wrlock(&active_instances_rwlock);
+    if (rc == 0) {
+        /* Call private init() for the backend */
+        instance->desc.backend_desc = instance->common.ops->init(
+                &instance->args, instance->desc.backend_sohandle);
+        if (NULL == instance->desc.backend_desc) {
+            free(instance);
+            desc = -EBACKENDINITERR;
+            goto register_out;
+        }
+
+        instance->idesc = liberasurecode_backend_alloc_desc();
+        if (instance->idesc <= 0) {
+            instance->common.ops->exit(instance->desc.backend_desc);
+            liberasurecode_backend_close(instance);
+            free(instance);
+            goto register_out;
+        }
+        /* Register instance and return a descriptor/instance id */
+        desc = instance->idesc;
+        SLIST_INSERT_HEAD(&active_instances, instance, link);
+    } else {
+        free(instance);
+        goto exit;
     }
 
-    /* Register instance and return a descriptor/instance id */
-    instance->idesc = liberasurecode_backend_instance_register(instance);
-
-    return instance->idesc;
+register_out:
+    rwlock_unlock(&active_instances_rwlock);
+exit:
+    return desc;
 }
 
 /**
