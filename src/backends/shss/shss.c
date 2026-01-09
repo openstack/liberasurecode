@@ -291,6 +291,7 @@ static size_t shss_get_backend_metadata_size(void *desc, int blocksize) {
 static struct ec_backend_op_stubs shss_op_stubs = {
     .INIT                       = shss_init,
     .EXIT                       = shss_exit,
+    .ISSYSTEMATIC               = 0,
     .ENCODE                     = shss_encode,
     .DECODE                     = shss_decode,
     .FRAGSNEEDED                = shss_fragments_needed,

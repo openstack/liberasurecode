@@ -169,6 +169,7 @@ static bool flat_xor_is_compatible_with(uint32_t version) {
 static struct ec_backend_op_stubs flat_xor_hd_op_stubs = {
     .INIT                       = flat_xor_hd_init,
     .EXIT                       = flat_xor_hd_exit,
+    .ISSYSTEMATIC               = 1,
     .ENCODE                     = flat_xor_hd_encode,
     .DECODE                     = flat_xor_hd_decode,
     .FRAGSNEEDED                = flat_xor_hd_min_fragments,

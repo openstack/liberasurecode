@@ -290,6 +290,7 @@ static bool liberasurecode_rs_vand_is_compatible_with(uint32_t version) {
 static struct ec_backend_op_stubs liberasurecode_rs_vand_op_stubs = {
     .INIT                       = liberasurecode_rs_vand_init,
     .EXIT                       = liberasurecode_rs_vand_exit,
+    .ISSYSTEMATIC               = 1,
     .ENCODE                     = liberasurecode_rs_vand_encode,
     .DECODE                     = liberasurecode_rs_vand_decode,
     .FRAGSNEEDED                = liberasurecode_rs_vand_min_fragments,

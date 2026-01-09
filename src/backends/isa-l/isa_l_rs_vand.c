@@ -62,6 +62,7 @@ static bool isa_l_rs_vand_is_compatible_with(uint32_t version) {
 static struct ec_backend_op_stubs isa_l_rs_vand_op_stubs = {
     .INIT                       = isa_l_rs_vand_init,
     .EXIT                       = isa_l_exit,
+    .ISSYSTEMATIC               = 1,
     .ENCODE                     = isa_l_encode,
     .DECODE                     = isa_l_decode,
     .FRAGSNEEDED                = isa_l_min_fragments,

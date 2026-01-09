@@ -360,6 +360,7 @@ static bool jerasure_rs_vand_is_compatible_with(uint32_t version) {
 static struct ec_backend_op_stubs jerasure_rs_vand_op_stubs = {
     .INIT                       = jerasure_rs_vand_init,
     .EXIT                       = jerasure_rs_vand_exit,
+    .ISSYSTEMATIC               = 1,
     .ENCODE                     = jerasure_rs_vand_encode,
     .DECODE                     = jerasure_rs_vand_decode,
     .FRAGSNEEDED                = jerasure_rs_vand_min_fragments,
