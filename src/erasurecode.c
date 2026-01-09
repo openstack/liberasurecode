@@ -139,27 +139,6 @@ exit:
     return desc;
 }
 
-/**
- * Unregister a backend instance
- *
- * @returns 0 on success, non-0 on error
- */
-static int liberasurecode_backend_instance_unregister(ec_backend_t instance)
-{
-    int rc = 0;  /* return call value */
-
-    rc = rwlock_wrlock(&active_instances_rwlock);
-    if (rc == 0) {
-        SLIST_REMOVE(&active_instances, instance, ec_backend, link);
-    }  else {
-        goto exit;
-    }
-    rwlock_unlock(&active_instances_rwlock);
-
-exit:
-    return rc;
-}
-
 /* =~=*=~==~=*=~== liberasurecode backend API helpers =~=*=~==~=*=~== */
 
 static void print_dlerror(const char *caller)
@@ -313,22 +292,25 @@ int liberasurecode_instance_destroy(int desc)
     ec_backend_t instance = NULL;  /* instance to destroy */
     int rc = 0;                    /* return code */
 
-    instance = liberasurecode_backend_instance_get_by_desc(desc);
-    if (NULL == instance)
-        return -EBACKENDNOTAVAIL;
-
-    /* Call private exit() for the backend */
-    instance->common.ops->exit(instance->desc.backend_desc);
-
-    /* dlclose() backend library */
-    liberasurecode_backend_close(instance);
-
-    /* Remove instance from registry */
-    rc = liberasurecode_backend_instance_unregister(instance);
+    rc = rwlock_wrlock(&active_instances_rwlock);
     if (rc == 0) {
-        free(instance);
-    }
+        instance = liberasurecode_backend_instance_get_by_desc(desc);
+        if (NULL == instance) {
+            rwlock_unlock(&active_instances_rwlock);
+            return -EBACKENDNOTAVAIL;
+        }
 
+        /* Call private exit() for the backend */
+        instance->common.ops->exit(instance->desc.backend_desc);
+
+        /* dlclose() backend library */
+        liberasurecode_backend_close(instance);
+
+        /* Remove instance from registry */
+        SLIST_REMOVE(&active_instances, instance, ec_backend, link);
+        free(instance);
+        rwlock_unlock(&active_instances_rwlock);
+    }
     return rc;
 }
 

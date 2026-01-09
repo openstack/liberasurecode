@@ -566,6 +566,39 @@ static void test_create_and_destroy_multiple_backends(
     assert(0 == liberasurecode_instance_destroy(desc2));
 }
 
+void* destroy_backend_in_thread(void* arg)
+{
+    int *desc = arg;
+    int *rc = malloc(sizeof(int));
+    *rc = liberasurecode_instance_destroy(*desc);
+    assert(0 == *rc || -EBACKENDNOTAVAIL == *rc);
+    return rc;
+}
+
+static void test_multi_thread_destroy_backend(
+        ec_backend_id_t be_id,
+        struct ec_args *args)
+{
+    pthread_t tid1, tid2;
+    int *rc1, *rc2;
+    int desc = liberasurecode_instance_create(be_id, args);
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf(stderr, "Backend library not available!\n");
+        return;
+    }
+    assert(desc > 0);
+    pthread_create(&tid1, NULL, destroy_backend_in_thread, &desc);
+    pthread_create(&tid2, NULL, destroy_backend_in_thread, &desc);
+    pthread_join(tid1, (void *) &rc1);
+    pthread_join(tid2, (void *) &rc2);
+    /* The threads race; only one succeeds */
+    assert(*rc1 == 0 || *rc2 == 0);
+    /* The other fails with -EBACKENDNOTAVAIL */
+    assert(*rc1 == -EBACKENDNOTAVAIL || *rc2 == -EBACKENDNOTAVAIL);
+    free(rc1);
+    free(rc2);
+}
+
 static void test_backend_available(void) {
     assert(1 == liberasurecode_backend_available(EC_BACKEND_NULL));
 }
@@ -2018,6 +2051,7 @@ static void test_metadata_crcs_be(void)
 #define TEST_SUITE(backend) \
     TEST({.with_args = test_create_and_destroy_backend},               backend, CHKSUM_NONE), \
     TEST({.with_args = test_create_and_destroy_multiple_backends},     backend, CHKSUM_NONE), \
+    TEST({.with_args = test_multi_thread_destroy_backend},             backend, CHKSUM_NONE), \
     TEST({.with_args = test_simple_encode_decode},                     backend, CHKSUM_NONE), \
     TEST({.with_args = test_decode_with_missing_data},                 backend, CHKSUM_NONE), \
     TEST({.with_args = test_decode_with_missing_parity},               backend, CHKSUM_NONE), \
