@@ -599,6 +599,62 @@ static void test_multi_thread_destroy_backend(
     free(rc2);
 }
 
+struct encode_state {
+    int desc1;
+    int desc2;
+    int data_sz;
+    char *data;
+};
+
+void* encode_in_thread(void* arg)
+{
+    struct encode_state *s = arg;
+    int *rc = malloc(sizeof(int));
+    char **encoded_data = NULL, **encoded_parity = NULL;
+    uint64_t encoded_fragment_len = 0;
+    *rc = liberasurecode_encode(s->desc1, s->data, s->data_sz,
+            &encoded_data, &encoded_parity, &encoded_fragment_len);
+    assert(0 == *rc || -EBACKENDNOTAVAIL == *rc);
+    if (*rc == 0) {
+        assert(liberasurecode_encode_cleanup(s->desc2, encoded_data, encoded_parity) == 0);
+    }
+    return rc;
+}
+
+static void test_multi_thread_encode_and_destroy_backend(
+        ec_backend_id_t be_id,
+        struct ec_args *args)
+{
+    pthread_t tid1, tid2;
+    int *rc1, *rc2;
+    int desc = liberasurecode_instance_create(be_id, args);
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf(stderr, "Backend library not available!\n");
+        return;
+    }
+    assert(desc > 0);
+    int orig_data_size = 1024 * 1024;
+    struct encode_state s = {
+        desc,
+        /* need a second descriptor so we can clean up
+         * even after first descriptor is destroyed */
+        liberasurecode_instance_create(be_id, args),
+        orig_data_size,
+        create_buffer(orig_data_size, 'x')
+    };
+    assert(s.data != NULL);
+    pthread_create(&tid2, NULL, encode_in_thread, &s);
+    pthread_create(&tid1, NULL, destroy_backend_in_thread, &desc);
+    pthread_join(tid1, (void *) &rc1);
+    pthread_join(tid2, (void *) &rc2);
+    /* The threads race, but destroy always succeeds */
+    assert(*rc1 == 0);
+    assert(liberasurecode_instance_destroy(s.desc2) == 0);
+    free(rc1);
+    free(rc2);
+    free(s.data);
+}
+
 struct create_state {
     ec_backend_id_t be_id;
     struct ec_args *args;
@@ -2099,6 +2155,7 @@ static void test_metadata_crcs_be(void)
     TEST({.with_args = test_multi_thread_destroy_backend},             backend, CHKSUM_NONE), \
     TEST({.with_args = test_multi_thread_create_backend},              backend, CHKSUM_NONE), \
     TEST({.with_args = test_simple_encode_decode},                     backend, CHKSUM_NONE), \
+    TEST({.with_args = test_multi_thread_encode_and_destroy_backend},  backend, CHKSUM_NONE), \
     TEST({.with_args = test_decode_with_missing_data},                 backend, CHKSUM_NONE), \
     TEST({.with_args = test_decode_with_missing_parity},               backend, CHKSUM_NONE), \
     TEST({.with_args = test_decode_with_missing_multi_data},           backend, CHKSUM_NONE), \
