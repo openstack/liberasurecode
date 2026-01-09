@@ -254,11 +254,11 @@ int * get_missing_data(xor_code_t *code_desc, int *missing_idxs)
 /*
  * Reconstruct a single missing symbol, given other symbols may be missing
  */
-void xor_reconstruct_one(xor_code_t *code_desc, char **data, char **parity, int *missing_idxs, int index_to_reconstruct, int blocksize)
+int xor_reconstruct_one(xor_code_t *code_desc, char **data, char **parity, int *missing_idxs, int index_to_reconstruct, int blocksize)
 {
   int *missing_data = get_missing_data(code_desc, missing_idxs);
   int *missing_parity = get_missing_parity(code_desc, missing_idxs);
-  int i;
+  int i, ret;
 
   // If it is a data symbol, we need to figure out
   // what data+parity symbols are needed to reconstruct
@@ -282,10 +282,10 @@ void xor_reconstruct_one(xor_code_t *code_desc, char **data, char **parity, int 
           }
         }
       }
-
+      ret = 0;
     } else {
       // Just call decode
-      code_desc->decode(code_desc, data, parity, missing_idxs, blocksize, 1);
+      ret = code_desc->decode(code_desc, data, parity, missing_idxs, blocksize, 1);
     }
 
   } else {
@@ -308,14 +308,15 @@ void xor_reconstruct_one(xor_code_t *code_desc, char **data, char **parity, int 
           xor_bufs_and_store(data[i], parity[relative_parity_idx], blocksize);
         }
       }
-
+      ret = 0;
     } else {
       // Just call decode
-      code_desc->decode(code_desc, data, parity, missing_idxs, blocksize, 1);
+      ret = code_desc->decode(code_desc, data, parity, missing_idxs, blocksize, 1);
     }
   }
   free(missing_data);
   free(missing_parity);
+  return ret;
 }
 
 __attribute__ ((visibility ("internal")))

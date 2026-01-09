@@ -91,9 +91,8 @@ static int flat_xor_hd_reconstruct(void *desc,
         (struct flat_xor_hd_descriptor *) desc;
 
     xor_code_t *xor_desc = (xor_code_t *) xdesc->xor_desc;
-    xor_reconstruct_one(xor_desc, data, parity,
-                          missing_idxs, destination_idx, blocksize);
-    return 0;
+    return xor_reconstruct_one(xor_desc, data, parity,
+                               missing_idxs, destination_idx, blocksize);
 }
 
 static int flat_xor_hd_min_fragments(void *desc,
