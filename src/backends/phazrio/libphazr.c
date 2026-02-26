@@ -182,14 +182,15 @@ static int pio_min_fragments(void *desc, int *missing_idxs,
         int *fragments_to_exclude, int *fragments_needed)
 {
     struct libphazr_descriptor *xdesc = (struct libphazr_descriptor *)desc;
-    uint64_t exclude_bm = convert_list_to_bitmap(fragments_to_exclude);
-    uint64_t missing_bm = convert_list_to_bitmap(missing_idxs) | exclude_bm;
+    struct ec_bm missing_bm = NEW_BM;
+    convert_list_to_bitmap(fragments_to_exclude, &missing_bm);
+    convert_list_to_bitmap(missing_idxs, &missing_bm);
     int i;
     int j = 0;
     int ret = -1;
 
     for (i = 0; i < (xdesc->k + xdesc->m); i++) {
-        if (!(missing_bm & (1 << i))) {
+        if (!bm_get_value(&missing_bm, i)) {
             fragments_needed[j] = i;
             j++;
         }

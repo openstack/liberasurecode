@@ -32,7 +32,7 @@
 #include "erasurecode_stdinc.h"
 #include "erasurecode_version.h"
 
-#define EC_MAX_FRAGMENTS 32
+#define EC_MAX_FRAGMENTS 256
 
 #ifdef __cplusplus
 extern "C" {

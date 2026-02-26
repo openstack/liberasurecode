@@ -176,14 +176,16 @@ static int jerasure_rs_vand_min_fragments(void *desc, int *missing_idxs,
     struct jerasure_rs_vand_descriptor *jerasure_desc =
         (struct jerasure_rs_vand_descriptor*)desc;
 
-    uint64_t exclude_bm = convert_list_to_bitmap(fragments_to_exclude);
-    uint64_t missing_bm = convert_list_to_bitmap(missing_idxs) | exclude_bm;
+    struct ec_bm exclude_bm = NEW_BM, missing_bm = NEW_BM;
+    convert_list_to_bitmap(fragments_to_exclude, &exclude_bm);
+    convert_list_to_bitmap(missing_idxs, &missing_bm);
+    bm_combine_or(&exclude_bm, &missing_bm);
     int i;
     int j = 0;
     int ret = -1;
 
     for (i = 0; i < (jerasure_desc->k + jerasure_desc->m); i++) {
-        if (!(missing_bm & (1 << i))) {
+        if (!bm_get_value(&missing_bm, i)) {
             fragments_needed[j] = i;
             j++;
         }

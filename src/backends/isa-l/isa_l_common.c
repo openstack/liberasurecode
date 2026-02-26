@@ -57,10 +57,11 @@ static unsigned char* isa_l_get_decode_matrix(int k, int m, unsigned char *encod
     int i = 0, j = 0, l = 0;
     int n = k + m;
     unsigned char *decode_matrix = malloc(sizeof(unsigned char) * k * k);
-    uint64_t missing_bm = convert_list_to_bitmap(missing_idxs);
+    struct ec_bm missing_bm = NEW_BM;
+    convert_list_to_bitmap(missing_idxs, &missing_bm);
 
     while (i < k && l < n) {
-        if (((1 << l) & missing_bm) == 0) {
+        if (!bm_get_value(&missing_bm, l)) {
             for (j = 0; j < k; j++) {
                 decode_matrix[(k * i) + j] = encode_matrix[(k * l) + j];
             }
@@ -87,7 +88,8 @@ static unsigned char* get_inverse_rows(int k,
                                        int *missing_idxs,
                                        gf_mul_func gf_mul)
 {
-    uint64_t missing_bm = convert_list_to_bitmap(missing_idxs);
+    struct ec_bm missing_bm = NEW_BM;
+    convert_list_to_bitmap(missing_idxs, &missing_bm);
     int num_missing_elements = get_num_missing_elements(missing_idxs);
     unsigned char *inverse_rows = (unsigned char*)malloc(sizeof(unsigned
                                     char*) * k * num_missing_elements);
@@ -105,7 +107,7 @@ static unsigned char* get_inverse_rows(int k,
      * Fill in rows for missing data
      */
     for (i = 0; i < k; i++) {
-        if ((1 << i) & missing_bm) {
+        if (bm_get_value(&missing_bm, i)) {
             for (j = 0; j < k; j++) {
                 inverse_rows[(l * k) + j] = decode_inverse[(i * k) + j];
             }
@@ -129,12 +131,12 @@ static unsigned char* get_inverse_rows(int k,
      */
     for (i = k; i < n; i++) {
         // Parity is missing
-        if ((1 << i) & missing_bm) {
+        if (bm_get_value(&missing_bm, i)) {
             int d_idx_avail = 0;
             int d_idx_unavail = 0;
             for (j = 0; j < k; j++) {
                 // This data is available, so we can use the encode matrix
-                if (((1 << j) & missing_bm) == 0) {
+                if (!bm_get_value(&missing_bm, j)) {
                     inverse_rows[(l * k) + d_idx_avail] ^= encode_matrix[(i * k) + j];
                     d_idx_avail++;
                 } else {
@@ -171,7 +173,8 @@ int isa_l_decode(void *desc, char **data, char **parity,
     int i, j;
 
     int num_missing_elements = get_num_missing_elements(missing_idxs);
-    uint64_t missing_bm = convert_list_to_bitmap(missing_idxs);
+    struct ec_bm missing_bm = NEW_BM;
+    convert_list_to_bitmap(missing_idxs, &missing_bm);
 
     decode_matrix = isa_l_get_decode_matrix(k, m, isa_l_desc->matrix, missing_idxs);
 
@@ -210,7 +213,7 @@ int isa_l_decode(void *desc, char **data, char **parity,
 
     j = 0;
     for (i = 0; i < n; i++) {
-        if (missing_bm & (1 << i)) {
+        if (bm_get_value(&missing_bm, i)) {
             continue;
         }
         if (j == k) {
@@ -227,13 +230,13 @@ int isa_l_decode(void *desc, char **data, char **parity,
     // Grab pointers to memory needed for missing data fragments
     j = 0;
     for (i = 0; i < k; i++) {
-        if (missing_bm & (1 << i)) {
+        if (bm_get_value(&missing_bm, i)) {
             decoded_elements[j] = (unsigned char*)data[i];
             j++;
         }
     }
     for (i = k; i < n; i++) {
-        if (missing_bm & (1 << i)) {
+        if (bm_get_value(&missing_bm, i)) {
             decoded_elements[j] = (unsigned char*)parity[i - k];
             j++;
         }
@@ -273,7 +276,8 @@ int isa_l_reconstruct(void *desc, char **data, char **parity,
     int n = k + m;
     int ret = -1;
     int i, j;
-    uint64_t missing_bm = convert_list_to_bitmap(missing_idxs);
+    struct ec_bm missing_bm = NEW_BM;
+    convert_list_to_bitmap(missing_idxs, &missing_bm);
     int inverse_row = -1;
 
     /**
@@ -318,7 +322,7 @@ int isa_l_reconstruct(void *desc, char **data, char **parity,
 
     j = 0;
     for (i = 0; i < n; i++) {
-        if (missing_bm & (1 << i)) {
+        if (bm_get_value(&missing_bm, i)) {
             continue;
         }
         if (j == k) {
@@ -337,7 +341,7 @@ int isa_l_reconstruct(void *desc, char **data, char **parity,
      */
     j = 0;
     for (i = 0; i < n; i++) {
-        if (missing_bm & (1 << i)) {
+        if (bm_get_value(&missing_bm, i)) {
             if (i == destination_idx) {
                 if (i < k) {
                     reconstruct_buf = (unsigned char*)data[i];
@@ -376,14 +380,16 @@ int isa_l_min_fragments(void *desc, int *missing_idxs,
 {
     isa_l_descriptor *isa_l_desc = (isa_l_descriptor*)desc;
 
-    uint64_t exclude_bm = convert_list_to_bitmap(fragments_to_exclude);
-    uint64_t missing_bm = convert_list_to_bitmap(missing_idxs) | exclude_bm;
+    struct ec_bm exclude_bm = NEW_BM, missing_bm = NEW_BM;
+    convert_list_to_bitmap(fragments_to_exclude, &exclude_bm);
+    convert_list_to_bitmap(missing_idxs, &missing_bm);
+    bm_combine_or(&exclude_bm, &missing_bm);
     int i;
     int j = 0;
     int ret = -1;
 
     for (i = 0; i < (isa_l_desc->k + isa_l_desc->m); i++) {
-        if (!(missing_bm & (1 << i))) {
+        if (!bm_get_value(&missing_bm, i)) {
             fragments_needed[j] = i;
             j++;
         }

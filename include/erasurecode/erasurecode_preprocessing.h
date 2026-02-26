@@ -43,7 +43,7 @@ int prepare_fragments_for_decode(
         char **data, char **parity,
         int *missing_idxs,
         int *orig_size, int *fragment_payload_size, int fragment_size,
-        uint64_t *realloc_bm);
+        struct ec_bm *realloc_bm);
 
 int get_fragment_partition(
         int k, int m,

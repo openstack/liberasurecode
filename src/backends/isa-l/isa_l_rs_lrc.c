@@ -228,19 +228,20 @@ error:
 
 static int isa_l_rs_lrc_check_reconstruct_fragments(void *desc, int *missing_idxs, int destination_idx) {
     isa_l_descriptor *d = (isa_l_descriptor*)desc;
-    uint64_t missing_bm = convert_list_to_bitmap(missing_idxs);
+    struct ec_bm missing_bm = NEW_BM;
+    convert_list_to_bitmap(missing_idxs, &missing_bm);
     int missing_locals, local_group;
     if (destination_idx < d->k) {
         local_group = local_group_for_data(d->k, d->l, destination_idx);
         int local_parity_index = d->k + d->m - d->l + local_group;
-        missing_locals = (1 << local_parity_index) & missing_bm;
+        missing_locals = bm_get_value(&missing_bm, local_parity_index);
         for (
             int i = local_group_data_lower(d->k, d->l, local_group);
             i < local_group_data_upper(d->k, d->l, local_group);
             i++
         ) {
             if (i != destination_idx)
-                missing_locals |= (1 << i) & missing_bm;
+                missing_locals |= bm_get_value(&missing_bm, i);
         }
         if (!missing_locals) {
             return 0;
@@ -253,7 +254,7 @@ static int isa_l_rs_lrc_check_reconstruct_fragments(void *desc, int *missing_idx
             i < local_group_data_upper(d->k, d->l, local_group);
             i++
         ) {
-            missing_locals |= (1 << i) & missing_bm;
+            missing_locals |= bm_get_value(&missing_bm, i);
         }
         if (!missing_locals) {
             return 0;
@@ -261,21 +262,22 @@ static int isa_l_rs_lrc_check_reconstruct_fragments(void *desc, int *missing_idx
     }
 
     // if we haven't returned yet, we can't do local-only reconstruction
-    int useful_frags = 0, can_use_local_parity = 0;
+    int useful_frags = 0;
+    struct ec_bm can_use_local_parity = NEW_BM;
     for (int i = 0; i < d->k + d->m; i++) {
         if (i < d->k) {
-            if ((1 << i) & missing_bm) {
+            if (bm_get_value(&missing_bm, i)) {
                 local_group = local_group_for_data(d->k, d->l, i);
-                can_use_local_parity |= 1 << (d->k + d->m - d->l + local_group);
+                bm_set_value(&can_use_local_parity, d->k + d->m - d->l + local_group, 1);
             } else {
                 useful_frags++;
             }
         } else if (i >= d->k + d->m - d->l) {
-            if ((1 << i) & can_use_local_parity && !((1 << i) & missing_bm)) {
+            if (bm_get_value(&can_use_local_parity, i) && !bm_get_value(&missing_bm, i)) {
                 useful_frags++;
             }
         } else {
-            if (!((1 << i) & missing_bm)) {
+            if (!bm_get_value(&missing_bm, i)) {
                 useful_frags++;
             }
         }
@@ -303,12 +305,12 @@ static unsigned char* get_lrc_inverse_rows(int k,
                                        int missing_local_parity,
                                        unsigned char *decode_inverse,
                                        unsigned char* encode_matrix,
-                                       uint64_t missing_bm,
+                                       struct ec_bm *missing_bm,
                                        gf_mul_func gf_mul)
 {
     int num_missing_elements = 0;
     for (int i = 0; i < EC_MAX_FRAGMENTS; i++)
-        if ((1LLU << i) & missing_bm)
+        if (bm_get_value(missing_bm, i))
             num_missing_elements++;
     unsigned char *inverse_rows = (unsigned char*)malloc(sizeof(unsigned
                                     char*) * k * num_missing_elements);
@@ -331,7 +333,7 @@ static unsigned char* get_lrc_inverse_rows(int k,
      * Fill in rows for missing data
      */
     for (i = 0; i < matrix_size; i++) {
-        if ((1 << i) & (missing_bm>>min_range)) {
+        if (bm_get_value(missing_bm, i + min_range)) {
             for (j = 0; j < matrix_size; j++) {
                 inverse_rows[(l * matrix_size) + j] = decode_inverse[(i * matrix_size) + j];
             }
@@ -355,12 +357,12 @@ static unsigned char* get_lrc_inverse_rows(int k,
      */
     for (i = k; i < n; i++) {
         // Parity is missing
-        if ((1 << i) & (missing_bm)) {
+        if (bm_get_value(missing_bm, i)) {
             int d_idx_avail = 0;
             int d_idx_unavail = 0;
             for (j = min_range; j < max_range; j++) {
                 // This data is available, so we can use the encode matrix
-                if (((1 << j) & (missing_bm)) == 0) {
+                if (!bm_get_value(missing_bm, j)) {
                     inverse_rows[(l * matrix_size) + d_idx_avail] ^= encode_matrix[(i * encode_matrix_size) + j];
                     d_idx_avail++;
                 } else {
@@ -378,14 +380,14 @@ static unsigned char* get_lrc_inverse_rows(int k,
     return inverse_rows;
 }
 
-static unsigned char* isa_l_lrc_get_decode_matrix(int k, int m, unsigned local_parity, unsigned char *encode_matrix, uint64_t missing_bm, int *used_idxs, int *use_combined_parity)
+static unsigned char* isa_l_lrc_get_decode_matrix(int k, int m, unsigned local_parity, unsigned char *encode_matrix, struct ec_bm *missing_bm, int *used_idxs, int *use_combined_parity)
 {
     int i = 0, j, locate = 0;
     int n = k + m;
     int global_parity = m - local_parity;
     int group_offset = 0;
     uint64_t missing_local_parity = 0;
-    uint64_t use_parity = 0;
+    struct ec_bm use_parity = NEW_BM;
 
     int total_missing = 0;
 
@@ -397,17 +399,17 @@ static unsigned char* isa_l_lrc_get_decode_matrix(int k, int m, unsigned local_p
     for (int v = 0; v < local_parity; v++) {
         int group_size = local_group_size(k, local_parity, v);
         for (int u = group_offset; u < group_offset + group_size; u++) {
-            if ((1 << u) & missing_bm) {
-                use_parity |= (1 << (k + global_parity + v));
+            if (bm_get_value(missing_bm, u)) {
+                bm_set_value(&use_parity, k + global_parity + v, 1);
             }
         }
         group_offset += group_size;
 
-        missing_local_parity |= (1 << (k + global_parity + v)) & missing_bm;
+        missing_local_parity |= bm_get_value(missing_bm, k + global_parity + v);
     }
 
     for (locate = 0; i < k && locate < k + global_parity; locate++) {
-        if (((1 << locate) & missing_bm)) {
+        if (bm_get_value(missing_bm, locate)) {
             total_missing++;
             continue;
         }
@@ -437,7 +439,7 @@ static unsigned char* isa_l_lrc_get_decode_matrix(int k, int m, unsigned local_p
         // Still not enough? Well, let's add what local parities we have,
         // see if we can get lucky
         for (locate = k + global_parity; i < k && locate < n; locate++) {
-            if (use_parity & (1 << locate) && !((1 << locate) & missing_bm)) {
+            if (bm_get_value(&use_parity, locate) && !bm_get_value(missing_bm, locate)) {
                 for (j = 0; j < k; j++) {
                     decode_matrix[(k * i) + j] = encode_matrix[(k * locate) + j];
                 }
@@ -475,13 +477,14 @@ static int isa_l_lrc_decode(void *desc, char **data, char **parity,
     int use_combined_parity = 0;
 
     int num_missing_elements = get_num_missing_elements(missing_idxs);
-    uint64_t missing_bm = convert_list_to_bitmap(missing_idxs);
+    struct ec_bm missing_bm = NEW_BM;
+    convert_list_to_bitmap(missing_idxs, &missing_bm);
 
     int *used_idxs = calloc(n, sizeof(int));
     if(NULL == used_idxs) {
         goto out;
     }
-    decode_matrix = isa_l_lrc_get_decode_matrix(k, m, local_parity, isa_l_desc->matrix, missing_bm, used_idxs, &use_combined_parity);
+    decode_matrix = isa_l_lrc_get_decode_matrix(k, m, local_parity, isa_l_desc->matrix, &missing_bm, used_idxs, &use_combined_parity);
 
     if (NULL == decode_matrix) {
         goto out;
@@ -504,7 +507,7 @@ static int isa_l_lrc_decode(void *desc, char **data, char **parity,
         goto out;
     }
 
-    inverse_rows = get_lrc_inverse_rows(k, m, 0, k, 0, decode_inverse, isa_l_desc->matrix, missing_bm, isa_l_desc->gf_mul);
+    inverse_rows = get_lrc_inverse_rows(k, m, 0, k, 0, decode_inverse, isa_l_desc->matrix, &missing_bm, isa_l_desc->gf_mul);
 
     decoded_elements = (unsigned char**)malloc(sizeof(unsigned char*)*num_missing_elements);
     if (NULL == decoded_elements) {
@@ -518,11 +521,11 @@ static int isa_l_lrc_decode(void *desc, char **data, char **parity,
 
     uint64_t missing_local_parities = 0;
     for (j = n - local_parity; j < n; j++) {
-        missing_local_parities |= (missing_bm & (1 << j));
+        missing_local_parities |= bm_get_value(&missing_bm, j);
     }
 
     for (i = 0, j = 0; i < n - local_parity && j < k; i++) {
-        if (missing_bm & (1 << i)) {
+        if (bm_get_value(&missing_bm, i)) {
             continue;
         }
         if (i < k) {
@@ -557,13 +560,13 @@ static int isa_l_lrc_decode(void *desc, char **data, char **parity,
     // Grab pointers to memory needed for missing data fragments
     j = 0;
     for (i = 0; i < k; i++) {
-        if (missing_bm & (1 << i)) {
+        if (bm_get_value(&missing_bm, i)) {
             decoded_elements[j] = (unsigned char*)data[i];
             j++;
         }
     }
     for (i = k; i < n; i++) {
-        if (missing_bm & (1 << i)) {
+        if (bm_get_value(&missing_bm, i)) {
             decoded_elements[j] = (unsigned char*)parity[i - k];
             j++;
         }
@@ -591,11 +594,11 @@ out:
 
 static unsigned char* isa_l_lrc_get_reconstruct_matrix(
             int k, int m, unsigned local_parity, int destination_idx,
-            unsigned char *encode_matrix, uint64_t *missing_bm, int *used_idxs,
+            unsigned char *encode_matrix, struct ec_bm *missing_bm, int *used_idxs,
             int *min_col, int *max_col, int *mx_size, int *missing_local_parity, int *use_combined_parity)
 {
     unsigned char *decode_matrix = NULL;
-    uint64_t useful_mask = 0;
+    struct ec_bm useful_mask = NEW_BM;
 
     int min_range=0, max_range=0;
     if (destination_idx < k) {
@@ -604,19 +607,19 @@ static unsigned char* isa_l_lrc_get_reconstruct_matrix(
         min_range = local_group_data_lower(k, local_parity, local_group);
         max_range = local_group_data_upper(k, local_parity, local_group);
         int local_parity_idx = k + m - local_parity + local_group;
-        int missing_local = (1 << local_parity_idx) & *missing_bm;
+        uint64_t missing_local = bm_get_value(missing_bm, local_parity_idx);
         for (int i = min_range; !missing_local && i < max_range; i++) {
-            useful_mask |= 1 << i;
+            bm_set_value(&useful_mask, i, 1);
             if (i == destination_idx) {
                 // We already knew we were missing *that* one...
                 continue;
             }
-            missing_local |= (1 << i) & *missing_bm;
+            missing_local |= bm_get_value(missing_bm, i);
         }
         if (!missing_local) {
             // We have everything we need!
-            useful_mask |= 1 << local_parity_idx;
-            *missing_bm &= useful_mask;
+            bm_set_value(&useful_mask, local_parity_idx, 1);
+            bm_combine_and(&useful_mask, missing_bm);
             *mx_size = max_range - min_range;
             decode_matrix = malloc(sizeof(unsigned char) * (*mx_size) * (*mx_size));
             if (NULL == decode_matrix) {
@@ -644,15 +647,15 @@ static unsigned char* isa_l_lrc_get_reconstruct_matrix(
         int local_group = destination_idx - k - m + local_parity;
         min_range = local_group_data_lower(k, local_parity, local_group);
         max_range = local_group_data_upper(k, local_parity, local_group);
-        int missing_local = 0;
+        uint64_t missing_local = 0;
         for (int i = min_range; !missing_local && i < max_range; i++) {
-            useful_mask |= 1 << i;
-            missing_local |= (1 << i) & *missing_bm;
+            bm_set_value(&useful_mask, i, 1);
+            missing_local |= bm_get_value(missing_bm, i);
         }
         if (!missing_local) {
             // We have everything we need!
-            useful_mask |= 1 << destination_idx;
-            *missing_bm &= useful_mask;
+            bm_set_value(&useful_mask, destination_idx, 1);
+            bm_combine_and(&useful_mask, missing_bm);
             *missing_local_parity = 1;
             *mx_size = max_range - min_range;
             decode_matrix = malloc(sizeof(unsigned char) * (*mx_size) * (*mx_size));
@@ -670,7 +673,7 @@ static unsigned char* isa_l_lrc_get_reconstruct_matrix(
 
     if (decode_matrix == NULL) {
         decode_matrix = isa_l_lrc_get_decode_matrix(k, m, local_parity,
-            encode_matrix, *missing_bm, used_idxs, use_combined_parity);
+            encode_matrix, missing_bm, used_idxs, use_combined_parity);
         if (decode_matrix) {
             *mx_size = k;
         }
@@ -699,7 +702,8 @@ static int isa_l_lrc_reconstruct(void *desc, char **data, char **parity,
     int n = k + m;
     int ret = -1;
     int i, j;
-    uint64_t missing_bm = convert_list_to_bitmap(missing_idxs);
+    struct ec_bm missing_bm = NEW_BM;
+    convert_list_to_bitmap(missing_idxs, &missing_bm);
     int inverse_row = -1;
     int min_range = 0;
     int max_range = 0;
@@ -738,7 +742,7 @@ static int isa_l_lrc_reconstruct(void *desc, char **data, char **parity,
     /**
      * Get the row needed to reconstruct
      */
-    inverse_rows = get_lrc_inverse_rows(k, m, min_range, max_range, missing_local_parity, decode_inverse, encode, missing_bm, isa_l_desc->gf_mul);
+    inverse_rows = get_lrc_inverse_rows(k, m, min_range, max_range, missing_local_parity, decode_inverse, encode, &missing_bm, isa_l_desc->gf_mul);
 
     // Generate g_tbls from computed decode matrix (k x k) matrix
     g_tbls = malloc(sizeof(unsigned char) * (matrix_size * nb_parity * 32));
@@ -757,7 +761,7 @@ static int isa_l_lrc_reconstruct(void *desc, char **data, char **parity,
     j = 0;
     if (matrix_size == k) {
         for (i = 0; i < n - local_parity && j < k; i++) {
-            if (missing_bm & (1 << i)) {
+            if (bm_get_value(&missing_bm, i)) {
                 continue;
             }
             if (i < k) {
@@ -784,7 +788,7 @@ static int isa_l_lrc_reconstruct(void *desc, char **data, char **parity,
             j++;
         }
         for (i = n - local_parity; i < n && j < k; i++) {
-            if (missing_bm & (1 << i)) {
+            if (bm_get_value(&missing_bm, i)) {
                 continue;
             }
             if (used_idxs[i]) {
@@ -810,7 +814,7 @@ static int isa_l_lrc_reconstruct(void *desc, char **data, char **parity,
      */
     j = 0;
     for (i = 0; i < n; i++) {
-        if (missing_bm & (1 << i)) {
+        if (bm_get_value(&missing_bm, i)) {
             if (i == destination_idx) {
                 if (i < k) {
                     reconstruct_buf = (unsigned char*)data[i];

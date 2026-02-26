@@ -29,6 +29,7 @@
 #ifndef _ERASURECODE_HELPERS_H_
 #define _ERASURECODE_HELPERS_H_
 
+#include <assert.h>
 #include "erasurecode_stdinc.h"
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
@@ -42,46 +43,50 @@ int is_addr_aligned(unsigned long addr, int align)
     return (addr & (align - 1)) == 0;
 }
 
+struct ec_bm {
+    uint64_t v[4];
+};
+#define NEW_BM {{0, 0, 0, 0}}
+
+// Note that `bit` is 0-indexed
+static inline uint64_t bm_get_value(struct ec_bm *bm, int bit) {
+    assert(bit < EC_MAX_FRAGMENTS);
+    return bm->v[bit >> 6] & (1LLU << (bit & 0x3f));
+}
+static inline void bm_set_value(struct ec_bm *bm, int bit, int value) {
+    assert(bit < EC_MAX_FRAGMENTS);
+    if (value) {
+        bm->v[bit >> 6] |= (1LLU << (bit & 0x3f));
+    } else {
+        bm->v[bit >> 6] &= ~(1LLU << (bit & 0x3f));
+    }
+}
+// Ensure all the bits set in `src` are set in `dst` as well
+static inline void bm_combine_or(struct ec_bm *src, struct ec_bm *dst) {
+    dst->v[0] |= src->v[0];
+    dst->v[1] |= src->v[1];
+    dst->v[2] |= src->v[2];
+    dst->v[3] |= src->v[3];
+}
+// Ensure only the bits set in `src` may be set in `dst` as well
+static inline void bm_combine_and(struct ec_bm *src, struct ec_bm *dst) {
+    dst->v[0] &= src->v[0];
+    dst->v[1] &= src->v[1];
+    dst->v[2] &= src->v[2];
+    dst->v[3] &= src->v[3];
+}
+static inline uint64_t bm_any(struct ec_bm *bm) {
+    return bm->v[0] | bm->v[1] | bm->v[2] | bm->v[3];
+}
+
 /*
  * Convert an int list into a bitmap
  * Assume the list is '-1' terminated.
  */
-static inline
-unsigned long long convert_list_to_bitmap(int *list)
+static inline void convert_list_to_bitmap(int *list, struct ec_bm *bm)
 {
-    int i = 0;
-    unsigned long long bm = 0;
-
-    while (list[i] > -1) {
-        /*
-         * TODO: Assert list[i] < 64
-         */
-        bm |= (1 << list[i]);
-        i++;
-    }
-
-    return bm;
-}
-
-/*
- * Convert an index list int list into a bitmap
- * is_idx_in_erasure[] needs to be allocated by the caller
- * @returns number of idxs in error
- */
-static inline
-int convert_idx_list_to_bitvalues(
-        int *list_idxs,         // input idx_list
-        int *is_idx_in_erasure, // output idx list as boolean values (1/0)
-        int num_idxs)           // total number of indexes
-{
-    int i = 0, n = 0;
-
-    for (i = 0; i < num_idxs; i++)
-        is_idx_in_erasure[i] = 0;
-    for (i = 0, n = 0; (list_idxs[i] > -1) && (n < num_idxs); i++, n++)
-        is_idx_in_erasure[list_idxs[i]] = 1;
-
-    return n;
+    for (int i = 0; list[i] >= 0; i++)
+        bm_set_value(bm, list[i], 1);
 }
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */

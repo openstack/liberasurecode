@@ -227,8 +227,15 @@ struct ec_args isa_l_lrc_155_args = {
     .hd =5,
     .priv_args1.lrc_args.l = 2,
 };
+struct ec_args isa_l_lrc_1208_args = {
+    .k = 120,
+    .m = 8,
+    .w = 8,
+    .hd =9,
+    .priv_args1.lrc_args.l = 4,
+};
 struct ec_args *isa_l_lrc_test_args[] = { &isa_l_lrc_75_args, &isa_l_lrc_84_args, &isa_l_lrc_123_args,
-                                          &isa_l_lrc_155_args, NULL };
+                                          &isa_l_lrc_155_args, &isa_l_lrc_1208_args, NULL };
 int priv = 128;
 struct ec_args shss_args = {
     .k = 6,
@@ -626,8 +633,8 @@ static void test_create_backend_invalid_args(void)
     assert(-EINVALIDPARAMS == desc);
 
     struct ec_args invalid_args = {
-        .k = 100,
-        .m = 100,
+        .k = 1000,
+        .m = 1000,
     };
     desc = liberasurecode_instance_create(EC_BACKEND_NULL, &invalid_args);
     assert(-EINVALIDPARAMS == desc);
@@ -1910,24 +1917,28 @@ static void test_simple_encode_decode(const ec_backend_id_t be_id,
     free(skip);
 }
 
-static void test_jerasure_rs_vand_simple_encode_decode_over32(void)
+static void test_jerasure_rs_vand_simple_encode_decode_over_max_frags(void)
 {
-    struct ec_args over32_args = {
-        .k = 30,
+    struct ec_args over_args = {
+        .k = 300,
         .m = 20,
     };
 
-    int *skip = create_skips_array(&over32_args, 1);
+    int *skip = create_skips_array(&over_args, 1);
     assert(skip != NULL);
     // should return an error
     encode_decode_test_impl(EC_BACKEND_JERASURE_RS_VAND,
-                            &over32_args, skip);
+                            &over_args, skip);
     free(skip);
 }
 
 static void test_simple_reconstruct(const ec_backend_id_t be_id,
                                     struct ec_args *args)
 {
+    if (args->k + args->m > 100) {
+        fprintf(stderr, "Too many total frags; skipping\n");
+        return;
+    }
     int i = 0;
     for (i = 0; i < args->k + args->m; i++) {
         int *skip = create_skips_array(args,i);
@@ -2347,7 +2358,7 @@ struct testcase testcases[] = {
     TEST({.no_args = test_flat_xor_can_reconstruct_with_many_failures}, EC_BACKENDS_MAX, 0),
     // Jerasure RS Vand backend tests
     TEST_SUITE(EC_BACKEND_JERASURE_RS_VAND),
-    TEST({.no_args = test_jerasure_rs_vand_simple_encode_decode_over32}, EC_BACKENDS_MAX, 0),
+    TEST({.no_args = test_jerasure_rs_vand_simple_encode_decode_over_max_frags}, EC_BACKENDS_MAX, 0),
     // Jerasure RS Cauchy backend tests
     TEST_SUITE(EC_BACKEND_JERASURE_RS_CAUCHY),
     TEST({.no_args = test_jerasure_rs_cauchy_init_failure}, EC_BACKENDS_MAX, 0),

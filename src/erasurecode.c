@@ -546,7 +546,7 @@ int liberasurecode_decode(int desc,
     char **parity_segments = NULL;
     int *missing_idxs = NULL;
 
-    uint64_t realloc_bm = 0;
+    struct ec_bm realloc_bm = NEW_BM;
 
     int rc = rwlock_rdlock(&active_instances_rwlock);
     if (rc) {
@@ -726,15 +726,15 @@ int liberasurecode_decode(int desc,
 out:
     rwlock_unlock(&active_instances_rwlock);
     /* Free the buffers allocated in prepare_fragments_for_decode */
-    if (realloc_bm != 0) {
+    if (bm_any(&realloc_bm)) {
         for (i = 0; i < k; i++) {
-            if (realloc_bm & (1 << i)) {
+            if (bm_get_value(&realloc_bm, i)) {
                 free(data[i]);
             }
         }
 
         for (i = 0; i < m; i++) {
-            if (realloc_bm & (1 << (i + k))) {
+            if (bm_get_value(&realloc_bm, i + k)) {
                 free(parity[i]);
             }
         }
@@ -778,7 +778,7 @@ int liberasurecode_reconstruct_fragment(int desc,
     int k = -1;
     int m = -1;
     int i;
-    uint64_t realloc_bm = 0;
+    struct ec_bm realloc_bm = NEW_BM;
     char **data_segments = NULL;
     char **parity_segments = NULL;
     int set_chksum = 1;
@@ -951,15 +951,15 @@ destination_available:
 out:
     rwlock_unlock(&active_instances_rwlock);
     /* Free the buffers allocated in prepare_fragments_for_decode */
-    if (realloc_bm != 0) {
+    if (bm_any(&realloc_bm)) {
         for (i = 0; i < k; i++) {
-            if (realloc_bm & (1 << i)) {
+            if (bm_get_value(&realloc_bm, i)) {
                 free(data[i]);
             }
         }
 
         for (i = 0; i < m; i++) {
-            if (realloc_bm & (1 << (i + k))) {
+            if (bm_get_value(&realloc_bm, i + k)) {
                 free(parity[i]);
             }
         }

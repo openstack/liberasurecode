@@ -105,10 +105,11 @@ static int flat_xor_hd_check_reconstruct_fragments(void *desc,
 
     xor_code_t *xor_desc = (xor_code_t *) xdesc->xor_desc;
 
-    uint64_t missing_bm = convert_list_to_bitmap(missing_idxs);
+    struct ec_bm missing_bm = NEW_BM;
+    convert_list_to_bitmap(missing_idxs, &missing_bm);
     int num_available = xor_desc->k + xor_desc->m;
     for (int i = 0; i < EC_MAX_FRAGMENTS; i++)
-        if ((1LLU << i) & missing_bm)
+        if (bm_get_value(&missing_bm, i))
             num_available--;
 
     if (xor_desc->hd == 3) {

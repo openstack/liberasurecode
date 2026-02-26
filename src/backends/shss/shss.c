@@ -180,14 +180,16 @@ static int shss_fragments_needed(void *desc, int *missing_idxs,
 {
     struct shss_descriptor *xdesc =
         (struct shss_descriptor *) desc;
-    uint64_t exclude_bm = convert_list_to_bitmap(fragments_to_exclude);
-    uint64_t missing_bm = convert_list_to_bitmap(missing_idxs) | exclude_bm;
+    struct ec_bm exclude_bm = NEW_BM, missing_bm = NEW_BM;
+    convert_list_to_bitmap(fragments_to_exclude, &exclude_bm);
+    convert_list_to_bitmap(missing_idxs, &missing_bm);
+    bm_combine_or(&exclude_bm, &missing_bm);
     int i;
     int j = 0;
     int ret = -101;
 
     for (i = 0; i < xdesc->n; i++) {
-        if (!(missing_bm & (1 << i))) {
+        if (!bm_get_value(&missing_bm, i)) {
             fragments_needed[j] = i;
             j++;
         }

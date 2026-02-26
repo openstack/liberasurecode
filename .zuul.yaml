@@ -5,6 +5,7 @@
       Build and run test for liberasurecode.
     pre-run: playbooks/unittests/install-libs-from-source.yaml
     run: playbooks/unittests/run.yaml
+    timeout: 2400
 
 - job:
     name: liberasurecode-unittests-memcheck
