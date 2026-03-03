@@ -8,7 +8,7 @@
 - job:
     name: liberasurecode-unittests-arm64
     parent: liberasurecode-unittests
-    nodeset: ubuntu-focal-arm64
+    nodeset: ubuntu-noble-arm64
     description: |
       Build and run test and valgrind-test for liberasurecode
       on arm64.
