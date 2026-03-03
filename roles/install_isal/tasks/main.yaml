@@ -3,6 +3,9 @@
     path: '{{ ansible_user_dir }}/workspace'
     state: directory
 
+- name: Check gcc version
+  shell: gcc --version
+
 - name: Build and Install nasm
   shell:
     cmd: |
