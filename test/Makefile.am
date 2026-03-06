@@ -1,5 +1,5 @@
 noinst_HEADERS = builtin/xor_codes/test_xor_hd_code.h
-noinst_PROGRAMS = test_xor_hd_code alg_sig_test liberasurecode_test libec_slap rs_galois_test liberasurecode_rs_vand_test liberasurecode_rs_isal_stress_test
+noinst_PROGRAMS = test_xor_hd_code alg_sig_test liberasurecode_test liberasurecode_threaded_test libec_slap rs_galois_test liberasurecode_rs_vand_test liberasurecode_rs_isal_stress_test
 
 test_xor_hd_code_SOURCES = \
 	builtin/xor_codes/test_xor_hd_code.c \
@@ -17,6 +17,11 @@ liberasurecode_test_SOURCES = liberasurecode_test.c
 liberasurecode_test_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/include/erasurecode  @GCOV_FLAGS@
 liberasurecode_test_LDFLAGS = @GCOV_LDFLAGS@ $(top_builddir)/src/liberasurecode.la -ldl -lpthread -lz
 check_PROGRAMS += liberasurecode_test
+
+liberasurecode_threaded_test_SOURCES = liberasurecode_threaded_test.c
+liberasurecode_threaded_test_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/include/erasurecode  @GCOV_FLAGS@
+liberasurecode_threaded_test_LDFLAGS = @GCOV_LDFLAGS@ $(top_builddir)/src/liberasurecode.la -ldl -lpthread -lz
+check_PROGRAMS += liberasurecode_threaded_test
 
 libec_slap_SOURCES = libec_slap.c
 libec_slap_CPPFLAGS = -I. -I$(top_srcdir)/include -I$(top_srcdir)/include/erasurecode  @GCOV_FLAGS@
