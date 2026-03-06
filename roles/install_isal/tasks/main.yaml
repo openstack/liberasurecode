@@ -28,7 +28,7 @@
       set -e
       set -x
       cd $WORKSPACE
-      git clone https://github.com/intel/isa-l.git
+      git clone --depth 1 https://github.com/intel/isa-l.git
       cd isa-l
       ./autogen.sh
       ./configure
