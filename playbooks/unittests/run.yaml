@@ -1,6 +1,4 @@
 - hosts: all
   roles:
-    - install_isal
-    - install_jerasure
     - test_liberasurecode
 

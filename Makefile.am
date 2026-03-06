@@ -62,6 +62,9 @@ valgrind-test: check
 	@$(VALGRIND_EXEC_COMMAND) ./test/test_xor_hd_code
 	@$(VALGRIND_EXEC_COMMAND) ./test/libec_slap
 
+check-symbols: all
+	@./check-symbols.sh check
+
 CLEANFILES = cscope.in.out cscope.out cscope.po.out
 
 .PHONY: cscope
