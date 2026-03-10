@@ -1,3 +1,13 @@
+Release 1.8.0
+
+ . Added a new ISA-L backend implementing locally-recoverable codes. These
+   allow reconstruction with less than k fragments.
+ . Added locks to ensure thread-safety.
+ . The maximum total number of fragments (k + m) is increased from 32 to 256.
+ . Properly fail reconstruction when there are too many failures for
+   flat_xor_hd to handle.
+ . Other minor fixes and updates.
+
 Release 1.7.1
 -------------
 
