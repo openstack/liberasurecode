@@ -106,6 +106,22 @@ Provided by isa-l
   submatrix, then calculate `E = inv(V′) × V`. This makes a systematic code
   that is optimal for all `k` and `m`.
 
+- `isa_l_rs_lrc` (added in liberasurecode 1.8.0)
+
+  Uses the Reed-Solomon functions provided by isa-l with an encoding matrix
+  provided by liberasurecode.  Similar to `isa_l_rs_vand_inv`, but adds a new
+  parameter `l` for the number of "local parities". To construct the encoding
+  matrix, start with an `isa_l_rs_vand_inv` encoding matrix. The first `m - l`
+  parity lines are left as "global parities".
+  The last `l` lines are all crafted from the "next" global parity, this is
+  done in order to combine them and get one global parity and ensure the
+  original data may be decoded from any `k + l - 1` unique fragments.
+  The last `l` lines are each assigned a group of `⌊k / l⌋` or `⌈k / l⌉` data
+  fragments; within each line, the columns corresponding to those data
+  fragments are retained and all others are set to zero. This reduces the
+  minimum number of fragments required to reconstruct data or local parity
+  fragments, provided the other fragments in the group are available.
+
 - `isa_l_rs_cauchy` (added in liberasurecode 1.4.0, pyeclib 1.4.0)
 
   Uses the Reed-Solomon functions provided by isa-l with
@@ -125,8 +141,8 @@ Proprietary
 Classifications
 ===============
 
-Required Fragments
-------------------
+Required Fragments to Decode
+----------------------------
 ### n ≡ k
 
 Most supported backends are optimal erasure codes, where any `k` fragments
@@ -137,6 +153,11 @@ are sufficient to recover the original data.
 The flat XOR codes require more than `k` fragments to decode in the general
 case. In particular, `flat_xor_hd3` requires at least `n ≡ k + m - 2`
 fragments and `flat_xor_hd4` requires at least `n ≡ k + m - 3`.
+
+LRC codes are intentionally not optimal, as each local parity is only useful
+in recovering the original data if there is at least one data fragment missing
+in the same local group. However, decoding will always succeed with
+`n ≡ k + l - 1` unique fragments.
 
 Systematic vs. Non-systematic
 -----------------------------

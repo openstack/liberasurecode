@@ -35,8 +35,10 @@
 #include "erasurecode_helpers_ext.h"
 #include "erasurecode_preprocessing.h"
 
+static int total_decoding_errors = 0;
+static int total_reconstrcut_errors = 0;
 
-char *create_buffer(int size, int fill)
+char *create_buffer(int size)
 {
     char *buf = malloc(size);
     if (buf == NULL) {
@@ -62,9 +64,7 @@ int *create_skips_array(struct ec_args *args, int skip)
         return NULL;
     }
     memset(buf, 0, array_size);
-    if (skip >= 0 && skip < num) {
-        buf[skip] = 1;
-    }
+
     return buf;
 }
 
@@ -108,7 +108,7 @@ out:
     return num_frags;
 }
 
-static void encode_decode_test_impl(const ec_backend_id_t be_id,
+int encode_decode_test_impl(const ec_backend_id_t be_id,
                                    struct ec_args *args,
                                    int *skip)
 {
@@ -131,15 +131,15 @@ static void encode_decode_test_impl(const ec_backend_id_t be_id,
 
     if (-EBACKENDNOTAVAIL == desc) {
         fprintf(stderr, "Backend library not available!\n");
-        return;
+        return desc;
     } else if ((args->k + args->m) > EC_MAX_FRAGMENTS) {
         fprintf(stderr, "data + parity is greater than %d!\n", EC_MAX_FRAGMENTS);
         assert(-EINVALIDPARAMS == desc);
-        return;
+        return desc;
     } else
         assert(desc > 0);
 
-    orig_data = create_buffer(orig_data_size, 'x');
+    orig_data = create_buffer(orig_data_size);
     assert(orig_data != NULL);
     rc = liberasurecode_encode(desc, orig_data, orig_data_size,
             &encoded_data, &encoded_parity, &encoded_fragment_len);
@@ -179,6 +179,11 @@ static void encode_decode_test_impl(const ec_backend_id_t be_id,
     rc = liberasurecode_decode(desc, avail_frags, num_avail_frags,
                                encoded_fragment_len, 1,
                                &decoded_data, &decoded_data_len);
+    if (rc == -1 ) {
+        total_decoding_errors++;
+        return rc;
+    }
+
     assert(0 == rc);
     assert(decoded_data_len == orig_data_size);
     assert(memcmp(decoded_data, orig_data, orig_data_size) == 0);
@@ -192,6 +197,7 @@ static void encode_decode_test_impl(const ec_backend_id_t be_id,
     assert(0 == liberasurecode_instance_destroy(desc));
     free(orig_data);
     free(avail_frags);
+    return rc;
 }
 
 
@@ -199,6 +205,11 @@ static void test_decode_with_missing_multi_data_parity(
     const ec_backend_id_t be_id, struct ec_args *args, uint64_t nb_iter)
 {
     uint64_t i;
+    int max_num_missing = args->m;
+    if (be_id == EC_BACKEND_ISA_L_RS_LRC) {
+        max_num_missing = (args->m - args->priv_args1.lrc_args.l + 1);
+    }
+
     for (i = 0; i < nb_iter; i++) {
         int *skip = create_skips_array(args,-1);
         assert(skip != NULL);
@@ -210,38 +221,153 @@ static void test_decode_with_missing_multi_data_parity(
                     skip[value] = 1;
                     count++;
                 }
-
-                if(count == args->m) {
+                if(count == max_num_missing) {
                     break;
                 }
-          }
-        encode_decode_test_impl(be_id, args, skip);
+        }
+
+        int err = encode_decode_test_impl(be_id, args, skip);
+        if (err) {
+            printf("skip\n");
+            for (int i = 0; i < args->k + args->m; i++)
+                if (skip[i])
+                    printf("i= %d val=%d ",i , skip[i]);
+            //break;
+        }
         free(skip);
     }
+    printf("total decoding errors %d\n", total_decoding_errors);
 }
 
+static int reconstruct_test_impl(const ec_backend_id_t be_id,
+                                 struct ec_args *args,
+                                 int *skip)
+{
+    int rc = 0;
+    int desc = -1;
+    int orig_data_size = 1024 * 1024;
+    char *orig_data = NULL;
+    char **encoded_data = NULL, **encoded_parity = NULL;
+    uint64_t encoded_fragment_len = 0;
+    char **avail_frags = NULL;
+    int num_avail_frags = 0;
+    int i = 0;
+    char *out = NULL;
+
+    desc = liberasurecode_instance_create(be_id, args);
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf(stderr, "Backend library not available!\n");
+        return -1;
+    }
+    assert(desc > 0);
+
+    orig_data = create_buffer(orig_data_size);
+    assert(orig_data != NULL);
+    rc = liberasurecode_encode(desc, orig_data, orig_data_size,
+            &encoded_data, &encoded_parity, &encoded_fragment_len);
+    assert(rc == 0);
+    out = malloc(encoded_fragment_len);
+    assert(out != NULL);
+    char *cmp = NULL;
+
+    num_avail_frags = create_frags_array(&avail_frags, encoded_data, encoded_parity, args, skip);
+
+    if (i < args->k) {
+        cmp = encoded_data[i];
+    }
+    else {
+        cmp = encoded_parity[i - args->k];
+    }
+    memset(out, 0, encoded_fragment_len);
+    rc = liberasurecode_reconstruct_fragment(desc, avail_frags, num_avail_frags, encoded_fragment_len, i, out);
+    if (rc == -1 ) {
+        total_reconstrcut_errors++;
+        return rc;
+    }
+    assert(rc == 0);
+    for (int x= 0; x < encoded_fragment_len; x++){
+        if (out[x] != cmp[x]){
+            printf(" out(%c) x(%d) \n", out[x],  x);
+            total_reconstrcut_errors++;
+            break;
+        }
+    }
+    assert(memcmp(out, cmp, encoded_fragment_len) == 0);
+    free(avail_frags);
+
+    free(orig_data);
+    free(out);
+    liberasurecode_encode_cleanup(desc, encoded_data, encoded_parity);
+    liberasurecode_instance_destroy(desc);
+    return rc;
+}
+
+static void test_multi_reconstruct(const ec_backend_id_t be_id,
+                                    struct ec_args *args, int nb_iter)
+{
+    int i = 0;
+
+    int max_num_missing = args->m;
+    if (be_id == EC_BACKEND_ISA_L_RS_LRC) {
+        max_num_missing = (args->m - args->priv_args1.lrc_args.l + 1);
+    }
+
+    for (i = 0; i < nb_iter; i++) {
+        int *skip = create_skips_array(args,-1);
+        assert(skip != NULL);
+        int count = 0;
+        while(true) {
+                int value = rand() % (args->k + args->m) ;
+
+                if (skip[value] != 1){
+                    skip[value] = 1;
+                    count++;
+                }
+                if(count == max_num_missing) {
+                    break;
+                }
+        }
+
+        int err = reconstruct_test_impl(be_id, args, skip);
+        if (err) {
+            printf("skip\n");
+            for (int i = 0; i < args->k + args->m; i++)
+                if (skip[i])
+                    printf("i= %d val=%d ",i , skip[i]);
+            //break;
+        }
+        free(skip);
+    }
+    printf("total reconstruct errors %d\n", total_decoding_errors);
+
+
+}
 
 int main(int argc, char **argv)
 {
-    if (argc != 4) {
+    if (argc != 6) {
         printf("Stress Test with m missing positions for RS(k,m).\n");
         printf("Number of iterations {nb_iter} should be at least ~ (k+m)!/(k!)(m!).\n");
-        printf("Usage: %s <message_length> <parity_length> <nb_iter>\n", argv[0]);
+        printf("Usage: %s <backend_id> <data_length> <total_parity_length> <local_parity_length> <nb_iter>\n", argv[0]);
         return 0;
     }
-    int k = atoi(argv[1]);
-    int m = atoi(argv[2]);
-    u_int64_t nb_iter =  atoll(argv[3]);
+    int backend = atoi(argv[1]);
+    int k = atoi(argv[2]);
+    int m = atoi(argv[3]);
+    int l = atoi(argv[4]);
+
+    u_int64_t nb_iter =  atoll(argv[5]);
     struct ec_args isa_l_km_args = {
         .k = k,
         .m = m,
         .w = 8,
         .hd = m+1,
+        .priv_args1.lrc_args.l = l,
     };
 
     // Test is ok if no Assertion `0 == rc' occurs
     // We can make backend configurable  and test EC_BACKEND_ISA_L_RS_VAND
-    test_decode_with_missing_multi_data_parity(EC_BACKEND_ISA_L_RS_VAND_INV, &isa_l_km_args, nb_iter);
-
+    test_decode_with_missing_multi_data_parity(backend, &isa_l_km_args, nb_iter);
+    test_multi_reconstruct(backend, &isa_l_km_args, nb_iter);
     return 0;
 }

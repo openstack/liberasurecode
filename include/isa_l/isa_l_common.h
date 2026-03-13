@@ -57,6 +57,7 @@ typedef struct {
     unsigned char *encode_tables;
     int k;
     int m;
+    int l; //local parities
     int w;
 } isa_l_descriptor;
 
@@ -71,3 +72,67 @@ int isa_l_element_size(void* desc);
 int isa_l_exit(void *desc);
 void * isa_l_common_init(struct ec_backend_args *args, void *backend_sohandle,
         const char* gen_matrix_func_name);
+
+/* global helper functions */
+static inline int get_num_missing_elements(int *missing_idxs)
+{
+    int i = 0;
+
+    while (missing_idxs[i] > -1) {
+        i++;
+    }
+
+    return i;
+}
+
+static inline void mult_and_xor_row(unsigned char *to_row,
+                             unsigned char *from_row,
+                             unsigned char val,
+                             int num_elems,
+                             gf_mul_func gf_mul)
+{
+    int i;
+
+    for (i = 0; i < num_elems; i++) {
+        to_row[i] ^= gf_mul(val, from_row[i]);
+    }
+}
+/* LRC helper functions */
+static inline int local_group_size(int k, int l, int n) {
+    int extra = k % l;
+    if (n < extra) {
+        return (k / l) + 1;
+    } else {
+        return k / l;
+    }
+}
+
+static inline int local_group_data_lower(int k, int l, int n) {
+    int extra = k % l;
+    int group_size = (k / l) + 1;
+    if (n < extra) {
+        return n * group_size;
+    } else {
+        return extra * group_size + (n - extra) * (group_size - 1);
+    }
+}
+
+static inline int local_group_data_upper(int k, int l, int n) {
+    return local_group_data_lower(k, l, n + 1);
+}
+
+static inline int local_group_for_data(int k, int l, int n) {
+    int extra = k % l;
+    /**
+     * Start off assuming larger groups; we'll adjust them
+     * smaller later if needed
+     */
+    int group_size = (k / l) + 1;
+    if (n < extra * group_size) {
+        return n / group_size;
+    } else {
+        n -= extra * group_size;
+        group_size--;
+        return extra + n / group_size;
+    }
+}

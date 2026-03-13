@@ -51,6 +51,7 @@ typedef enum {
     EC_BACKEND_ISA_L_RS_CAUCHY        = 7,
     EC_BACKEND_LIBPHAZR               = 8,
     EC_BACKEND_ISA_L_RS_VAND_INV      = 9,
+    EC_BACKEND_ISA_L_RS_LRC           = 10,
     EC_BACKENDS_MAX,
 } ec_backend_id_t;
 
@@ -80,6 +81,9 @@ struct ec_args {
         struct {
             uint64_t arg1;  /* sample arg */
         } null_args;        /* args specific to the null codes */
+        struct {
+            int l;          /* number of local parities */
+        } lrc_args;        /* args specific to locally recoverable codes */
         struct {
             uint64_t x, y;  /* reserved for future expansion */
             uint64_t z, a;  /* reserved for future expansion */

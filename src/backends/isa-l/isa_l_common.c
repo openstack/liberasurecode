@@ -68,37 +68,12 @@ static unsigned char* isa_l_get_decode_matrix(int k, int m, unsigned char *encod
         }
         l++;
     }
-
     if (i != k) {
         free(decode_matrix);
         decode_matrix = NULL;
     }
 
     return decode_matrix;
-}
-
-static int get_num_missing_elements(int *missing_idxs)
-{
-    int i = 0;
-
-    while (missing_idxs[i] > -1) {
-        i++;
-    }
-
-    return i;
-}
-
-static void mult_and_xor_row(unsigned char *to_row,
-                             unsigned char *from_row,
-                             unsigned char val,
-                             int num_elems,
-                             gf_mul_func gf_mul)
-{
-    int i;
-
-    for (i = 0; i < num_elems; i++) {
-        to_row[i] ^= gf_mul(val, from_row[i]);
-    }
 }
 
 /*
