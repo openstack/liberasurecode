@@ -172,7 +172,7 @@ int prepare_fragments_for_decode(
                 return -EBADHEADER;
             }
             payload_size = get_fragment_payload_size(data[i]);
-            if (orig_data_size < 0) {
+            if (payload_size < 0) {
                 log_error("Invalid fragment_size in fragment header!");
                 return -EBADHEADER;
             }
@@ -211,7 +211,7 @@ int prepare_fragments_for_decode(
                 return -EBADHEADER;
             }
             payload_size = get_fragment_payload_size(parity[i]);
-            if (orig_data_size < 0) {
+            if (payload_size < 0) {
                 log_error("Invalid fragment_size in fragment header!");
                 return -EBADHEADER;
             }

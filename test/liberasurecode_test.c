@@ -847,6 +847,71 @@ static void test_decode_invalid_args(void)
     free(orig_data);
 }
 
+static void test_reconstruct_corrupt_payload_size(void)
+{
+    int rc = 0;
+    int desc = -1;
+    int orig_data_size = 1024 * 1024;
+    char *orig_data = create_buffer(orig_data_size, 'x');
+    char **encoded_data = NULL, **encoded_parity = NULL;
+    uint64_t encoded_fragment_len = 0;
+    int num_avail_frags = -1;
+    char **avail_frags = NULL;
+    /* skip data[0]: that is the fragment we will reconstruct */
+    int *skips = create_skips_array(&null_args, 0);
+    char *out_fragment = NULL;
+    fragment_header_t *hdr = NULL;
+
+    desc = liberasurecode_instance_create(EC_BACKEND_NULL, &null_args);
+    if (-EBACKENDNOTAVAIL == desc) {
+        fprintf(stderr, "Backend library not available!\n");
+        free(orig_data);
+        free(skips);
+        return;
+    }
+    assert(desc > 0);
+
+    rc = liberasurecode_encode(desc, orig_data, orig_data_size,
+                               &encoded_data, &encoded_parity,
+                               &encoded_fragment_len);
+    assert(rc == 0);
+
+    /* available fragments: all except data[0] */
+    num_avail_frags = create_frags_array(&avail_frags, encoded_data,
+                                         encoded_parity, &null_args, skips);
+    assert(num_avail_frags > 0);
+
+    out_fragment = malloc(encoded_fragment_len);
+    assert(out_fragment != NULL);
+
+    /*
+     * Corrupt data[1]: the first non-missing fragment that
+     * prepare_fragments_for_decode will read orig_data_size/payload_size from.
+     * - meta.size = 0xFFFFFFFF: cast to int is -1, triggering payload_size < 0
+     * - libec_version = 1: below _VERSION(1,2,0), so is_invalid_fragment_header
+     *   skips the CRC check and accepts the fragment
+     */
+    hdr = (fragment_header_t *)encoded_data[1];
+    hdr->meta.size = 0xFFFFFFFF;
+    hdr->libec_version = 1;
+
+    /* Use reconstruct, not decode -- decode will call fragments_to_string,
+     * masking the bug */
+    rc = liberasurecode_reconstruct_fragment(
+        desc, avail_frags, num_avail_frags,
+        encoded_fragment_len,
+        0 /* destination_idx */,
+        out_fragment);
+    assert(rc == -EBADHEADER);
+
+    free(out_fragment);
+    free(skips);
+    liberasurecode_encode_cleanup(desc, encoded_data, encoded_parity);
+    liberasurecode_instance_destroy(desc);
+    free(avail_frags);
+    free(orig_data);
+}
+
 static void test_decode_cleanup_invalid_args(void)
 {
     int rc = 0;
@@ -2335,6 +2400,7 @@ struct testcase testcases[] = {
     TEST({.no_args = test_encode_invalid_args}, EC_BACKENDS_MAX, CHKSUM_TYPES_MAX),
     TEST({.no_args = test_encode_cleanup_invalid_args}, EC_BACKENDS_MAX, CHKSUM_TYPES_MAX),
     TEST({.no_args = test_decode_invalid_args}, EC_BACKENDS_MAX, CHKSUM_TYPES_MAX),
+    TEST({.no_args = test_reconstruct_corrupt_payload_size}, EC_BACKENDS_MAX, CHKSUM_TYPES_MAX),
     TEST({.no_args = test_decode_cleanup_invalid_args}, EC_BACKENDS_MAX, CHKSUM_TYPES_MAX),
     TEST({.no_args = test_reconstruct_fragment_invalid_args}, EC_BACKENDS_MAX, CHKSUM_TYPES_MAX),
     TEST({.no_args = test_get_fragment_metadata_invalid_args}, EC_BACKENDS_MAX, CHKSUM_TYPES_MAX),
