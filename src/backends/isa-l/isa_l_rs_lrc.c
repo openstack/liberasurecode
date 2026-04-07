@@ -313,7 +313,7 @@ static unsigned char* get_lrc_inverse_rows(int k,
         if (bm_get_value(missing_bm, i))
             num_missing_elements++;
     unsigned char *inverse_rows = (unsigned char*)malloc(sizeof(unsigned
-                                    char*) * k * num_missing_elements);
+                                    char) * k * num_missing_elements);
     int i, j, l = 0;
 
     if (NULL == inverse_rows) {
@@ -327,7 +327,7 @@ static unsigned char* get_lrc_inverse_rows(int k,
     int n = k + m;
 
     memset(inverse_rows, 0, sizeof(unsigned
-            char*) * matrix_size * num_missing_elements);
+            char) * matrix_size * num_missing_elements);
 
     /*
      * Fill in rows for missing data
