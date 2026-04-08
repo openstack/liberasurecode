@@ -12,7 +12,7 @@
       set -e
       set -x
       cd $WORKSPACE
-      curl https://www.nasm.us/pub/nasm/releasebuilds/2.16.01/nasm-2.16.01.tar.gz | tar -xz
+      curl -L https://github.com/netwide-assembler/nasm/archive/refs/tags/nasm-2.15.05.tar.gz | tar -xz
       cd nasm*
       ./autogen.sh
       ./configure
