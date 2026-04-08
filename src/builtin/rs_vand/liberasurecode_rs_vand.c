@@ -385,6 +385,7 @@ static void region_dot_product(
 {
     int i;
 
+    memset(to_buf, 0, blocksize);
     for (i = 0; i < num_entries; i++) {
         int mult = matrix_row[i];
         if (mult == 1) {
@@ -402,7 +403,6 @@ int liberasurecode_rs_vand_encode(
     int n = k + m;
 
     for (i = k; i < n; i++) {
-        memset(parity[i - k], 0, blocksize);
         region_dot_product(data, parity[i - k], &generator_matrix[(i * k)], k, blocksize);
     }
 
