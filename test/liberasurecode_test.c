@@ -37,6 +37,9 @@
 #include "erasurecode_preprocessing.h"
 #include "erasurecode_backend.h"
 #include "alg_sig.h"
+
+/* Forward declaration: defined in src/erasurecode.c, but not in public API headers */
+int liberasurecode_verify_fragment_metadata(ec_backend_t be, fragment_metadata_t *md);
 #define NULL_BACKEND "null"
 #define FLAT_XOR_HD_BACKEND "flat_xor_hd"
 #define JERASURE_RS_VAND_BACKEND "jerasure_rs_vand"
@@ -339,6 +342,7 @@ typedef enum {
     BACKEND_VERSION_MISMATCH,
     FRAGIDX_INVALID,
     FRAGIDX_OUT_OF_RANGE,
+    FRAGIDX_AT_BOUNDARY,
 } fragment_mismatch_scenario_t;
 
 char * get_name_from_backend_id(ec_backend_id_t be) {
@@ -2052,6 +2056,10 @@ static void verify_fragment_metadata_mismatch_impl(const ec_backend_id_t be_id, 
                 orig_frag_idx = ((fragment_header_t*)cur_frag)->meta.idx;
                 ((fragment_header_t*)cur_frag)->meta.idx = args->k + args->m + 1;
                 break;
+            case FRAGIDX_AT_BOUNDARY:
+                orig_frag_idx = ((fragment_header_t*)cur_frag)->meta.idx;
+                ((fragment_header_t*)cur_frag)->meta.idx = args->k + args->m;
+                break;
             default:
                 assert(false);
         }
@@ -2073,6 +2081,7 @@ static void verify_fragment_metadata_mismatch_impl(const ec_backend_id_t be_id, 
                 break;
             case FRAGIDX_INVALID:
             case FRAGIDX_OUT_OF_RANGE:
+            case FRAGIDX_AT_BOUNDARY:
                 ((fragment_header_t*)cur_frag)->meta.idx = orig_frag_idx;
                 break;
             default:
@@ -2109,11 +2118,57 @@ static void test_verify_stripe_metadata_be_ver_mismatch(
     verify_fragment_metadata_mismatch_impl(be_id, args, BACKEND_VERSION_MISMATCH);
 }
 
+/*
+ * Directly tests the idx boundary check in liberasurecode_verify_fragment_metadata.
+ * Uses the built-in rs_vand backend (no external library required).
+ *
+ * Valid fragment indices are 0 .. k+m-1.  idx == k+m is one past the end
+ * and must be rejected.  Before the bug fix, the check used `>` instead of
+ * `>=`, so idx == k+m incorrectly passed validation.
+ */
+static void test_verify_fragment_metadata_idx_bounds(void)
+{
+    struct ec_args args = {
+        .k = 3,
+        .m = 2,
+        .ct = CHKSUM_NONE,
+    };
+    int desc = liberasurecode_instance_create(EC_BACKEND_LIBERASURECODE_RS_VAND, &args);
+    assert(desc > 0);
+
+    ec_backend_t be = liberasurecode_backend_instance_get_by_desc(desc);
+    assert(be != NULL);
+
+    fragment_metadata_t md;
+    memset(&md, 0, sizeof(md));
+    /* Fill in fields that liberasurecode_verify_fragment_metadata checks */
+    md.backend_id = be->common.id;
+    md.backend_version = be->common.ec_backend_version;
+
+    int k = args.k;
+    int m = args.m;
+
+    /* Last valid index: k+m-1 must be accepted */
+    md.idx = (uint32_t)(k + m - 1);
+    assert(liberasurecode_verify_fragment_metadata(be, &md) == 0);
+
+    /* One past the end: k+m must be rejected */
+    md.idx = (uint32_t)(k + m);
+    assert(liberasurecode_verify_fragment_metadata(be, &md) != 0);
+
+    /* Clearly out of range: k+m+1 must also be rejected */
+    md.idx = (uint32_t)(k + m + 1);
+    assert(liberasurecode_verify_fragment_metadata(be, &md) != 0);
+
+    liberasurecode_instance_destroy(desc);
+}
+
 static void test_verify_stripe_metadata_frag_idx_invalid(
         const ec_backend_id_t be_id, struct ec_args *args)
 {
     verify_fragment_metadata_mismatch_impl(be_id, args, FRAGIDX_INVALID);
     verify_fragment_metadata_mismatch_impl(be_id, args, FRAGIDX_OUT_OF_RANGE);
+    verify_fragment_metadata_mismatch_impl(be_id, args, FRAGIDX_AT_BOUNDARY);
 }
 
 static void test_metadata_crcs_le(void)
@@ -2344,6 +2399,7 @@ struct testcase testcases[] = {
     TEST({.no_args = test_liberasurecode_get_version}, EC_BACKENDS_MAX, CHKSUM_TYPES_MAX),
     TEST({.no_args = test_metadata_crcs_le}, EC_BACKENDS_MAX, 0),
     TEST({.no_args = test_metadata_crcs_be}, EC_BACKENDS_MAX, 0),
+    TEST({.no_args = test_verify_fragment_metadata_idx_bounds}, EC_BACKENDS_MAX, 0),
     // NULL backend test
     TEST({.with_args = test_create_and_destroy_backend}, EC_BACKEND_NULL, CHKSUM_NONE),
     TEST({.with_args = test_simple_encode_decode}, EC_BACKEND_NULL, CHKSUM_NONE),
