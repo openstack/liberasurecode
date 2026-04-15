@@ -49,16 +49,19 @@
       on arm64.
 
 - job:
-    name: liberasurecode-unittests-centos-9-stream
+    name: liberasurecode-unittests-centos-10-stream
     parent: liberasurecode-unittests
-    nodeset: centos-9-stream
+    nodeset:
+      nodes:
+        - name: centos-10-stream
+          label: centos-10-stream-4GB
     description: |
       Build and run test and valgrind-test for liberasurecode.
       This job runs on CentOS 9 Stream.
 
 - job:
-    name: liberasurecode-unittests-centos-9-stream-fips
-    parent: liberasurecode-unittests-centos-9-stream
+    name: liberasurecode-unittests-centos-10-stream-fips
+    parent: liberasurecode-unittests-centos-10-stream
     pre-run: playbooks/enable-fips.yaml
     description: |
       Build and run test and valgrind-test for liberasurecode.
@@ -71,8 +74,8 @@
         - liberasurecode-unittests
         - liberasurecode-unittests-memcheck
         - liberasurecode-unittests-helgrind
-        - liberasurecode-unittests-centos-9-stream
-        - liberasurecode-unittests-centos-9-stream-fips
+        - liberasurecode-unittests-centos-10-stream
+        - liberasurecode-unittests-centos-10-stream-fips
     check-arm64:
       jobs:
         - liberasurecode-unittests-arm64
@@ -82,5 +85,5 @@
         - liberasurecode-unittests
         - liberasurecode-unittests-memcheck
         - liberasurecode-unittests-helgrind
-        - liberasurecode-unittests-centos-9-stream
-        - liberasurecode-unittests-centos-9-stream-fips
+        - liberasurecode-unittests-centos-10-stream
+        - liberasurecode-unittests-centos-10-stream-fips
