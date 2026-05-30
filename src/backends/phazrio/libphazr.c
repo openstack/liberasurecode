@@ -35,7 +35,7 @@
 
 #define LIBPHAZR_LIB_MAJOR 1
 #define LIBPHAZR_LIB_MINOR 0
-#define LIBPHAZR_LIB_REV   0
+#define LIBPHAZR_LIB_REV 0
 #define LIBPHAZR_LIB_VER_STR "1.0.0"
 #define LIBPHAZR_LIB_NAME "libphazr"
 #if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
@@ -50,9 +50,9 @@ struct ec_backend_common backend_libphazr;
 typedef int (*pio_matrix_encode_func)(char *, char *, char **, int, int, int, int, int, int);
 typedef int (*pio_matrix_decode_func)(char *, char *, char **, int *, int, int, int, int, int, int);
 typedef int (*pio_matrix_reconstruct_func)(char *, char **, int *, int, int, int, int, int, int);
-typedef char* (*pio_create_precoding_matrix_func)(int);
-typedef char* (*pio_create_inverse_precoding_matrix_func)(int);
-typedef char* (*pio_create_kmux_matrix_func)(int, int, int);
+typedef char *(*pio_create_precoding_matrix_func)(int);
+typedef char *(*pio_create_inverse_precoding_matrix_func)(int);
+typedef char *(*pio_create_kmux_matrix_func)(int, int, int);
 
 struct libphazr_descriptor {
     /* calls required for init */
@@ -92,9 +92,9 @@ static int get_padded_blocksize(int w, int hd, int blocksize)
 static int pio_matrix_encode(void *desc, char **data, char **parity, int blocksize)
 {
     int i, ret = 0;
-    struct libphazr_descriptor *xdesc = (struct libphazr_descriptor *) desc;
+    struct libphazr_descriptor *xdesc = (struct libphazr_descriptor *)desc;
     int padding_size = get_padded_blocksize(xdesc->w, xdesc->hd, blocksize) - blocksize;
-    char **encoded = malloc(sizeof(char*) * (xdesc->k + xdesc->m));
+    char **encoded = malloc(sizeof(char *) * (xdesc->k + xdesc->m));
 
     if (NULL == encoded) {
         ret = -ENOMEM;
@@ -109,8 +109,8 @@ static int pio_matrix_encode(void *desc, char **data, char **parity, int blocksi
         encoded[i + xdesc->k] = parity[i];
     }
 
-    ret = xdesc->matrix_encode(xdesc->precoding_matrix, xdesc->matrix, encoded,
-        xdesc->k, xdesc->m, xdesc->w, xdesc->hd, blocksize, padding_size);
+    ret = xdesc->matrix_encode(xdesc->precoding_matrix, xdesc->matrix, encoded, xdesc->k, xdesc->m,
+        xdesc->w, xdesc->hd, blocksize, padding_size);
 
 out:
     free(encoded);
@@ -118,13 +118,13 @@ out:
     return ret;
 }
 
-static int pio_matrix_decode(void *desc, char **data, char **parity,
-        int *missing_idxs, int blocksize)
+static int pio_matrix_decode(
+    void *desc, char **data, char **parity, int *missing_idxs, int blocksize)
 {
     int i, ret = 0;
-    struct libphazr_descriptor *xdesc = (struct libphazr_descriptor *) desc;
+    struct libphazr_descriptor *xdesc = (struct libphazr_descriptor *)desc;
     int padding_size = get_padded_blocksize(xdesc->w, xdesc->hd, blocksize) - blocksize;
-    char **decoded = malloc(sizeof(char*) * (xdesc->k + xdesc->m));
+    char **decoded = malloc(sizeof(char *) * (xdesc->k + xdesc->m));
 
     if (NULL == decoded) {
         ret = -ENOMEM;
@@ -148,13 +148,13 @@ out:
     return ret;
 }
 
-static int pio_matrix_reconstruct(void *desc, char **data, char **parity,
-        int *missing_idxs, int destination_idx, int blocksize)
+static int pio_matrix_reconstruct(
+    void *desc, char **data, char **parity, int *missing_idxs, int destination_idx, int blocksize)
 {
     int i, ret = 0;
-    struct libphazr_descriptor *xdesc = (struct libphazr_descriptor *) desc;
+    struct libphazr_descriptor *xdesc = (struct libphazr_descriptor *)desc;
     int padding_size = get_padded_blocksize(xdesc->w, xdesc->hd, blocksize) - blocksize;
-    char **encoded = malloc(sizeof(char*) * (xdesc->k + xdesc->m));
+    char **encoded = malloc(sizeof(char *) * (xdesc->k + xdesc->m));
 
     if (NULL == encoded) {
         ret = -ENOMEM;
@@ -169,8 +169,8 @@ static int pio_matrix_reconstruct(void *desc, char **data, char **parity,
         encoded[i + xdesc->k] = parity[i];
     }
 
-    ret = xdesc->matrix_reconstruct(xdesc->matrix, encoded, missing_idxs,
-        destination_idx, xdesc->k, xdesc->m, xdesc->w, blocksize, padding_size);
+    ret = xdesc->matrix_reconstruct(xdesc->matrix, encoded, missing_idxs, destination_idx, xdesc->k,
+        xdesc->m, xdesc->w, blocksize, padding_size);
 
 out:
     free(encoded);
@@ -178,8 +178,8 @@ out:
     return ret;
 }
 
-static int pio_min_fragments(void *desc, int *missing_idxs,
-        int *fragments_to_exclude, int *fragments_needed)
+static int pio_min_fragments(
+    void *desc, int *missing_idxs, int *fragments_to_exclude, int *fragments_needed)
 {
     struct libphazr_descriptor *xdesc = (struct libphazr_descriptor *)desc;
     struct ec_bm missing_bm = NEW_BM;
@@ -215,7 +215,7 @@ static int pio_element_size(void *desc)
     return xdesc->w;
 }
 
-static void * pio_init(struct ec_backend_args *args, void *backend_sohandle)
+static void *pio_init(struct ec_backend_args *args, void *backend_sohandle)
 {
     struct libphazr_descriptor *desc = NULL;
 
@@ -252,7 +252,7 @@ static void * pio_init(struct ec_backend_args *args, void *backend_sohandle)
         pio_matrix_decode_func matrix_decode_ptr;
         pio_matrix_reconstruct_func matrix_reconstruct_ptr;
         void *vptr;
-    } func_handle = {.vptr = NULL};
+    } func_handle = { .vptr = NULL };
 
     /* fill in function addresses */
     func_handle.vptr = NULL;
@@ -318,7 +318,7 @@ static void * pio_init(struct ec_backend_args *args, void *backend_sohandle)
         }
     }
 
-    return (void *) desc;
+    return (void *)desc;
 
 error:
     free(desc->matrix);
@@ -334,7 +334,7 @@ error:
 
 static int pio_exit(void *desc)
 {
-    struct libphazr_descriptor *xdesc = (struct libphazr_descriptor*)desc;
+    struct libphazr_descriptor *xdesc = (struct libphazr_descriptor *)desc;
 
     free(xdesc->matrix);
 
@@ -354,39 +354,32 @@ static bool pio_is_compatible_with(uint32_t version)
 
 static size_t pio_get_backend_metadata_size(void *desc, int blocksize)
 {
-    struct libphazr_descriptor *xdesc = (struct libphazr_descriptor *) desc;
+    struct libphazr_descriptor *xdesc = (struct libphazr_descriptor *)desc;
     int padded_blocksize = get_padded_blocksize(xdesc->w, xdesc->hd, blocksize);
     return padded_blocksize - blocksize;
 }
 
-static size_t pio_get_encode_offset(void *desc, int metadata_size)
-{
-    return metadata_size;
-}
-
+static size_t pio_get_encode_offset(void *desc, int metadata_size) { return metadata_size; }
 
 static struct ec_backend_op_stubs libphazr_op_stubs = {
-    .INIT                       = pio_init,
-    .EXIT                       = pio_exit,
-    .ISSYSTEMATIC               = 0,
-    .ENCODE                     = pio_matrix_encode,
-    .DECODE                     = pio_matrix_decode,
-    .FRAGSNEEDED                = pio_min_fragments,
-    .RECONSTRUCT                = pio_matrix_reconstruct,
-    .ELEMENTSIZE                = pio_element_size,
-    .ISCOMPATIBLEWITH           = pio_is_compatible_with,
-    .GETMETADATASIZE            = pio_get_backend_metadata_size,
-    .GETENCODEOFFSET            = pio_get_encode_offset,
+    .INIT = pio_init,
+    .EXIT = pio_exit,
+    .ISSYSTEMATIC = 0,
+    .ENCODE = pio_matrix_encode,
+    .DECODE = pio_matrix_decode,
+    .FRAGSNEEDED = pio_min_fragments,
+    .RECONSTRUCT = pio_matrix_reconstruct,
+    .ELEMENTSIZE = pio_element_size,
+    .ISCOMPATIBLEWITH = pio_is_compatible_with,
+    .GETMETADATASIZE = pio_get_backend_metadata_size,
+    .GETENCODEOFFSET = pio_get_encode_offset,
 };
 
-__attribute__ ((visibility ("internal")))
-struct ec_backend_common backend_libphazr = {
-    .id                         = EC_BACKEND_LIBPHAZR,
-    .name                       = LIBPHAZR_LIB_NAME,
-    .soname                     = LIBPHAZR_SO_NAME,
-    .soversion                  = LIBPHAZR_LIB_VER_STR,
-    .ops                        = &libphazr_op_stubs,
-    .ec_backend_version         = _VERSION(LIBPHAZR_LIB_MAJOR, LIBPHAZR_LIB_MINOR,
-                                           LIBPHAZR_LIB_REV),
+__attribute__((visibility("internal"))) struct ec_backend_common backend_libphazr = {
+    .id = EC_BACKEND_LIBPHAZR,
+    .name = LIBPHAZR_LIB_NAME,
+    .soname = LIBPHAZR_SO_NAME,
+    .soversion = LIBPHAZR_LIB_VER_STR,
+    .ops = &libphazr_op_stubs,
+    .ec_backend_version = _VERSION(LIBPHAZR_LIB_MAJOR, LIBPHAZR_LIB_MINOR, LIBPHAZR_LIB_REV),
 };
-

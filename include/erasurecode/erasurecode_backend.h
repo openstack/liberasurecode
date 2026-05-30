@@ -29,9 +29,9 @@
 #ifndef _ERASURECODE_BACKEND_H_
 #define _ERASURECODE_BACKEND_H_
 
-#include "list.h"
 #include "erasurecode.h"
 #include "erasurecode_stdinc.h"
+#include "list.h"
 
 /* ~=*=~===~=*=~==~=*=~==~=*=~=  backend infrastructure =~=*=~==~=*=~==~=*=~ */
 
@@ -39,7 +39,7 @@
 extern "C" {
 #endif
 
-#if defined (__GNUC__) && __GNUC__ > 3
+#if defined(__GNUC__) && __GNUC__ > 3
 #define dl_restrict __restrict
 #else
 #define dl_restrict
@@ -50,34 +50,34 @@ extern "C" {
 /* Arguments passed to the backend */
 #define MAX_PRIV_ARGS 4
 struct ec_backend_args {
-    struct ec_args uargs;           /* common args passed in by the user */
-    void *pargs[MAX_PRIV_ARGS];     /* used for private backend args */
+    struct ec_args uargs; /* common args passed in by the user */
+    void *pargs[MAX_PRIV_ARGS]; /* used for private backend args */
 };
 
 /* =~===~=*=~==~=*=~==~=*=~=  backend stub definitions =~=*=~==~=*=~==~=*=~= */
 
-#define INIT            init
-#define EXIT            exit
-#define ENCODE          encode
-#define DECODE          decode
-#define FRAGSNEEDED     fragments_needed
-#define RECONSTRUCT     reconstruct
-#define CHECKRECONSTRUCTFRAGMENTS   check_reconstruct_fragments
-#define ELEMENTSIZE     element_size
-#define ISCOMPATIBLEWITH    is_compatible_with
-#define ISSYSTEMATIC        is_systematic
-#define GETMETADATASIZE     get_backend_metadata_size
-#define GETENCODEOFFSET     get_encode_offset
+#define INIT init
+#define EXIT exit
+#define ENCODE encode
+#define DECODE decode
+#define FRAGSNEEDED fragments_needed
+#define RECONSTRUCT reconstruct
+#define CHECKRECONSTRUCTFRAGMENTS check_reconstruct_fragments
+#define ELEMENTSIZE element_size
+#define ISCOMPATIBLEWITH is_compatible_with
+#define ISSYSTEMATIC is_systematic
+#define GETMETADATASIZE get_backend_metadata_size
+#define GETENCODEOFFSET get_encode_offset
 
-#define FN_NAME(s)      str(s)
-#define str(s)          #s
+#define FN_NAME(s) str(s)
+#define str(s) #s
 
 /* EC backend stubs - implemented per backend */
 struct ec_backend_op_stubs {
     /** Backend register/init, unregister/cleanup routines **/
 
     /* Private backend init routine */
-    void * (*INIT)(struct ec_backend_args *args, void *sohandle);
+    void *(*INIT)(struct ec_backend_args *args, void *sohandle);
 
     /* Private backend cleanup routine */
     int (*EXIT)(void *);
@@ -86,15 +86,12 @@ struct ec_backend_op_stubs {
     bool ISSYSTEMATIC;
 
     /* Backend stub declarations */
-    int (*ENCODE)(void *desc,
-            char **data, char **parity, int blocksize);
-    int (*DECODE)(void *desc,
-            char **data, char **parity, int *missing_idxs, int blocksize);
-    int (*FRAGSNEEDED)(void *desc,
-            int *missing_idxs, int * fragments_to_exclude, int *fragments_needed);
-    int (*RECONSTRUCT)(void *desc,
-            char **data, char **parity, int *missing_idxs, int destination_idx,
-            int blocksize);
+    int (*ENCODE)(void *desc, char **data, char **parity, int blocksize);
+    int (*DECODE)(void *desc, char **data, char **parity, int *missing_idxs, int blocksize);
+    int (*FRAGSNEEDED)(
+        void *desc, int *missing_idxs, int *fragments_to_exclude, int *fragments_needed);
+    int (*RECONSTRUCT)(void *desc, char **data, char **parity, int *missing_idxs,
+        int destination_idx, int blocksize);
     int (*ELEMENTSIZE)(void *desc);
 
     bool (*ISCOMPATIBLEWITH)(uint32_t version);
@@ -113,35 +110,35 @@ struct ec_backend_op_stubs {
 /* ==~=*=~==~=*=~==~=*=~= backend struct definitions =~=*=~==~=*=~==~=*==~== */
 
 struct ec_backend_desc {
-    void *backend_desc;                             /* EC backend private descriptor */
-    void *backend_sohandle;                         /* EC backend shared lib handle */
+    void *backend_desc; /* EC backend private descriptor */
+    void *backend_sohandle; /* EC backend shared lib handle */
 };
 
-#define MAX_LEN     64
+#define MAX_LEN 64
 /* EC backend common attributes */
 struct ec_backend_common {
-    ec_backend_id_t             id;                 /* EC backend type */
-    char                        name[MAX_LEN];      /* EC backend common name */
-    const char                  *soname;            /* EC backend shared library path */
-    char                        soversion[MAX_LEN]; /* EC backend shared library version */
+    ec_backend_id_t id; /* EC backend type */
+    char name[MAX_LEN]; /* EC backend common name */
+    const char *soname; /* EC backend shared library path */
+    char soversion[MAX_LEN]; /* EC backend shared library version */
 
-    struct ec_backend_op_stubs  *ops;               /* EC backend stubs */
-    uint32_t                    ec_backend_version; /* The revision number of this back
-                                                     * end. Is used to determine whether
-                                                     * a specific instance of this backend
-                                                     * accepts fragments generated by
-                                                     * another version */
+    struct ec_backend_op_stubs *ops; /* EC backend stubs */
+    uint32_t ec_backend_version; /* The revision number of this back
+                                  * end. Is used to determine whether
+                                  * a specific instance of this backend
+                                  * accepts fragments generated by
+                                  * another version */
 };
 
 /* EC backend definition */
 typedef struct ec_backend {
-    struct ec_backend_common    common;             /* EC backend common attributes */
-    struct ec_backend_args      args;               /* EC backend instance data (private) */
+    struct ec_backend_common common; /* EC backend common attributes */
+    struct ec_backend_args args; /* EC backend instance data (private) */
 
-    int                         idesc;              /* liberasurecode instance handle */
-    struct ec_backend_desc      desc;               /* EC backend instance handle */
+    int idesc; /* liberasurecode instance handle */
+    struct ec_backend_desc desc; /* EC backend instance handle */
 
-    SLIST_ENTRY(ec_backend)     link;
+    SLIST_ENTRY(ec_backend) link;
 } *ec_backend_t;
 
 /* ~=*=~==~=*=~==~=*=~==~=*= frontend <-> backend API =*=~==~=*=~==~=*=~==~= */
@@ -160,14 +157,14 @@ ec_backend_t liberasurecode_backend_instance_get_by_desc(int desc);
  *
  * Returns 0 always
  */
-static inline size_t get_encode_offset_zero(void *desc, int metadata_size){ return 0; }
+static inline size_t get_encode_offset_zero(void *desc, int metadata_size) { return 0; }
 
 /**
  * A function to return 0 for generic usage on backends for get_backend_metadata_size
  *
  * Returns 0 always
  */
-static inline size_t get_backend_metadata_size_zero(void *desc, int blocksize){ return 0; }
+static inline size_t get_backend_metadata_size_zero(void *desc, int blocksize) { return 0; }
 
 /* =~=*=~==~=*=~==~=*=~==~=*=~===~=*=~==~=*=~===~=*=~==~=*=~===~=*=~==~=*=~= */
 
@@ -175,5 +172,4 @@ static inline size_t get_backend_metadata_size_zero(void *desc, int blocksize){ 
 }
 #endif
 
-#endif  // _ERASURECODE_BACKEND_H_
-
+#endif // _ERASURECODE_BACKEND_H_

@@ -46,76 +46,72 @@ static int *ilog_table = NULL;
 static int *ilog_table_begin = NULL;
 static int init_counter = 0;
 
-__attribute__ ((visibility ("internal")))
-void rs_galois_init_tables(void)
+__attribute__((visibility("internal"))) void rs_galois_init_tables(void)
 {
-  if (init_counter++ > 0) {
-    /* already initialized */
-    return;
-  }
-  log_table = (int*)malloc(sizeof(int)*FIELD_SIZE);
-  ilog_table_begin = (int*)malloc(sizeof(int)*FIELD_SIZE*3);
-  int i = 0;
-  int x = 1;
-
-  for (i = 0; i < GROUP_SIZE; i++) {
-    log_table[x] = i;
-    ilog_table_begin[i] = x;
-    ilog_table_begin[i + GROUP_SIZE] = x;
-    ilog_table_begin[i + (GROUP_SIZE*2)] = x;
-    x = x << 1;
-    if (x & FIELD_SIZE) {
-      x ^= PRIM_POLY;
+    if (init_counter++ > 0) {
+        /* already initialized */
+        return;
     }
-  }
-  ilog_table = &ilog_table_begin[GROUP_SIZE];
+    log_table = (int *)malloc(sizeof(int) * FIELD_SIZE);
+    ilog_table_begin = (int *)malloc(sizeof(int) * FIELD_SIZE * 3);
+    int i = 0;
+    int x = 1;
+
+    for (i = 0; i < GROUP_SIZE; i++) {
+        log_table[x] = i;
+        ilog_table_begin[i] = x;
+        ilog_table_begin[i + GROUP_SIZE] = x;
+        ilog_table_begin[i + (GROUP_SIZE * 2)] = x;
+        x = x << 1;
+        if (x & FIELD_SIZE) {
+            x ^= PRIM_POLY;
+        }
+    }
+    ilog_table = &ilog_table_begin[GROUP_SIZE];
 }
 
-__attribute__ ((visibility ("internal")))
-void rs_galois_deinit_tables(void)
+__attribute__((visibility("internal"))) void rs_galois_deinit_tables(void)
 {
-  init_counter--;
-  if (init_counter < 0) {
-    /* deinit when not initialized?? */
-    init_counter = 0;
-  } else if (init_counter > 0) {
-    /* still at least one desc using it */
-    return;
-  } else {
-    free(log_table);
-    log_table = NULL;
-    free(ilog_table_begin);
-    ilog_table_begin = NULL;
-  }
+    init_counter--;
+    if (init_counter < 0) {
+        /* deinit when not initialized?? */
+        init_counter = 0;
+    } else if (init_counter > 0) {
+        /* still at least one desc using it */
+        return;
+    } else {
+        free(log_table);
+        log_table = NULL;
+        free(ilog_table_begin);
+        ilog_table_begin = NULL;
+    }
 }
 
-__attribute__ ((visibility ("internal")))
-int rs_galois_mult(int x, int y)
+__attribute__((visibility("internal"))) int rs_galois_mult(int x, int y)
 {
-  int sum;
-  if (x == 0 || y == 0) return 0;
-  // This can 'overflow' beyond 255.  This is
-  // handled by positive overflow of ilog_table
-  sum = log_table[x] + log_table[y];
+    int sum;
+    if (x == 0 || y == 0)
+        return 0;
+    // This can 'overflow' beyond 255.  This is
+    // handled by positive overflow of ilog_table
+    sum = log_table[x] + log_table[y];
 
-  return ilog_table[sum];
+    return ilog_table[sum];
 }
 
 static int rs_galois_div(int x, int y)
 {
-  int diff;
-  if (x == 0) return 0;
-  if (y == 0) return -1;
+    int diff;
+    if (x == 0)
+        return 0;
+    if (y == 0)
+        return -1;
 
-  // This can 'underflow'.  This is handled
-  // by negative overflow of ilog_table
-  diff = log_table[x] - log_table[y];
+    // This can 'underflow'.  This is handled
+    // by negative overflow of ilog_table
+    diff = log_table[x] - log_table[y];
 
-  return ilog_table[diff];
+    return ilog_table[diff];
 }
 
-__attribute__ ((visibility ("internal")))
-int rs_galois_inverse(int x)
-{
-  return rs_galois_div(1, x);
-}
+__attribute__((visibility("internal"))) int rs_galois_inverse(int x) { return rs_galois_div(1, x); }

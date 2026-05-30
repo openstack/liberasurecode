@@ -36,7 +36,7 @@
 
 #define FLAT_XOR_LIB_MAJOR 1
 #define FLAT_XOR_LIB_MINOR 0
-#define FLAT_XOR_LIB_REV   0
+#define FLAT_XOR_LIB_REV 0
 #define FLAT_XOR_LIB_VER_STR "1.0"
 #define FLAT_XOR_LIB_NAME "flat_xor_hd"
 #if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
@@ -49,7 +49,7 @@
 /* Forward declarations */
 struct ec_backend_common backend_flat_xor_hd;
 
-typedef xor_code_t* (*init_xor_hd_code_func)(int, int, int);
+typedef xor_code_t *(*init_xor_hd_code_func)(int, int, int);
 typedef void (*xor_code_encode_func)(xor_code_t *, char **, char **, int);
 typedef int (*xor_code_decode_func)(xor_code_t *, char **, char **, int *, int, int);
 typedef int (*xor_hd_fragments_needed_func)(xor_code_t *, int *, int *, int *);
@@ -57,53 +57,44 @@ typedef int (*xor_hd_fragments_needed_func)(xor_code_t *, int *, int *, int *);
 struct flat_xor_hd_descriptor {
     xor_code_t *xor_desc;
     init_xor_hd_code_func init_xor_hd_code;
-    xor_code_encode_func  xor_code_encode;
+    xor_code_encode_func xor_code_encode;
     xor_code_decode_func xor_code_decode;
-    xor_hd_fragments_needed_func  xor_hd_fragments_needed;
+    xor_hd_fragments_needed_func xor_hd_fragments_needed;
 };
 
-static int flat_xor_hd_encode(void *desc,
-                              char **data, char **parity, int blocksize)
+static int flat_xor_hd_encode(void *desc, char **data, char **parity, int blocksize)
 {
-    struct flat_xor_hd_descriptor *xdesc =
-        (struct flat_xor_hd_descriptor *) desc;
+    struct flat_xor_hd_descriptor *xdesc = (struct flat_xor_hd_descriptor *)desc;
 
-    xor_code_t *xor_desc = (xor_code_t *) xdesc->xor_desc;
+    xor_code_t *xor_desc = (xor_code_t *)xdesc->xor_desc;
     xor_desc->encode(xor_desc, data, parity, blocksize);
     return 0;
 }
 
-static int flat_xor_hd_decode(void *desc,
-                              char **data, char **parity, int *missing_idxs,
-                              int blocksize)
+static int flat_xor_hd_decode(
+    void *desc, char **data, char **parity, int *missing_idxs, int blocksize)
 {
-    struct flat_xor_hd_descriptor *xdesc =
-        (struct flat_xor_hd_descriptor *) desc;
+    struct flat_xor_hd_descriptor *xdesc = (struct flat_xor_hd_descriptor *)desc;
 
-    xor_code_t *xor_desc = (xor_code_t *) xdesc->xor_desc;
+    xor_code_t *xor_desc = (xor_code_t *)xdesc->xor_desc;
     return xor_desc->decode(xor_desc, data, parity, missing_idxs, blocksize, 1);
 }
 
-static int flat_xor_hd_reconstruct(void *desc,
-                                   char **data, char **parity, int *missing_idxs,
-                                   int destination_idx, int blocksize)
+static int flat_xor_hd_reconstruct(
+    void *desc, char **data, char **parity, int *missing_idxs, int destination_idx, int blocksize)
 {
-    struct flat_xor_hd_descriptor *xdesc =
-        (struct flat_xor_hd_descriptor *) desc;
+    struct flat_xor_hd_descriptor *xdesc = (struct flat_xor_hd_descriptor *)desc;
 
-    xor_code_t *xor_desc = (xor_code_t *) xdesc->xor_desc;
-    return xor_reconstruct_one(xor_desc, data, parity,
-                               missing_idxs, destination_idx, blocksize);
+    xor_code_t *xor_desc = (xor_code_t *)xdesc->xor_desc;
+    return xor_reconstruct_one(xor_desc, data, parity, missing_idxs, destination_idx, blocksize);
 }
 
-static int flat_xor_hd_check_reconstruct_fragments(void *desc,
-                                                   int *missing_idxs,
-                                                   int destination_idx)
+static int flat_xor_hd_check_reconstruct_fragments(
+    void *desc, int *missing_idxs, int destination_idx)
 {
-    struct flat_xor_hd_descriptor *xdesc =
-        (struct flat_xor_hd_descriptor *) desc;
+    struct flat_xor_hd_descriptor *xdesc = (struct flat_xor_hd_descriptor *)desc;
 
-    xor_code_t *xor_desc = (xor_code_t *) xdesc->xor_desc;
+    xor_code_t *xor_desc = (xor_code_t *)xdesc->xor_desc;
 
     struct ec_bm missing_bm = NEW_BM;
     convert_list_to_bitmap(missing_idxs, &missing_bm);
@@ -146,14 +137,12 @@ static int flat_xor_hd_check_reconstruct_fragments(void *desc,
     return 0;
 }
 
-static int flat_xor_hd_min_fragments(void *desc,
-                                     int *missing_idxs, int *fragments_to_exclude,
-                                     int *fragments_needed)
+static int flat_xor_hd_min_fragments(
+    void *desc, int *missing_idxs, int *fragments_to_exclude, int *fragments_needed)
 {
-    struct flat_xor_hd_descriptor *xdesc =
-        (struct flat_xor_hd_descriptor *) desc;
+    struct flat_xor_hd_descriptor *xdesc = (struct flat_xor_hd_descriptor *)desc;
 
-    xor_code_t *xor_desc = (xor_code_t *) xdesc->xor_desc;
+    xor_code_t *xor_desc = (xor_code_t *)xdesc->xor_desc;
     xor_desc->fragments_needed(xor_desc, missing_idxs, fragments_to_exclude, fragments_needed);
     return 0;
 }
@@ -162,13 +151,9 @@ static int flat_xor_hd_min_fragments(void *desc,
  * Return the element-size, which is the number of bits stored
  * on a given device, per codeword.  This is usually just 'w'.
  */
-static int
-flar_xor_hd_element_size(void* desc)
-{
-    return DEFAULT_W;
-}
+static int flar_xor_hd_element_size(void *desc) { return DEFAULT_W; }
 
-static void * flat_xor_hd_init(struct ec_backend_args *args, void *sohandle)
+static void *flat_xor_hd_init(struct ec_backend_args *args, void *sohandle)
 {
     int k = args->uargs.k;
     int m = args->uargs.m;
@@ -187,25 +172,23 @@ static void * flat_xor_hd_init(struct ec_backend_args *args, void *sohandle)
     }
 
     /* fill in flat_xor_hd_descriptor */
-    bdesc = (struct flat_xor_hd_descriptor *)
-        malloc(sizeof(struct flat_xor_hd_descriptor));
+    bdesc = (struct flat_xor_hd_descriptor *)malloc(sizeof(struct flat_xor_hd_descriptor));
     if (NULL == bdesc) {
-        free (xor_desc);
+        free(xor_desc);
         return NULL;
     }
 
     bdesc->xor_desc = xor_desc;
 
-    return (void *) bdesc;
+    return (void *)bdesc;
 }
 
 static int flat_xor_hd_exit(void *desc)
 {
-    struct flat_xor_hd_descriptor *bdesc =
-        (struct flat_xor_hd_descriptor *) desc;
+    struct flat_xor_hd_descriptor *bdesc = (struct flat_xor_hd_descriptor *)desc;
 
-    free (bdesc->xor_desc);
-    free (bdesc);
+    free(bdesc->xor_desc);
+    free(bdesc);
     return 0;
 }
 
@@ -213,34 +196,31 @@ static int flat_xor_hd_exit(void *desc)
  * For the time being, we only claim compatibility with versions that
  * match exactly
  */
-static bool flat_xor_is_compatible_with(uint32_t version) {
+static bool flat_xor_is_compatible_with(uint32_t version)
+{
     return version == backend_flat_xor_hd.ec_backend_version;
 }
 
 static struct ec_backend_op_stubs flat_xor_hd_op_stubs = {
-    .INIT                       = flat_xor_hd_init,
-    .EXIT                       = flat_xor_hd_exit,
-    .ISSYSTEMATIC               = 1,
-    .ENCODE                     = flat_xor_hd_encode,
-    .DECODE                     = flat_xor_hd_decode,
-    .FRAGSNEEDED                = flat_xor_hd_min_fragments,
-    .RECONSTRUCT                = flat_xor_hd_reconstruct,
-    .ELEMENTSIZE                = flar_xor_hd_element_size,
-    .ISCOMPATIBLEWITH           = flat_xor_is_compatible_with,
-    .GETMETADATASIZE            = get_backend_metadata_size_zero,
-    .GETENCODEOFFSET            = get_encode_offset_zero,
-    .CHECKRECONSTRUCTFRAGMENTS  = flat_xor_hd_check_reconstruct_fragments,
+    .INIT = flat_xor_hd_init,
+    .EXIT = flat_xor_hd_exit,
+    .ISSYSTEMATIC = 1,
+    .ENCODE = flat_xor_hd_encode,
+    .DECODE = flat_xor_hd_decode,
+    .FRAGSNEEDED = flat_xor_hd_min_fragments,
+    .RECONSTRUCT = flat_xor_hd_reconstruct,
+    .ELEMENTSIZE = flar_xor_hd_element_size,
+    .ISCOMPATIBLEWITH = flat_xor_is_compatible_with,
+    .GETMETADATASIZE = get_backend_metadata_size_zero,
+    .GETENCODEOFFSET = get_encode_offset_zero,
+    .CHECKRECONSTRUCTFRAGMENTS = flat_xor_hd_check_reconstruct_fragments,
 };
 
-__attribute__ ((visibility ("internal")))
-struct ec_backend_common backend_flat_xor_hd = {
-    .id                         = EC_BACKEND_FLAT_XOR_HD,
-    .name                       = FLAT_XOR_LIB_NAME,
-    .soname                     = FLAT_XOR_SO_NAME,
-    .soversion                  = FLAT_XOR_LIB_VER_STR,
-    .ops                        = &flat_xor_hd_op_stubs,
-    .ec_backend_version         = _VERSION(FLAT_XOR_LIB_MAJOR,
-                                           FLAT_XOR_LIB_MINOR,
-                                           FLAT_XOR_LIB_REV),
+__attribute__((visibility("internal"))) struct ec_backend_common backend_flat_xor_hd = {
+    .id = EC_BACKEND_FLAT_XOR_HD,
+    .name = FLAT_XOR_LIB_NAME,
+    .soname = FLAT_XOR_SO_NAME,
+    .soversion = FLAT_XOR_LIB_VER_STR,
+    .ops = &flat_xor_hd_op_stubs,
+    .ec_backend_version = _VERSION(FLAT_XOR_LIB_MAJOR, FLAT_XOR_LIB_MINOR, FLAT_XOR_LIB_REV),
 };
-

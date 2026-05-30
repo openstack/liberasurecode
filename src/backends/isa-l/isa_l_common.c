@@ -36,23 +36,23 @@
 #include "erasurecode_helpers_ext.h"
 #include "isa_l_common.h"
 
-__attribute__ ((visibility ("internal")))
-int isa_l_encode(void *desc, char **data, char **parity,
-        int blocksize)
+__attribute__((visibility("internal"))) int isa_l_encode(
+    void *desc, char **data, char **parity, int blocksize)
 {
-    isa_l_descriptor *isa_l_desc = (isa_l_descriptor*) desc;
+    isa_l_descriptor *isa_l_desc = (isa_l_descriptor *)desc;
 
     unsigned char *g_tbls = isa_l_desc->encode_tables;
     int k = isa_l_desc->k;
     int m = isa_l_desc->m;
 
     /* FIXME - make ec_encode_data return a value */
-    isa_l_desc->ec_encode_data(blocksize, k, m, g_tbls, (unsigned char**)data,
-                               (unsigned char**)parity);
+    isa_l_desc->ec_encode_data(
+        blocksize, k, m, g_tbls, (unsigned char **)data, (unsigned char **)parity);
     return 0;
 }
 
-static unsigned char* isa_l_get_decode_matrix(int k, int m, unsigned char *encode_matrix, int *missing_idxs)
+static unsigned char *isa_l_get_decode_matrix(
+    int k, int m, unsigned char *encode_matrix, int *missing_idxs)
 {
     int i = 0, j = 0, l = 0;
     int n = k + m;
@@ -81,18 +81,14 @@ static unsigned char* isa_l_get_decode_matrix(int k, int m, unsigned char *encod
  * TODO: Add in missing parity rows and adjust the inverse_rows to
  * be used for parity.
  */
-static unsigned char* get_inverse_rows(int k,
-                                       int m,
-                                       unsigned char *decode_inverse,
-                                       unsigned char* encode_matrix,
-                                       int *missing_idxs,
-                                       gf_mul_func gf_mul)
+static unsigned char *get_inverse_rows(int k, int m, unsigned char *decode_inverse,
+    unsigned char *encode_matrix, int *missing_idxs, gf_mul_func gf_mul)
 {
     struct ec_bm missing_bm = NEW_BM;
     convert_list_to_bitmap(missing_idxs, &missing_bm);
     int num_missing_elements = get_num_missing_elements(missing_idxs);
-    unsigned char *inverse_rows = (unsigned char*)malloc(sizeof(unsigned
-                                    char*) * k * num_missing_elements);
+    unsigned char *inverse_rows
+        = (unsigned char *)malloc(sizeof(unsigned char *) * k * num_missing_elements);
     int i, j, l = 0;
     int n = k + m;
 
@@ -100,8 +96,7 @@ static unsigned char* get_inverse_rows(int k,
         return NULL;
     }
 
-    memset(inverse_rows, 0, sizeof(unsigned
-                                    char*) * k * num_missing_elements);
+    memset(inverse_rows, 0, sizeof(unsigned char *) * k * num_missing_elements);
 
     /*
      * Fill in rows for missing data
@@ -140,11 +135,8 @@ static unsigned char* get_inverse_rows(int k,
                     inverse_rows[(l * k) + d_idx_avail] ^= encode_matrix[(i * k) + j];
                     d_idx_avail++;
                 } else {
-                    mult_and_xor_row(&inverse_rows[l * k],
-                                     &inverse_rows[d_idx_unavail * k],
-                                     encode_matrix[(i * k) + j],
-                                     k,
-                                     gf_mul);
+                    mult_and_xor_row(&inverse_rows[l * k], &inverse_rows[d_idx_unavail * k],
+                        encode_matrix[(i * k) + j], k, gf_mul);
                     d_idx_unavail++;
                 }
             }
@@ -154,11 +146,10 @@ static unsigned char* get_inverse_rows(int k,
     return inverse_rows;
 }
 
-__attribute__ ((visibility ("internal")))
-int isa_l_decode(void *desc, char **data, char **parity,
-        int *missing_idxs, int blocksize)
+__attribute__((visibility("internal"))) int isa_l_decode(
+    void *desc, char **data, char **parity, int *missing_idxs, int blocksize)
 {
-    isa_l_descriptor *isa_l_desc = (isa_l_descriptor*)desc;
+    isa_l_descriptor *isa_l_desc = (isa_l_descriptor *)desc;
 
     unsigned char *g_tbls = NULL;
     unsigned char *decode_matrix = NULL;
@@ -182,7 +173,7 @@ int isa_l_decode(void *desc, char **data, char **parity,
         goto out;
     }
 
-    decode_inverse = (unsigned char*)malloc(sizeof(unsigned char) * k * k);
+    decode_inverse = (unsigned char *)malloc(sizeof(unsigned char) * k * k);
 
     if (NULL == decode_inverse) {
         goto out;
@@ -199,14 +190,15 @@ int isa_l_decode(void *desc, char **data, char **parity,
         goto out;
     }
 
-    inverse_rows = get_inverse_rows(k, m, decode_inverse, isa_l_desc->matrix, missing_idxs, isa_l_desc->gf_mul);
+    inverse_rows = get_inverse_rows(
+        k, m, decode_inverse, isa_l_desc->matrix, missing_idxs, isa_l_desc->gf_mul);
 
-    decoded_elements = (unsigned char**)malloc(sizeof(unsigned char*)*num_missing_elements);
+    decoded_elements = (unsigned char **)malloc(sizeof(unsigned char *) * num_missing_elements);
     if (NULL == decoded_elements) {
         goto out;
     }
 
-    available_fragments = (unsigned char**)malloc(sizeof(unsigned char*)*k);
+    available_fragments = (unsigned char **)malloc(sizeof(unsigned char *) * k);
     if (NULL == available_fragments) {
         goto out;
     }
@@ -220,9 +212,9 @@ int isa_l_decode(void *desc, char **data, char **parity,
             break;
         }
         if (i < k) {
-            available_fragments[j] = (unsigned char*)data[i];
+            available_fragments[j] = (unsigned char *)data[i];
         } else {
-            available_fragments[j] = (unsigned char*)parity[i-k];
+            available_fragments[j] = (unsigned char *)parity[i - k];
         }
         j++;
     }
@@ -231,21 +223,21 @@ int isa_l_decode(void *desc, char **data, char **parity,
     j = 0;
     for (i = 0; i < k; i++) {
         if (bm_get_value(&missing_bm, i)) {
-            decoded_elements[j] = (unsigned char*)data[i];
+            decoded_elements[j] = (unsigned char *)data[i];
             j++;
         }
     }
     for (i = k; i < n; i++) {
         if (bm_get_value(&missing_bm, i)) {
-            decoded_elements[j] = (unsigned char*)parity[i - k];
+            decoded_elements[j] = (unsigned char *)parity[i - k];
             j++;
         }
     }
 
     isa_l_desc->ec_init_tables(k, num_missing_elements, inverse_rows, g_tbls);
 
-    isa_l_desc->ec_encode_data(blocksize, k, num_missing_elements, g_tbls, (unsigned char**)available_fragments,
-                               (unsigned char**)decoded_elements);
+    isa_l_desc->ec_encode_data(blocksize, k, num_missing_elements, g_tbls,
+        (unsigned char **)available_fragments, (unsigned char **)decoded_elements);
 
     ret = 0;
 
@@ -260,11 +252,10 @@ out:
     return ret;
 }
 
-__attribute__ ((visibility ("internal")))
-int isa_l_reconstruct(void *desc, char **data, char **parity,
-        int *missing_idxs, int destination_idx, int blocksize)
+__attribute__((visibility("internal"))) int isa_l_reconstruct(
+    void *desc, char **data, char **parity, int *missing_idxs, int destination_idx, int blocksize)
 {
-    isa_l_descriptor *isa_l_desc = (isa_l_descriptor*) desc;
+    isa_l_descriptor *isa_l_desc = (isa_l_descriptor *)desc;
     unsigned char *g_tbls = NULL;
     unsigned char *decode_matrix = NULL;
     unsigned char *decode_inverse = NULL;
@@ -290,7 +281,7 @@ int isa_l_reconstruct(void *desc, char **data, char **parity,
         goto out;
     }
 
-    decode_inverse = (unsigned char*)malloc(sizeof(unsigned char) * k * k);
+    decode_inverse = (unsigned char *)malloc(sizeof(unsigned char) * k * k);
 
     if (NULL == decode_inverse) {
         goto out;
@@ -304,7 +295,8 @@ int isa_l_reconstruct(void *desc, char **data, char **parity,
     /**
      * Get the row needed to reconstruct
      */
-    inverse_rows = get_inverse_rows(k, m, decode_inverse, isa_l_desc->matrix, missing_idxs, isa_l_desc->gf_mul);
+    inverse_rows = get_inverse_rows(
+        k, m, decode_inverse, isa_l_desc->matrix, missing_idxs, isa_l_desc->gf_mul);
 
     // Generate g_tbls from computed decode matrix (k x k) matrix
     g_tbls = malloc(sizeof(unsigned char) * (k * m * 32));
@@ -315,7 +307,7 @@ int isa_l_reconstruct(void *desc, char **data, char **parity,
     /**
      * Fill in the available elements
      */
-    available_fragments = (unsigned char**)malloc(sizeof(unsigned char*)*k);
+    available_fragments = (unsigned char **)malloc(sizeof(unsigned char *) * k);
     if (NULL == available_fragments) {
         goto out;
     }
@@ -326,12 +318,12 @@ int isa_l_reconstruct(void *desc, char **data, char **parity,
             continue;
         }
         if (j == k) {
-          break;
+            break;
         }
         if (i < k) {
-            available_fragments[j] = (unsigned char*)data[i];
+            available_fragments[j] = (unsigned char *)data[i];
         } else {
-            available_fragments[j] = (unsigned char*)parity[i-k];
+            available_fragments[j] = (unsigned char *)parity[i - k];
         }
         j++;
     }
@@ -344,9 +336,9 @@ int isa_l_reconstruct(void *desc, char **data, char **parity,
         if (bm_get_value(&missing_bm, i)) {
             if (i == destination_idx) {
                 if (i < k) {
-                    reconstruct_buf = (unsigned char*)data[i];
+                    reconstruct_buf = (unsigned char *)data[i];
                 } else {
-                    reconstruct_buf = (unsigned char*)parity[i-k];
+                    reconstruct_buf = (unsigned char *)parity[i - k];
                 }
                 inverse_row = j;
                 break;
@@ -360,8 +352,8 @@ int isa_l_reconstruct(void *desc, char **data, char **parity,
      */
     isa_l_desc->ec_init_tables(k, 1, &inverse_rows[inverse_row * k], g_tbls);
 
-    isa_l_desc->ec_encode_data(blocksize, k, 1, g_tbls, (unsigned char**)available_fragments,
-                               (unsigned char**)&reconstruct_buf);
+    isa_l_desc->ec_encode_data(blocksize, k, 1, g_tbls, (unsigned char **)available_fragments,
+        (unsigned char **)&reconstruct_buf);
 
     ret = 0;
 out:
@@ -374,11 +366,10 @@ out:
     return ret;
 }
 
-__attribute__ ((visibility ("internal")))
-int isa_l_min_fragments(void *desc, int *missing_idxs,
-        int *fragments_to_exclude, int *fragments_needed)
+__attribute__((visibility("internal"))) int isa_l_min_fragments(
+    void *desc, int *missing_idxs, int *fragments_to_exclude, int *fragments_needed)
 {
-    isa_l_descriptor *isa_l_desc = (isa_l_descriptor*)desc;
+    isa_l_descriptor *isa_l_desc = (isa_l_descriptor *)desc;
 
     struct ec_bm exclude_bm = NEW_BM, missing_bm = NEW_BM;
     convert_list_to_bitmap(fragments_to_exclude, &exclude_bm);
@@ -409,18 +400,13 @@ int isa_l_min_fragments(void *desc, int *missing_idxs,
  *
  * Returns the size in bits!
  */
-__attribute__ ((visibility ("internal")))
-int isa_l_element_size(void* desc)
-{
-  return 8;
-}
+__attribute__((visibility("internal"))) int isa_l_element_size(void *desc) { return 8; }
 
-__attribute__ ((visibility ("internal")))
-int isa_l_exit(void *desc)
+__attribute__((visibility("internal"))) int isa_l_exit(void *desc)
 {
     isa_l_descriptor *isa_l_desc = NULL;
 
-    isa_l_desc = (isa_l_descriptor*) desc;
+    isa_l_desc = (isa_l_descriptor *)desc;
 
     free(isa_l_desc->encode_tables);
     free(isa_l_desc->matrix);
@@ -429,10 +415,8 @@ int isa_l_exit(void *desc)
     return 0;
 }
 
-
-__attribute__ ((visibility ("internal")))
-void * isa_l_common_init(struct ec_backend_args *args, void *backend_sohandle,
-        const char* gen_matrix_func_name)
+__attribute__((visibility("internal"))) void *isa_l_common_init(
+    struct ec_backend_args *args, void *backend_sohandle, const char *gen_matrix_func_name)
 {
     isa_l_descriptor *desc = NULL;
 
@@ -453,9 +437,9 @@ void * isa_l_common_init(struct ec_backend_args *args, void *backend_sohandle,
         if ((desc->k + desc->m) > max_symbols) {
             goto error;
         }
-     }
+    }
 
-     /*
+    /*
      * ISO C forbids casting a void* to a function pointer.
      * Since dlsym return returns a void*, we use this union to
      * "transform" the void* to a function pointer.
@@ -467,7 +451,7 @@ void * isa_l_common_init(struct ec_backend_args *args, void *backend_sohandle,
         gf_invert_matrix_func invert_matrixp;
         gf_mul_func gf_mulp;
         void *vptr;
-    } func_handle = {.vptr = NULL};
+    } func_handle = { .vptr = NULL };
 
     /* fill in function addresses */
     func_handle.vptr = NULL;
@@ -516,19 +500,15 @@ void * isa_l_common_init(struct ec_backend_args *args, void *backend_sohandle,
      */
     desc->gf_gen_encoding_matrix(desc->matrix, desc->k + desc->m, desc->k);
 
-
     /**
      * Generate the tables for encoding
      */
-    desc->encode_tables = malloc(sizeof(unsigned char) *
-                                 (desc->k * desc->m * 32));
+    desc->encode_tables = malloc(sizeof(unsigned char) * (desc->k * desc->m * 32));
     if (NULL == desc->encode_tables) {
         goto error_free;
     }
 
-    desc->ec_init_tables(desc->k, desc->m,
-                         &desc->matrix[desc->k * desc->k],
-                         desc->encode_tables);
+    desc->ec_init_tables(desc->k, desc->m, &desc->matrix[desc->k * desc->k], desc->encode_tables);
 
     return desc;
 

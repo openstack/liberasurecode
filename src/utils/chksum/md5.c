@@ -48,18 +48,18 @@
  * architectures that lack an AND-NOT instruction, just like in Colin Plumb's
  * implementation.
  */
-#define F(x, y, z)    ((z) ^ ((x) & ((y) ^ (z))))
-#define G(x, y, z)    ((y) ^ ((z) & ((x) ^ (y))))
-#define H(x, y, z)    ((x) ^ (y) ^ (z))
-#define I(x, y, z)    ((y) ^ ((x) | ~(z)))
+#define F(x, y, z) ((z) ^ ((x) & ((y) ^ (z))))
+#define G(x, y, z) ((y) ^ ((z) & ((x) ^ (y))))
+#define H(x, y, z) ((x) ^ (y) ^ (z))
+#define I(x, y, z) ((y) ^ ((x) | ~(z)))
 
 /*
  * The MD5 transformation for all four rounds.
  */
-#define STEP(f, a, b, c, d, x, t, s) \
-        (a) += f((b), (c), (d)) + (x) + (t); \
-        (a) = (((a) << (s)) | (((a) & 0xffffffff) >> (32 - (s)))); \
-        (a) += (b);
+#define STEP(f, a, b, c, d, x, t, s)                                                               \
+    (a) += f((b), (c), (d)) + (x) + (t);                                                           \
+    (a) = (((a) << (s)) | (((a) & 0xffffffff) >> (32 - (s))));                                     \
+    (a) += (b);
 
 /*
  * SET reads 4 input bytes in little-endian byte order and stores them
@@ -70,16 +70,13 @@
  * doesn't work.
  */
 #if defined(__i386__) || defined(__x86_64__) || defined(__vax__)
-#define SET(n)    (*(MD5_u32plus *)&ptr[(n) * 4])
-#define GET(n)    SET(n)
+#define SET(n) (*(MD5_u32plus *)&ptr[(n) * 4])
+#define GET(n) SET(n)
 #else
-#define SET(n) \
-        (ctx->block[(n)] = \
-        (MD5_u32plus)ptr[(n) * 4] | \
-        ((MD5_u32plus)ptr[(n) * 4 + 1] << 8) | \
-        ((MD5_u32plus)ptr[(n) * 4 + 2] << 16) | \
-        ((MD5_u32plus)ptr[(n) * 4 + 3] << 24))
-#define GET(n)    (ctx->block[(n)])
+#define SET(n)                                                                                     \
+    (ctx->block[(n)] = (MD5_u32plus)ptr[(n) * 4] | ((MD5_u32plus)ptr[(n) * 4 + 1] << 8)            \
+            | ((MD5_u32plus)ptr[(n) * 4 + 2] << 16) | ((MD5_u32plus)ptr[(n) * 4 + 3] << 24))
+#define GET(n) (ctx->block[(n)])
 #endif
 
 /*
@@ -105,7 +102,7 @@ static void *body(MD5_CTX *ctx, void *data, unsigned long size)
         saved_c = c;
         saved_d = d;
 
-/* Round 1 */
+        /* Round 1 */
         STEP(F, a, b, c, d, SET(0), 0xd76aa478, 7)
         STEP(F, d, a, b, c, SET(1), 0xe8c7b756, 12)
         STEP(F, c, d, a, b, SET(2), 0x242070db, 17)
@@ -123,7 +120,7 @@ static void *body(MD5_CTX *ctx, void *data, unsigned long size)
         STEP(F, c, d, a, b, SET(14), 0xa679438e, 17)
         STEP(F, b, c, d, a, SET(15), 0x49b40821, 22)
 
-/* Round 2 */
+        /* Round 2 */
         STEP(G, a, b, c, d, GET(1), 0xf61e2562, 5)
         STEP(G, d, a, b, c, GET(6), 0xc040b340, 9)
         STEP(G, c, d, a, b, GET(11), 0x265e5a51, 14)
@@ -141,7 +138,7 @@ static void *body(MD5_CTX *ctx, void *data, unsigned long size)
         STEP(G, c, d, a, b, GET(7), 0x676f02d9, 14)
         STEP(G, b, c, d, a, GET(12), 0x8d2a4c8a, 20)
 
-/* Round 3 */
+        /* Round 3 */
         STEP(H, a, b, c, d, GET(5), 0xfffa3942, 4)
         STEP(H, d, a, b, c, GET(8), 0x8771f681, 11)
         STEP(H, c, d, a, b, GET(11), 0x6d9d6122, 16)
@@ -159,7 +156,7 @@ static void *body(MD5_CTX *ctx, void *data, unsigned long size)
         STEP(H, c, d, a, b, GET(15), 0x1fa27cf8, 16)
         STEP(H, b, c, d, a, GET(2), 0xc4ac5665, 23)
 
-/* Round 4 */
+        /* Round 4 */
         STEP(I, a, b, c, d, GET(0), 0xf4292244, 6)
         STEP(I, d, a, b, c, GET(7), 0x432aff97, 10)
         STEP(I, c, d, a, b, GET(14), 0xab9423a7, 15)

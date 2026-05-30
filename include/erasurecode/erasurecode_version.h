@@ -1,4 +1,4 @@
-/* 
+/*
  * <Copyright>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,5 +37,3 @@
 #endif // LIBERASURECODE_SO_SUFFIX
 
 #endif // _ERASURECODE_VERSION_H_
-
-

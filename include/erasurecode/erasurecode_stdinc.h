@@ -1,4 +1,4 @@
-/* 
+/*
  * <Copyright>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,55 +39,55 @@
 #include <stdio.h>
 #endif
 #if defined(STDC_HEADERS)
-# include <stdlib.h>
-# include <stddef.h>
-# include <stdarg.h>
-# include <stdbool.h>
-# include <unistd.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include <unistd.h>
 #else
-# if defined(HAVE_STDLIB_H)
-#  include <stdlib.h>
-# elif defined(HAVE_MALLOC_H)
-#  include <malloc.h>
-# endif
-# if defined(HAVE_STDDEF_H)
-#  include <stddef.h>
-# endif
-# if defined(HAVE_STDARG_H)
-#  include <stdarg.h>
-# endif
-# if defined(HAVE_UNISTD_H)
-#  include <unistd.h>
-# endif
+#if defined(HAVE_STDLIB_H)
+#include <stdlib.h>
+#elif defined(HAVE_MALLOC_H)
+#include <malloc.h>
+#endif
+#if defined(HAVE_STDDEF_H)
+#include <stddef.h>
+#endif
+#if defined(HAVE_STDARG_H)
+#include <stdarg.h>
+#endif
+#if defined(HAVE_UNISTD_H)
+#include <unistd.h>
+#endif
 #endif
 #ifdef HAVE_STRING_H
-# if !defined(STDC_HEADERS) && defined(HAVE_MEMORY_H)
-#  include <memory.h>
-# endif
-# include <string.h>
+#if !defined(STDC_HEADERS) && defined(HAVE_MEMORY_H)
+#include <memory.h>
+#endif
+#include <string.h>
 #endif
 #ifdef HAVE_STRINGS_H
-# include <strings.h>
+#include <strings.h>
 #endif
 #if defined(HAVE_INTTYPES_H)
-# include <inttypes.h>
+#include <inttypes.h>
 #elif defined(HAVE_STDINT_H)
-# include <stdint.h>
+#include <stdint.h>
 #endif
 #ifdef HAVE_CTYPE_H
-# include <ctype.h>
+#include <ctype.h>
 #endif
 #if defined(HAVE_ICONV) && defined(HAVE_ICONV_H)
-# include <iconv.h>
+#include <iconv.h>
 #endif
 #ifdef HAVE_DLFCN_H
-# include <dlfcn.h>
+#include <dlfcn.h>
 #endif
 #ifdef HAVE_DLFCN_H
-# include <limits.h>
+#include <limits.h>
 #endif
 #ifdef HAVE_PTHREAD_H
-# include <pthread.h>
+#include <pthread.h>
 #define RWLOCK_INITIALIZER PTHREAD_RWLOCK_INITIALIZER
 #define rwlock_t pthread_rwlock_t
 #define rwlock_rdlock pthread_rwlock_rdlock
@@ -98,38 +98,38 @@
 #define rwlock_destroy pthread_rwlock_destroy
 #endif
 #ifdef HAVE_ERRNO_H
-# include <errno.h>
+#include <errno.h>
 #endif
 
 #if defined(__GNUC__) && __GNUC__ >= 4
-# define DECLSPEC	__attribute__ ((visibility("default")))
+#define DECLSPEC __attribute__((visibility("default")))
 #else
-# define DECLSPEC
+#define DECLSPEC
 #endif
 
 // FIXME - need to move these to the main liberasurecode header
 #ifdef HAVE_MALLOC
-#define ERASURECODE_malloc	malloc
+#define ERASURECODE_malloc malloc
 #else
-extern DECLSPEC void *  ERASURECODE_malloc(size_t size);
+extern DECLSPEC void *ERASURECODE_malloc(size_t size);
 #endif
 
 #ifdef HAVE_CALLOC
-#define ERASURECODE_calloc	calloc
+#define ERASURECODE_calloc calloc
 #else
-extern DECLSPEC void *  ERASURECODE_calloc(size_t nmemb, size_t size);
+extern DECLSPEC void *ERASURECODE_calloc(size_t nmemb, size_t size);
 #endif
 
 #ifdef HAVE_REALLOC
-#define ERASURECODE_realloc	realloc
+#define ERASURECODE_realloc realloc
 #else
-extern DECLSPEC void *  ERASURECODE_realloc(void *mem, size_t size);
+extern DECLSPEC void *ERASURECODE_realloc(void *mem, size_t size);
 #endif
 
 #ifdef HAVE_FREE
-#define ERASURECODE_free	free
+#define ERASURECODE_free free
 #else
-extern DECLSPEC void    ERASURECODE_free(void *mem);
+extern DECLSPEC void ERASURECODE_free(void *mem);
 #endif
 
 /*  Redefine main() on MacOS */
@@ -137,7 +137,7 @@ extern DECLSPEC void    ERASURECODE_free(void *mem);
 #if defined(__MACOS__) || defined(__MACOSX__)
 
 #ifdef __cplusplus
-#define C_LINKAGE	"C"
+#define C_LINKAGE "C"
 #else
 #define C_LINKAGE
 #endif /* __cplusplus */
@@ -153,11 +153,11 @@ extern DECLSPEC void    ERASURECODE_free(void *mem);
  *	}
  *      @endcode
  */
-#define main	EC_main
+#define main EC_main
 
 /** The prototype for the application's main() function */
 extern C_LINKAGE int EC_main(int argc, char *argv[]);
 
-#endif  // MACOSX
+#endif // MACOSX
 
 #endif // _ERASURECODE_STDINC_H_

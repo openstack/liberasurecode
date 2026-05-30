@@ -26,45 +26,42 @@
  * vi: set noai tw=79 ts=4 sw=4:
  */
 
-#include <stdlib.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 /* calls required for init */
-void* null_code_init(int k, int m, int hd)
+void *null_code_init(int k, int m, int hd)
 {
     /* add your code here */
     return NULL;
 }
 
 /* calls required for encode */
-int null_code_encode(void *code_desc, char **data, char **parity,
-        int blocksize)
+int null_code_encode(void *code_desc, char **data, char **parity, int blocksize)
 {
     /* add your code here */
     return 0;
 }
 
 /* calls required for decode */
-int null_code_decode(void *code_desc, char **data, char **parity,
-        int *missing_idxs, int blocksize, int decode_parity)
+int null_code_decode(void *code_desc, char **data, char **parity, int *missing_idxs, int blocksize,
+    int decode_parity)
 {
     /* add your code here */
     return 0;
 }
 
 /* calls required for reconstruct */
-int null_reconstruct(char **available_fragments, int num_fragments,
-        uint64_t fragment_len, int destination_idx, char* out_fragment)
+int null_reconstruct(char **available_fragments, int num_fragments, uint64_t fragment_len,
+    int destination_idx, char *out_fragment)
 {
     /* add your code here */
     return 0;
 }
 
 /* set of fragments needed to reconstruct at a minimum */
-int null_code_fragments_needed(void *code_desc, int *missing_idxs,
-        int *fragments_needed)
+int null_code_fragments_needed(void *code_desc, int *missing_idxs, int *fragments_needed)
 {
     /* add your code here */
     return 0;
 }
-

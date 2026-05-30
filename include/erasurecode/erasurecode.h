@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2014, Tushar Gohad, Kevin Greenan, All rights reserved
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,17 +41,17 @@ extern "C" {
 /* =~=*=~==~=*=~==~=*=~= Supported EC backends =~=*=~==~=*=~==~=*=~==~=*=~== */
 
 typedef enum {
-    EC_BACKEND_NULL                   = 0,
-    EC_BACKEND_JERASURE_RS_VAND       = 1,
-    EC_BACKEND_JERASURE_RS_CAUCHY     = 2,
-    EC_BACKEND_FLAT_XOR_HD            = 3,
-    EC_BACKEND_ISA_L_RS_VAND          = 4,
-    EC_BACKEND_SHSS                   = 5,
+    EC_BACKEND_NULL = 0,
+    EC_BACKEND_JERASURE_RS_VAND = 1,
+    EC_BACKEND_JERASURE_RS_CAUCHY = 2,
+    EC_BACKEND_FLAT_XOR_HD = 3,
+    EC_BACKEND_ISA_L_RS_VAND = 4,
+    EC_BACKEND_SHSS = 5,
     EC_BACKEND_LIBERASURECODE_RS_VAND = 6,
-    EC_BACKEND_ISA_L_RS_CAUCHY        = 7,
-    EC_BACKEND_LIBPHAZR               = 8,
-    EC_BACKEND_ISA_L_RS_VAND_INV      = 9,
-    EC_BACKEND_ISA_L_RS_LRC           = 10,
+    EC_BACKEND_ISA_L_RS_CAUCHY = 7,
+    EC_BACKEND_LIBPHAZR = 8,
+    EC_BACKEND_ISA_L_RS_VAND_INV = 9,
+    EC_BACKEND_ISA_L_RS_LRC = 10,
     EC_BACKENDS_MAX,
 } ec_backend_id_t;
 
@@ -59,9 +59,9 @@ typedef enum {
 
 /* Checksum types supported for fragment metadata stored in each fragment */
 typedef enum {
-    CHKSUM_NONE                     = 1,
-    CHKSUM_CRC32                    = 2,
-    CHKSUM_MD5                      = 3,
+    CHKSUM_NONE = 1,
+    CHKSUM_CRC32 = 2,
+    CHKSUM_MD5 = 3,
     CHKSUM_TYPES_MAX,
 } ec_checksum_type_t;
 
@@ -72,27 +72,27 @@ typedef enum {
  * to be passed to liberasurecode_instance_create()
  */
 struct ec_args {
-    int k;                  /* number of data fragments */
-    int m;                  /* number of parity fragments */
-    int w;                  /* word size, in bits (optional) */
-    int hd;                 /* hamming distance (=m for Reed-Solomon) */
+    int k; /* number of data fragments */
+    int m; /* number of parity fragments */
+    int w; /* word size, in bits (optional) */
+    int hd; /* hamming distance (=m for Reed-Solomon) */
 
     union {
         struct {
-            uint64_t arg1;  /* sample arg */
-        } null_args;        /* args specific to the null codes */
+            uint64_t arg1; /* sample arg */
+        } null_args; /* args specific to the null codes */
         struct {
-            int l;          /* number of local parities */
-        } lrc_args;        /* args specific to locally recoverable codes */
+            int l; /* number of local parities */
+        } lrc_args; /* args specific to locally recoverable codes */
         struct {
-            uint64_t x, y;  /* reserved for future expansion */
-            uint64_t z, a;  /* reserved for future expansion */
+            uint64_t x, y; /* reserved for future expansion */
+            uint64_t z, a; /* reserved for future expansion */
         } reserved;
     } priv_args1;
 
-    void *priv_args2;       /** flexible placeholder for
-                              * future backend args */
-    ec_checksum_type_t ct;  /* fragment checksum type */
+    void *priv_args2; /** flexible placeholder for
+                       * future backend args */
+    ec_checksum_type_t ct; /* fragment checksum type */
 };
 
 /* =~=*=~==~=*=~== liberasurecode frontend API functions =~=*=~==~=~=*=~==~= */
@@ -109,7 +109,7 @@ struct ec_args {
 int liberasurecode_backend_available(const ec_backend_id_t backend_id);
 
 /**
- * Create a liberasurecode instance and return a descriptor 
+ * Create a liberasurecode instance and return a descriptor
  * for use with EC operations (encode, decode, reconstruct)
  *
  * @param id - one of the supported backends as
@@ -124,11 +124,10 @@ int liberasurecode_backend_available(const ec_backend_id_t backend_id);
  *        backend-specific arguments
  *          null_args - arguments for the null backend
  *          flat_xor_hd, jerasure do not require any special args
- *      
+ *
  * @return liberasurecode instance descriptor (int > 0)
  */
-int liberasurecode_instance_create(const ec_backend_id_t id,
-                                   struct ec_args *args);
+int liberasurecode_instance_create(const ec_backend_id_t id, struct ec_args *args);
 
 /**
  * Close a liberasurecode instance
@@ -138,7 +137,6 @@ int liberasurecode_instance_create(const ec_backend_id_t id,
  * @return 0 on success, otherwise non-zero error code
  */
 int liberasurecode_instance_destroy(int desc);
-
 
 /**
  * Erasure encode a data buffer
@@ -156,10 +154,9 @@ int liberasurecode_instance_destroy(int desc);
  *
  * @return 0 on success, -error code otherwise
  */
-int liberasurecode_encode(int desc,
-        const char *orig_data, uint64_t orig_data_size, /* input */
-        char ***encoded_data, char ***encoded_parity,   /* output */
-        uint64_t *fragment_len);                        /* output */
+int liberasurecode_encode(int desc, const char *orig_data, uint64_t orig_data_size, /* input */
+    char ***encoded_data, char ***encoded_parity, /* output */
+    uint64_t *fragment_len); /* output */
 
 /**
  * Cleanup structures allocated by librasurecode_encode
@@ -177,8 +174,7 @@ int liberasurecode_encode(int desc,
  *
  * @return 0 in success; -error otherwise
  */
-int liberasurecode_encode_cleanup(int desc, char **encoded_data,
-        char **encoded_parity);
+int liberasurecode_encode_cleanup(int desc, char **encoded_data, char **encoded_parity);
 
 /**
  * Reconstruct original data from a set of k encoded fragments
@@ -197,11 +193,10 @@ int liberasurecode_encode_cleanup(int desc, char **encoded_data,
  *
  * @return 0 on success, -error code otherwise
  */
-int liberasurecode_decode(int desc,
-        char **available_fragments,                     /* input */
-        int num_fragments, uint64_t fragment_len,       /* input */
-        int force_metadata_checks,                      /* input */
-        char **out_data, uint64_t *out_data_len);       /* output */
+int liberasurecode_decode(int desc, char **available_fragments, /* input */
+    int num_fragments, uint64_t fragment_len, /* input */
+    int force_metadata_checks, /* input */
+    char **out_data, uint64_t *out_data_len); /* output */
 
 /**
  * Cleanup structures allocated by librasurecode_decode
@@ -221,7 +216,7 @@ int liberasurecode_decode_cleanup(int desc, char *data);
 /**
  * Reconstruct a missing fragment from a subset of available fragments
  *
- * @param desc - liberasurecode descriptor/handle 
+ * @param desc - liberasurecode descriptor/handle
  *        from liberasurecode_instance_create()
  * @param available_fragments - erasure encoded fragments
  * @param num_fragments - number of fragments being passed in
@@ -231,11 +226,10 @@ int liberasurecode_decode_cleanup(int desc, char *data);
  *
  * @return 0 on success, -error code otherwise
  */
-int liberasurecode_reconstruct_fragment(int desc,
-        char **available_fragments,                     /* input */
-        int num_fragments, uint64_t fragment_len,       /* input */
-        int destination_idx,                            /* input */
-        char* out_fragment);                            /* output */
+int liberasurecode_reconstruct_fragment(int desc, char **available_fragments, /* input */
+    int num_fragments, uint64_t fragment_len, /* input */
+    int destination_idx, /* input */
+    char *out_fragment); /* output */
 
 /**
  * Return a list of lists with valid rebuild indexes given
@@ -244,34 +238,29 @@ int liberasurecode_reconstruct_fragment(int desc,
  * @desc: liberasurecode instance descriptor (obtained with
  *        liberasurecode_instance_create)
  * @fragments_to_reconstruct list of indexes to reconstruct
- * @fragments_to_exclude list of indexes to exclude from 
+ * @fragments_to_exclude list of indexes to exclude from
  *        reconstruction equation
  * @fragments_needed list of fragments needed to reconstruct
  *        fragments in fragments_to_reconstruct
  *
  * @return 0 on success, non-zero on error
  */
-int liberasurecode_fragments_needed(int desc,
-        int *fragments_to_reconstruct, 
-        int *fragments_to_exclude,
-        int *fragments_needed);
-
+int liberasurecode_fragments_needed(
+    int desc, int *fragments_to_reconstruct, int *fragments_to_exclude, int *fragments_needed);
 
 /* ==~=*=~==~=*=~== liberasurecode fragment metadata routines ==~*==~=*=~==~ */
 
 #define LIBERASURECODE_MAX_CHECKSUM_LEN 8
-typedef struct __attribute__((__packed__))
-fragment_metadata
-{
-    uint32_t    idx;                                     /*  4 */
-    uint32_t    size;                                    /*  4 */
-    uint32_t    frag_backend_metadata_size;              /*  4 */
-    uint64_t    orig_data_size;                          /*  8 */
-    uint8_t     chksum_type;                             /*  1 */
-    uint32_t    chksum[LIBERASURECODE_MAX_CHECKSUM_LEN]; /* 32 */
-    uint8_t     chksum_mismatch;                         /*  1 */
-    uint8_t     backend_id;                              /*  1 */
-    uint32_t    backend_version;                         /*  4 */
+typedef struct __attribute__((__packed__)) fragment_metadata {
+    uint32_t idx; /*  4 */
+    uint32_t size; /*  4 */
+    uint32_t frag_backend_metadata_size; /*  4 */
+    uint64_t orig_data_size; /*  8 */
+    uint8_t chksum_type; /*  1 */
+    uint32_t chksum[LIBERASURECODE_MAX_CHECKSUM_LEN]; /* 32 */
+    uint8_t chksum_mismatch; /*  1 */
+    uint8_t backend_id; /*  1 */
+    uint32_t backend_version; /*  4 */
 } fragment_metadata_t;
 
 /**
@@ -285,21 +274,20 @@ fragment_metadata
  *
  * @return 0 on success, non-zero on error
  */
-//EDL: This needs to be implemented
-int liberasurecode_get_fragment_metadata(char *fragment,
-        fragment_metadata_t *fragment_metadata);
+// EDL: This needs to be implemented
+int liberasurecode_get_fragment_metadata(char *fragment, fragment_metadata_t *fragment_metadata);
 
 /**
-* Verify that the specified pointer points to a well formed fragment that can
-* be processed by both this instance of liberasurecode and the specified
-* backend.
-*
-* @param desc - liberasurecode descriptor/handle
-*        from liberasurecode_instance_create()
-* @param fragment - fragment to verify
-*
-* @return 1 if fragment validation fails, 0 otherwise.
-*/
+ * Verify that the specified pointer points to a well formed fragment that can
+ * be processed by both this instance of liberasurecode and the specified
+ * backend.
+ *
+ * @param desc - liberasurecode descriptor/handle
+ *        from liberasurecode_instance_create()
+ * @param fragment - fragment to verify
+ *
+ * @return 1 if fragment validation fails, 0 otherwise.
+ */
 int is_invalid_fragment(int desc, char *fragment);
 
 /**
@@ -312,8 +300,7 @@ int is_invalid_fragment(int desc, char *fragment);
  *
  * @return 1 if stripe checksum verification is successful, 0 otherwise
  */
-int liberasurecode_verify_stripe_metadata(int desc,
-        char **fragments, int num_fragments);
+int liberasurecode_verify_stripe_metadata(int desc, char **fragments, int num_fragments);
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
@@ -323,27 +310,25 @@ int liberasurecode_verify_stripe_metadata(int desc,
  * Prevent the compiler from padding this by using the __packed__ keyword
  */
 
-#define LIBERASURECODE_FRAG_HEADER_MAGIC    0xb0c5ecc
-#define LIBERASURECODE_MAX_CHECKSUM_LEN     8   /* quad words */
+#define LIBERASURECODE_FRAG_HEADER_MAGIC 0xb0c5ecc
+#define LIBERASURECODE_MAX_CHECKSUM_LEN 8 /* quad words */
 
-typedef struct __attribute__((__packed__)) fragment_header_s
-{
-    fragment_metadata_t meta;              /* 59 bytes */
-    uint32_t            magic;             /*  4 bytes */
-    uint32_t            libec_version;     /*  4 bytes */
-    uint32_t            metadata_chksum;   /*  4 bytes */
+typedef struct __attribute__((__packed__)) fragment_header_s {
+    fragment_metadata_t meta; /* 59 bytes */
+    uint32_t magic; /*  4 bytes */
+    uint32_t libec_version; /*  4 bytes */
+    uint32_t metadata_chksum; /*  4 bytes */
     // We must be aligned to 16-byte boundaries
     // So, size this array accordingly
-    uint8_t             aligned_padding[9];
+    uint8_t aligned_padding[9];
 } fragment_header_t;
 
-#define FRAGSIZE_2_BLOCKSIZE(fragment_size) \
-    (fragment_size - sizeof(fragment_header_t))
+#define FRAGSIZE_2_BLOCKSIZE(fragment_size) (fragment_size - sizeof(fragment_header_t))
 
 /* ==~=*=~===~=*=~==~=*=~== liberasurecode Helpers ==~*==~=*=~==~=~=*=~==~= */
 
 /**
- * This computes the aligned size of a buffer passed into 
+ * This computes the aligned size of a buffer passed into
  * the encode function.  The encode function must pad fragments
  * to be algined with the word size (w) and the last fragment also
  * needs to be aligned.  This computes the sum of the algined fragment
@@ -356,11 +341,11 @@ typedef struct __attribute__((__packed__)) fragment_header_s
  * @return aligned length, or -error code on error
  */
 int liberasurecode_get_aligned_data_size(int desc, uint64_t data_len);
- 
+
 /**
  * This will return the minimum encode size, which is the minimum
  * buffer size that can be encoded.
- * 
+ *
  * @param desc - liberasurecode descriptor/handle
  *        from liberasurecode_instance_create()
  *
@@ -394,15 +379,15 @@ uint32_t liberasurecode_get_version(void);
 
 /* Error codes */
 typedef enum {
-    EBACKENDNOTSUPP  = 200,
+    EBACKENDNOTSUPP = 200,
     EECMETHODNOTIMPL = 201,
-    EBACKENDINITERR  = 202,
-    EBACKENDINUSE    = 203,
+    EBACKENDINITERR = 202,
+    EBACKENDINUSE = 203,
     EBACKENDNOTAVAIL = 204,
-    EBADCHKSUM       = 205,
-    EINVALIDPARAMS   = 206,
-    EBADHEADER       = 207,
-    EINSUFFFRAGS     = 208,
+    EBADCHKSUM = 205,
+    EINVALIDPARAMS = 206,
+    EBADHEADER = 207,
+    EINSUFFFRAGS = 208,
 } LIBERASURECODE_ERROR_CODES;
 
 /* =~=*=~==~=*=~==~=*=~==~=*=~===~=*=~==~=*=~===~=*=~==~=*=~===~=*=~==~=*=~= */
@@ -411,4 +396,4 @@ typedef enum {
 }
 #endif
 
-#endif  // _ERASURECODE_H_
+#endif // _ERASURECODE_H_

@@ -27,13 +27,13 @@
  * vi: set noai tw=79 ts=4 sw=4:
  */
 
-#include <stdlib.h>
 #include "erasurecode_backend.h"
 #include "isa_l_common.h"
+#include <stdlib.h>
 
 #define ISA_L_RS_VAND_LIB_MAJOR 2
 #define ISA_L_RS_VAND_LIB_MINOR 13
-#define ISA_L_RS_VAND_LIB_REV   0
+#define ISA_L_RS_VAND_LIB_REV 0
 #define ISA_L_RS_VAND_LIB_VER_STR "2.13"
 #define ISA_L_RS_VAND_LIB_NAME "isa_l_rs_vand"
 #if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
@@ -45,8 +45,7 @@
 /* Forward declarations */
 struct ec_backend_common backend_isa_l_rs_vand;
 
-static void * isa_l_rs_vand_init(struct ec_backend_args *args,
-        void *backend_sohandle)
+static void *isa_l_rs_vand_init(struct ec_backend_args *args, void *backend_sohandle)
 {
     return isa_l_common_init(args, backend_sohandle, "gf_gen_rs_matrix");
 }
@@ -55,32 +54,31 @@ static void * isa_l_rs_vand_init(struct ec_backend_args *args,
  * For the time being, we only claim compatibility with versions that
  * match exactly
  */
-static bool isa_l_rs_vand_is_compatible_with(uint32_t version) {
+static bool isa_l_rs_vand_is_compatible_with(uint32_t version)
+{
     return version == backend_isa_l_rs_vand.ec_backend_version;
 }
 
 static struct ec_backend_op_stubs isa_l_rs_vand_op_stubs = {
-    .INIT                       = isa_l_rs_vand_init,
-    .EXIT                       = isa_l_exit,
-    .ISSYSTEMATIC               = 1,
-    .ENCODE                     = isa_l_encode,
-    .DECODE                     = isa_l_decode,
-    .FRAGSNEEDED                = isa_l_min_fragments,
-    .RECONSTRUCT                = isa_l_reconstruct,
-    .ELEMENTSIZE                = isa_l_element_size,
-    .ISCOMPATIBLEWITH           = isa_l_rs_vand_is_compatible_with,
-    .GETMETADATASIZE            = get_backend_metadata_size_zero,
-    .GETENCODEOFFSET            = get_encode_offset_zero,
+    .INIT = isa_l_rs_vand_init,
+    .EXIT = isa_l_exit,
+    .ISSYSTEMATIC = 1,
+    .ENCODE = isa_l_encode,
+    .DECODE = isa_l_decode,
+    .FRAGSNEEDED = isa_l_min_fragments,
+    .RECONSTRUCT = isa_l_reconstruct,
+    .ELEMENTSIZE = isa_l_element_size,
+    .ISCOMPATIBLEWITH = isa_l_rs_vand_is_compatible_with,
+    .GETMETADATASIZE = get_backend_metadata_size_zero,
+    .GETENCODEOFFSET = get_encode_offset_zero,
 };
 
-__attribute__ ((visibility ("internal")))
-struct ec_backend_common backend_isa_l_rs_vand = {
-    .id                         = EC_BACKEND_ISA_L_RS_VAND,
-    .name                       = ISA_L_RS_VAND_LIB_NAME,
-    .soname                     = ISA_L_RS_VAND_SO_NAME,
-    .soversion                  = ISA_L_RS_VAND_LIB_VER_STR,
-    .ops                        = &isa_l_rs_vand_op_stubs,
-    .ec_backend_version         = _VERSION(ISA_L_RS_VAND_LIB_MAJOR,
-                                           ISA_L_RS_VAND_LIB_MINOR,
-                                           ISA_L_RS_VAND_LIB_REV),
+__attribute__((visibility("internal"))) struct ec_backend_common backend_isa_l_rs_vand = {
+    .id = EC_BACKEND_ISA_L_RS_VAND,
+    .name = ISA_L_RS_VAND_LIB_NAME,
+    .soname = ISA_L_RS_VAND_SO_NAME,
+    .soversion = ISA_L_RS_VAND_LIB_VER_STR,
+    .ops = &isa_l_rs_vand_op_stubs,
+    .ec_backend_version
+    = _VERSION(ISA_L_RS_VAND_LIB_MAJOR, ISA_L_RS_VAND_LIB_MINOR, ISA_L_RS_VAND_LIB_REV),
 };

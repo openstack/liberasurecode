@@ -33,16 +33,17 @@
 #include <stdlib.h>
 
 #include "erasurecode.h"
+#include "erasurecode_backend.h"
 #include "erasurecode_helpers.h"
 #include "erasurecode_helpers_ext.h"
-#include "erasurecode_backend.h"
 
 /* Forward declarations */
 struct ec_backend_common backend_shss;
 
 typedef int (*shss_encode_func)(char **, size_t, int, int, int, int, long long *);
 typedef int (*shss_decode_func)(char **, size_t, int *, int, int, int, int, int, long long *);
-typedef int (*shss_reconstruct_func)(char **, size_t, int *, int, int *, int, int, int, int, int, long long *);
+typedef int (*shss_reconstruct_func)(
+    char **, size_t, int *, int, int *, int, int, int, int, int, long long *);
 
 struct shss_descriptor {
     /* calls required for init */
@@ -68,8 +69,7 @@ struct shss_descriptor {
 #define DEFAULT_W 128
 #define METADATA 32
 
-static int shss_encode(void *desc, char **data, char **parity,
-        int blocksize)
+static int shss_encode(void *desc, char **data, char **parity, int blocksize)
 {
     int i;
     int ret = 0;
@@ -77,20 +77,21 @@ static int shss_encode(void *desc, char **data, char **parity,
     int chksum = 0; // chksum 0 or 64
     char **encoded;
     long long einfo;
-    struct shss_descriptor *xdesc =
-        (struct shss_descriptor *) desc;
+    struct shss_descriptor *xdesc = (struct shss_descriptor *)desc;
 
     if (xdesc->aes_bit_length != -1) {
         priv_bitnum = xdesc->aes_bit_length;
     }
 
-    encoded = alloca(sizeof(char*)*xdesc->n);
+    encoded = alloca(sizeof(char *) * xdesc->n);
 
-    for (i = 0; i<xdesc->k; i++) encoded[i] = (char*)data[i];
-    for (i = 0; i<xdesc->m; i++) encoded[i+xdesc->k] = (char*)parity[i];
+    for (i = 0; i < xdesc->k; i++)
+        encoded[i] = (char *)data[i];
+    for (i = 0; i < xdesc->m; i++)
+        encoded[i + xdesc->k] = (char *)parity[i];
 
-    ret = xdesc->ssencode((char**)encoded, (size_t)blocksize,
-                        xdesc->k, xdesc->m, priv_bitnum, chksum, &einfo);
+    ret = xdesc->ssencode(
+        (char **)encoded, (size_t)blocksize, xdesc->k, xdesc->m, priv_bitnum, chksum, &einfo);
 
     if (ret > 0) {
         return -ret;
@@ -99,8 +100,7 @@ static int shss_encode(void *desc, char **data, char **parity,
     return 0;
 }
 
-static int shss_decode(void *desc, char **data, char **parity,
-        int *missing_idxs, int blocksize)
+static int shss_decode(void *desc, char **data, char **parity, int *missing_idxs, int blocksize)
 {
     int i;
     int missing_size = 0;
@@ -109,25 +109,26 @@ static int shss_decode(void *desc, char **data, char **parity,
     int chksum = 0; // chksum 0 or 64
     char **decoded;
     long long einfo;
-    struct shss_descriptor *xdesc =
-        (struct shss_descriptor *) desc;
+    struct shss_descriptor *xdesc = (struct shss_descriptor *)desc;
 
     if (xdesc->aes_bit_length != -1) {
         priv_bitnum = xdesc->aes_bit_length;
     }
 
-    decoded = alloca(sizeof(char*)*xdesc->n);
+    decoded = alloca(sizeof(char *) * xdesc->n);
 
-    for (i = 0; i<xdesc->k; i++) decoded[i] = (char*)data[i];
-    for (i = 0; i<xdesc->m; i++) decoded[i+xdesc->k] = (char*)parity[i];
-    for (i = 0; i<xdesc->n; i++) {
+    for (i = 0; i < xdesc->k; i++)
+        decoded[i] = (char *)data[i];
+    for (i = 0; i < xdesc->m; i++)
+        decoded[i + xdesc->k] = (char *)parity[i];
+    for (i = 0; i < xdesc->n; i++) {
         if (i == missing_idxs[missing_size]) {
             missing_size++;
         }
     }
 
-    ret = xdesc->ssdecode((char**)decoded, (size_t)blocksize, missing_idxs, missing_size,
-                         xdesc->k, xdesc->m, priv_bitnum, chksum, &einfo);
+    ret = xdesc->ssdecode((char **)decoded, (size_t)blocksize, missing_idxs, missing_size, xdesc->k,
+        xdesc->m, priv_bitnum, chksum, &einfo);
 
     if (ret > 0) {
         return -ret;
@@ -136,8 +137,8 @@ static int shss_decode(void *desc, char **data, char **parity,
     return 0;
 }
 
-static int shss_reconstruct(void *desc, char **data, char **parity,
-        int *missing_idxs, int destination_idx, int blocksize)
+static int shss_reconstruct(
+    void *desc, char **data, char **parity, int *missing_idxs, int destination_idx, int blocksize)
 {
     int i;
     int missing_size = 0;
@@ -147,26 +148,26 @@ static int shss_reconstruct(void *desc, char **data, char **parity,
     int dst_size = 1;
     char **reconstructed;
     long long einfo;
-    struct shss_descriptor *xdesc =
-        (struct shss_descriptor *) desc;
+    struct shss_descriptor *xdesc = (struct shss_descriptor *)desc;
 
     if (xdesc->aes_bit_length != -1) {
         priv_bitnum = xdesc->aes_bit_length;
     }
 
-    reconstructed = alloca(sizeof(char*)*xdesc->n);
+    reconstructed = alloca(sizeof(char *) * xdesc->n);
 
-    for (i = 0; i<xdesc->k; i++) reconstructed[i] = (char*)data[i];
-    for (i = 0; i<xdesc->m; i++) reconstructed[i+xdesc->k] = (char*)parity[i];
-    for (i = 0; i<xdesc->n; i++) {
+    for (i = 0; i < xdesc->k; i++)
+        reconstructed[i] = (char *)data[i];
+    for (i = 0; i < xdesc->m; i++)
+        reconstructed[i + xdesc->k] = (char *)parity[i];
+    for (i = 0; i < xdesc->n; i++) {
         if (i == missing_idxs[missing_size]) {
             missing_size++;
         }
     }
 
-    ret = xdesc->ssreconst((char**)reconstructed, (size_t)blocksize,
-                          &destination_idx, dst_size, missing_idxs, missing_size, xdesc->k,
-                          xdesc->m, priv_bitnum, chksum, &einfo);
+    ret = xdesc->ssreconst((char **)reconstructed, (size_t)blocksize, &destination_idx, dst_size,
+        missing_idxs, missing_size, xdesc->k, xdesc->m, priv_bitnum, chksum, &einfo);
 
     if (ret > 0) {
         return -ret;
@@ -175,11 +176,10 @@ static int shss_reconstruct(void *desc, char **data, char **parity,
     return 0;
 }
 
-static int shss_fragments_needed(void *desc, int *missing_idxs,
-        int *fragments_to_exclude, int *fragments_needed)
+static int shss_fragments_needed(
+    void *desc, int *missing_idxs, int *fragments_to_exclude, int *fragments_needed)
 {
-    struct shss_descriptor *xdesc =
-        (struct shss_descriptor *) desc;
+    struct shss_descriptor *xdesc = (struct shss_descriptor *)desc;
     struct ec_bm exclude_bm = NEW_BM, missing_bm = NEW_BM;
     convert_list_to_bitmap(fragments_to_exclude, &exclude_bm);
     convert_list_to_bitmap(missing_idxs, &missing_bm);
@@ -207,17 +207,13 @@ static int shss_fragments_needed(void *desc, int *missing_idxs,
  * Return the element-size, which is the number of bits stored
  * on a given device, per codeword.  This is usually just 'w'.
  */
-static int shss_element_size(void* desc)
-{
-    return DEFAULT_W;
-}
+static int shss_element_size(void *desc) { return DEFAULT_W; }
 
-static void * shss_init(struct ec_backend_args *args, void *backend_sohandle)
+static void *shss_init(struct ec_backend_args *args, void *backend_sohandle)
 {
     struct shss_descriptor *desc = NULL;
 
-    desc = (struct shss_descriptor *)
-           malloc(sizeof(struct shss_descriptor));
+    desc = (struct shss_descriptor *)malloc(sizeof(struct shss_descriptor));
     if (NULL == desc) {
         return NULL;
     }
@@ -232,9 +228,9 @@ static void * shss_init(struct ec_backend_args *args, void *backend_sohandle)
     // TODO: Need discussion how to pass extra args.
     // tentatively we could pass with priv_args2 as the bit_length
     int *priv = (int *)args->uargs.priv_args2;
-    if(priv != NULL){
+    if (priv != NULL) {
         desc->aes_bit_length = priv[0]; // AES bit number
-    }else{
+    } else {
         desc->aes_bit_length = 128;
     }
 
@@ -282,33 +278,31 @@ static int shss_exit(void *desc)
     return 0;
 }
 
-static bool shss_is_compatible_with(uint32_t version) {
+static bool shss_is_compatible_with(uint32_t version)
+{
     return version == backend_shss.ec_backend_version;
 }
 
-static size_t shss_get_backend_metadata_size(void *desc, int blocksize) {
-    return METADATA;
-}
+static size_t shss_get_backend_metadata_size(void *desc, int blocksize) { return METADATA; }
 
 static struct ec_backend_op_stubs shss_op_stubs = {
-    .INIT                       = shss_init,
-    .EXIT                       = shss_exit,
-    .ISSYSTEMATIC               = 0,
-    .ENCODE                     = shss_encode,
-    .DECODE                     = shss_decode,
-    .FRAGSNEEDED                = shss_fragments_needed,
-    .RECONSTRUCT                = shss_reconstruct,
-    .ELEMENTSIZE                = shss_element_size,
-    .ISCOMPATIBLEWITH           = shss_is_compatible_with,
-    .GETMETADATASIZE            = shss_get_backend_metadata_size,
-    .GETENCODEOFFSET            = get_encode_offset_zero,
+    .INIT = shss_init,
+    .EXIT = shss_exit,
+    .ISSYSTEMATIC = 0,
+    .ENCODE = shss_encode,
+    .DECODE = shss_decode,
+    .FRAGSNEEDED = shss_fragments_needed,
+    .RECONSTRUCT = shss_reconstruct,
+    .ELEMENTSIZE = shss_element_size,
+    .ISCOMPATIBLEWITH = shss_is_compatible_with,
+    .GETMETADATASIZE = shss_get_backend_metadata_size,
+    .GETENCODEOFFSET = get_encode_offset_zero,
 };
 
-__attribute__ ((visibility ("internal")))
-struct ec_backend_common backend_shss = {
-    .id                         = EC_BACKEND_SHSS,
-    .name                       = SHSS_LIB_NAME,
-    .soname                     = SHSS_SO_NAME,
-    .soversion                  = SHSS_LIB_VER_STR,
-    .ops                        = &shss_op_stubs,
+__attribute__((visibility("internal"))) struct ec_backend_common backend_shss = {
+    .id = EC_BACKEND_SHSS,
+    .name = SHSS_LIB_NAME,
+    .soname = SHSS_SO_NAME,
+    .soversion = SHSS_LIB_VER_STR,
+    .ops = &shss_op_stubs,
 };

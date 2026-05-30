@@ -28,13 +28,13 @@
  * vi: set noai tw=79 ts=4 sw=4:
  */
 
-#include <stdlib.h>
 #include "erasurecode_backend.h"
 #include "isa_l_common.h"
+#include <stdlib.h>
 
 #define ISA_L_RS_VAND_INV_LIB_MAJOR 1
 #define ISA_L_RS_VAND_INV_LIB_MINOR 0
-#define ISA_L_RS_VAND_INV_LIB_REV   0
+#define ISA_L_RS_VAND_INV_LIB_REV 0
 #define ISA_L_RS_VAND_INV_LIB_VER_STR "1.0"
 #define ISA_L_RS_VAND_INV_LIB_NAME "isa_l_rs_vand"
 #if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
@@ -46,7 +46,8 @@
 /* Forward declarations */
 struct ec_backend_common backend_isa_l_rs_vand_inv;
 
-static int gen_encoding_matrix(isa_l_descriptor * desc, int m, int k){
+static int gen_encoding_matrix(isa_l_descriptor *desc, int m, int k)
+{
     int i, j, ret = 1, n = m + k;
     unsigned char p, gen = 2;
     unsigned char *tmp = NULL;
@@ -60,8 +61,8 @@ static int gen_encoding_matrix(isa_l_descriptor * desc, int m, int k){
     for (i = 0; i < n; i++) {
         p = 1;
         for (j = 0; j < k; j++) {
-                tmp[k * i + j] = p;
-                p = desc->gf_mul(p, gen);
+            tmp[k * i + j] = p;
+            p = desc->gf_mul(p, gen);
         }
         gen = desc->gf_mul(gen, 2);
     }
@@ -93,9 +94,9 @@ static int gen_encoding_matrix(isa_l_descriptor * desc, int m, int k){
         for (j = 0; j < k; j++) {
             p = 0;
             for (int u = 0; u < k; u++) {
-                p ^= desc->gf_mul(tmp[(i*k)+u], tmp_inv_k[(u*k)+j]);
+                p ^= desc->gf_mul(tmp[(i * k) + u], tmp_inv_k[(u * k) + j]);
             }
-            desc->matrix[(i*k)+j] = p;
+            desc->matrix[(i * k) + j] = p;
         }
     }
     ret = 0;
@@ -106,8 +107,7 @@ error_free:
     return ret;
 }
 
-static void * isa_l_rs_vand_inv_init(struct ec_backend_args *args,
-        void *backend_sohandle)
+static void *isa_l_rs_vand_inv_init(struct ec_backend_args *args, void *backend_sohandle)
 {
     isa_l_descriptor *desc = NULL;
 
@@ -130,9 +130,9 @@ static void * isa_l_rs_vand_inv_init(struct ec_backend_args *args,
         if ((desc->k + desc->m) > max_symbols) {
             goto error;
         }
-     }
+    }
 
-     /*
+    /*
      * ISO C forbids casting a void* to a function pointer.
      * Since dlsym return returns a void*, we use this union to
      * "transform" the void* to a function pointer.
@@ -144,7 +144,7 @@ static void * isa_l_rs_vand_inv_init(struct ec_backend_args *args,
         gf_invert_matrix_func invert_matrixp;
         gf_mul_func gf_mulp;
         void *vptr;
-    } func_handle = {.vptr = NULL};
+    } func_handle = { .vptr = NULL };
 
     /* fill in function addresses */
     func_handle.vptr = NULL;
@@ -187,15 +187,12 @@ static void * isa_l_rs_vand_inv_init(struct ec_backend_args *args,
     /**
      * Generate the tables for encoding
      */
-    desc->encode_tables = malloc(sizeof(unsigned char) *
-                                 (desc->k * desc->m * 32));
+    desc->encode_tables = malloc(sizeof(unsigned char) * (desc->k * desc->m * 32));
     if (NULL == desc->encode_tables) {
         goto error;
     }
 
-    desc->ec_init_tables(desc->k, desc->m,
-                         &desc->matrix[desc->k * desc->k],
-                         desc->encode_tables);
+    desc->ec_init_tables(desc->k, desc->m, &desc->matrix[desc->k * desc->k], desc->encode_tables);
 
     return desc;
 
@@ -210,32 +207,31 @@ error:
  * For the time being, we only claim compatibility with versions that
  * match exactly
  */
-static bool isa_l_rs_vand_inv_is_compatible_with(uint32_t version) {
+static bool isa_l_rs_vand_inv_is_compatible_with(uint32_t version)
+{
     return version == backend_isa_l_rs_vand_inv.ec_backend_version;
 }
 
 static struct ec_backend_op_stubs isa_l_rs_vand_inv_op_stubs = {
-    .INIT                       = isa_l_rs_vand_inv_init,
-    .EXIT                       = isa_l_exit,
-    .ISSYSTEMATIC               = 1,
-    .ENCODE                     = isa_l_encode,
-    .DECODE                     = isa_l_decode,
-    .FRAGSNEEDED                = isa_l_min_fragments,
-    .RECONSTRUCT                = isa_l_reconstruct,
-    .ELEMENTSIZE                = isa_l_element_size,
-    .ISCOMPATIBLEWITH           = isa_l_rs_vand_inv_is_compatible_with,
-    .GETMETADATASIZE            = get_backend_metadata_size_zero,
-    .GETENCODEOFFSET            = get_encode_offset_zero,
+    .INIT = isa_l_rs_vand_inv_init,
+    .EXIT = isa_l_exit,
+    .ISSYSTEMATIC = 1,
+    .ENCODE = isa_l_encode,
+    .DECODE = isa_l_decode,
+    .FRAGSNEEDED = isa_l_min_fragments,
+    .RECONSTRUCT = isa_l_reconstruct,
+    .ELEMENTSIZE = isa_l_element_size,
+    .ISCOMPATIBLEWITH = isa_l_rs_vand_inv_is_compatible_with,
+    .GETMETADATASIZE = get_backend_metadata_size_zero,
+    .GETENCODEOFFSET = get_encode_offset_zero,
 };
 
-__attribute__ ((visibility ("internal")))
-struct ec_backend_common backend_isa_l_rs_vand_inv = {
-    .id                         = EC_BACKEND_ISA_L_RS_VAND_INV,
-    .name                       = ISA_L_RS_VAND_INV_LIB_NAME,
-    .soname                     = ISA_L_RS_VAND_INV_SO_NAME,
-    .soversion                  = ISA_L_RS_VAND_INV_LIB_VER_STR,
-    .ops                        = &isa_l_rs_vand_inv_op_stubs,
-    .ec_backend_version         = _VERSION(ISA_L_RS_VAND_INV_LIB_MAJOR,
-                                           ISA_L_RS_VAND_INV_LIB_MINOR,
-                                           ISA_L_RS_VAND_INV_LIB_REV),
+__attribute__((visibility("internal"))) struct ec_backend_common backend_isa_l_rs_vand_inv = {
+    .id = EC_BACKEND_ISA_L_RS_VAND_INV,
+    .name = ISA_L_RS_VAND_INV_LIB_NAME,
+    .soname = ISA_L_RS_VAND_INV_SO_NAME,
+    .soversion = ISA_L_RS_VAND_INV_LIB_VER_STR,
+    .ops = &isa_l_rs_vand_inv_op_stubs,
+    .ec_backend_version
+    = _VERSION(ISA_L_RS_VAND_INV_LIB_MAJOR, ISA_L_RS_VAND_INV_LIB_MINOR, ISA_L_RS_VAND_INV_LIB_REV),
 };

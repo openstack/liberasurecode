@@ -29,17 +29,16 @@
 #ifndef _ERASURECODE_HELPERS_H_
 #define _ERASURECODE_HELPERS_H_
 
-#include <assert.h>
 #include "erasurecode.h"
 #include "erasurecode_stdinc.h"
+#include <assert.h>
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
-#define talloc(type, num)   (type *) malloc(sizeof(type) * (num))
+#define talloc(type, num) (type *)malloc(sizeof(type) * (num))
 
 /* Determine if an address is aligned to a particular boundary */
-static inline
-int is_addr_aligned(unsigned long addr, int align)
+static inline int is_addr_aligned(unsigned long addr, int align)
 {
     return (addr & (align - 1)) == 0;
 }
@@ -47,14 +46,21 @@ int is_addr_aligned(unsigned long addr, int align)
 struct ec_bm {
     uint64_t v[4];
 };
-#define NEW_BM {{0, 0, 0, 0}}
+#define NEW_BM                                                                                     \
+    {                                                                                              \
+        {                                                                                          \
+            0, 0, 0, 0                                                                             \
+        }                                                                                          \
+    }
 
 // Note that `bit` is 0-indexed
-static inline uint64_t bm_get_value(struct ec_bm *bm, int bit) {
+static inline uint64_t bm_get_value(struct ec_bm *bm, int bit)
+{
     assert(bit < EC_MAX_FRAGMENTS);
     return bm->v[bit >> 6] & (1LLU << (bit & 0x3f));
 }
-static inline void bm_set_value(struct ec_bm *bm, int bit, int value) {
+static inline void bm_set_value(struct ec_bm *bm, int bit, int value)
+{
     assert(bit < EC_MAX_FRAGMENTS);
     if (value) {
         bm->v[bit >> 6] |= (1LLU << (bit & 0x3f));
@@ -63,20 +69,23 @@ static inline void bm_set_value(struct ec_bm *bm, int bit, int value) {
     }
 }
 // Ensure all the bits set in `src` are set in `dst` as well
-static inline void bm_combine_or(struct ec_bm *src, struct ec_bm *dst) {
+static inline void bm_combine_or(struct ec_bm *src, struct ec_bm *dst)
+{
     dst->v[0] |= src->v[0];
     dst->v[1] |= src->v[1];
     dst->v[2] |= src->v[2];
     dst->v[3] |= src->v[3];
 }
 // Ensure only the bits set in `src` may be set in `dst` as well
-static inline void bm_combine_and(struct ec_bm *src, struct ec_bm *dst) {
+static inline void bm_combine_and(struct ec_bm *src, struct ec_bm *dst)
+{
     dst->v[0] &= src->v[0];
     dst->v[1] &= src->v[1];
     dst->v[2] &= src->v[2];
     dst->v[3] &= src->v[3];
 }
-static inline uint64_t bm_any(struct ec_bm *bm) {
+static inline uint64_t bm_any(struct ec_bm *bm)
+{
     return bm->v[0] | bm->v[1] | bm->v[2] | bm->v[3];
 }
 
@@ -102,7 +111,7 @@ void *get_aligned_buffer16(int size);
 #ifndef bswap_32
 static __inline uint32_t __libec_bswap_32(uint32_t __x)
 {
-    return __x>>24 | (__x>>8&0xff00) | (__x<<8&0xff0000) | __x<<24;
+    return __x >> 24 | (__x >> 8 & 0xff00) | (__x << 8 & 0xff0000) | __x << 24;
 }
 #define bswap_32(x) __libec_bswap_32(x)
 #endif
@@ -110,10 +119,9 @@ static __inline uint32_t __libec_bswap_32(uint32_t __x)
 #ifndef bswap_64
 static __inline uint64_t __libec_bswap_64(uint64_t __x)
 {
-    return (__libec_bswap_32(__x)+0ULL)<<32 | __libec_bswap_32(__x>>32);
+    return (__libec_bswap_32(__x) + 0ULL) << 32 | __libec_bswap_32(__x >> 32);
 }
 #define bswap_64(x) __libec_bswap_64(x)
 #endif
 
-#endif  // _ERASURECODE_HELPERS_H_
-
+#endif // _ERASURECODE_HELPERS_H_

@@ -25,15 +25,15 @@
  *
  * vi: set noai tw=79 ts=4 sw=4:
  */
-#include <assert.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <zlib.h>
-#include "erasurecode_backend.h"
 #include "erasurecode_helpers.h"
+#include "erasurecode_backend.h"
 #include "erasurecode_helpers_ext.h"
 #include "erasurecode_stdinc.h"
 #include "erasurecode_version.h"
+#include <assert.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <zlib.h>
 
 #include "alg_sig.h"
 #include "erasurecode_log.h"
@@ -42,7 +42,7 @@
 
 static bool is_fragment(char *buf)
 {
-    fragment_header_t *header = (fragment_header_t *) buf;
+    fragment_header_t *header = (fragment_header_t *)buf;
 
     assert(NULL != header);
     if (header->magic == LIBERASURECODE_FRAG_HEADER_MAGIC) {
@@ -58,8 +58,7 @@ static bool is_fragment(char *buf)
  * The following methods provide wrappers for allocating and deallocating
  * memory.
  */
-__attribute__ ((visibility ("internal")))
-void *get_aligned_buffer16(int size)
+__attribute__((visibility("internal"))) void *get_aligned_buffer16(int size)
 {
     void *buf;
 
@@ -82,8 +81,7 @@ void *get_aligned_buffer16(int size)
  * @param size integer size in bytes of buffer to allocate
  * @return pointer to start of allocated buffer or NULL on error
  */
-__attribute__ ((visibility ("internal")))
-void * alloc_zeroed_buffer(int size)
+__attribute__((visibility("internal"))) void *alloc_zeroed_buffer(int size)
 {
     return alloc_and_set_buffer(size, 0);
 }
@@ -96,13 +94,14 @@ void * alloc_zeroed_buffer(int size)
  * @param value
  * @return pointer to start of allocated buffer or NULL on error
  */
-void * alloc_and_set_buffer(int size, int value) {
-    void * buf = NULL;  /* buffer to allocate and return */
+void *alloc_and_set_buffer(int size, int value)
+{
+    void *buf = NULL; /* buffer to allocate and return */
 
     /* Allocate and zero the buffer, or set the appropriate error */
-    buf = malloc((size_t) size);
+    buf = malloc((size_t)size);
     if (buf) {
-        buf = memset(buf, value, (size_t) size);
+        buf = memset(buf, value, (size_t)size);
     }
     return buf;
 }
@@ -115,16 +114,14 @@ void * alloc_and_set_buffer(int size, int value) {
  *
  * @return NULL
  */
-__attribute__ ((visibility ("internal")))
-void * check_and_free_buffer(void * buf)
+__attribute__((visibility("internal"))) void *check_and_free_buffer(void *buf)
 {
     if (buf)
         free(buf);
     return NULL;
 }
 
-__attribute__ ((visibility ("internal")))
-char *alloc_fragment_buffer(int size)
+__attribute__((visibility("internal"))) char *alloc_fragment_buffer(int size)
 {
     char *buf;
     fragment_header_t *header = NULL;
@@ -133,15 +130,14 @@ char *alloc_fragment_buffer(int size)
     buf = get_aligned_buffer16(size);
 
     if (buf) {
-        header = (fragment_header_t *) buf;
+        header = (fragment_header_t *)buf;
         header->magic = LIBERASURECODE_FRAG_HEADER_MAGIC;
     }
 
     return buf;
 }
 
-__attribute__ ((visibility ("internal")))
-int free_fragment_buffer(char *buf)
+__attribute__((visibility("internal"))) int free_fragment_buffer(char *buf)
 {
     fragment_header_t *header;
 
@@ -151,7 +147,7 @@ int free_fragment_buffer(char *buf)
 
     buf -= sizeof(fragment_header_t);
 
-    header = (fragment_header_t *) buf;
+    header = (fragment_header_t *)buf;
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
         log_error("Invalid fragment header (free fragment)!");
         return -1;
@@ -170,15 +166,14 @@ int free_fragment_buffer(char *buf)
  *
  * @return fragment size on disk
  */
-__attribute__ ((visibility ("internal")))
-uint64_t get_fragment_size(char *buf)
+__attribute__((visibility("internal"))) uint64_t get_fragment_size(char *buf)
 {
 
     if (NULL == buf)
         return -1;
 
     return get_fragment_buffer_size(buf) + sizeof(fragment_header_t);
- }
+}
 
 /**
  * Compute a size aligned to the number of data and the underlying wordsize
@@ -188,8 +183,8 @@ uint64_t get_fragment_size(char *buf)
  * @param data_len - integer length of data in bytes
  * @return integer data length aligned with wordsize of EC algorithm
  */
-__attribute__ ((visibility ("internal")))
-int get_aligned_data_size(ec_backend_t instance, int data_len)
+__attribute__((visibility("internal"))) int get_aligned_data_size(
+    ec_backend_t instance, int data_len)
 {
     int k = instance->args.uargs.k;
     int w = instance->args.uargs.w;
@@ -207,8 +202,7 @@ int get_aligned_data_size(ec_backend_t instance, int data_len)
         alignment_multiple = k * word_size;
     }
 
-    aligned_size = ((data_len + alignment_multiple - 1) / alignment_multiple)
-    * alignment_multiple;
+    aligned_size = ((data_len + alignment_multiple - 1) / alignment_multiple) * alignment_multiple;
 
     return aligned_size;
 }
@@ -222,9 +216,8 @@ char *get_data_ptr_from_fragment(char *buf)
     return buf;
 }
 
-__attribute__ ((visibility ("internal")))
-int get_data_ptr_array_from_fragments(char **data_array, char **fragments,
-                                      int num_fragments)
+__attribute__((visibility("internal"))) int get_data_ptr_array_from_fragments(
+    char **data_array, char **fragments, int num_fragments)
 {
     int i = 0, num = 0;
     for (i = 0; i < num_fragments; i++) {
@@ -239,9 +232,8 @@ int get_data_ptr_array_from_fragments(char **data_array, char **fragments,
     return num;
 }
 
-__attribute__ ((visibility ("internal")))
-int get_fragment_ptr_array_from_data(char **frag_array, char **data,
-                                     int num_data)
+__attribute__((visibility("internal"))) int get_fragment_ptr_array_from_data(
+    char **frag_array, char **data, int num_data)
 {
     int i = 0, num = 0;
     for (i = 0; i < num_data; i++) {
@@ -256,22 +248,20 @@ int get_fragment_ptr_array_from_data(char **frag_array, char **data,
     return num;
 }
 
-__attribute__ ((visibility ("internal")))
-char *get_fragment_ptr_from_data_novalidate(char *buf)
+__attribute__((visibility("internal"))) char *get_fragment_ptr_from_data_novalidate(char *buf)
 {
     buf -= sizeof(fragment_header_t);
 
     return buf;
 }
 
-__attribute__ ((visibility ("internal")))
-char *get_fragment_ptr_from_data(char *buf)
+__attribute__((visibility("internal"))) char *get_fragment_ptr_from_data(char *buf)
 {
     fragment_header_t *header;
 
     buf -= sizeof(fragment_header_t);
 
-    header = (fragment_header_t *) buf;
+    header = (fragment_header_t *)buf;
 
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
         log_error("Invalid fragment header (get header ptr)!\n");
@@ -283,10 +273,9 @@ char *get_fragment_ptr_from_data(char *buf)
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
-__attribute__ ((visibility ("internal")))
-int set_fragment_idx(char *buf, int idx)
+__attribute__((visibility("internal"))) int set_fragment_idx(char *buf, int idx)
 {
-    fragment_header_t *header = (fragment_header_t *) buf;
+    fragment_header_t *header = (fragment_header_t *)buf;
 
     assert(NULL != header);
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
@@ -299,10 +288,9 @@ int set_fragment_idx(char *buf, int idx)
     return 0;
 }
 
-__attribute__ ((visibility ("internal")))
-int get_fragment_idx(char *buf)
+__attribute__((visibility("internal"))) int get_fragment_idx(char *buf)
 {
-    fragment_header_t *header = (fragment_header_t *) buf;
+    fragment_header_t *header = (fragment_header_t *)buf;
 
     assert(NULL != header);
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
@@ -313,10 +301,9 @@ int get_fragment_idx(char *buf)
     return header->meta.idx;
 }
 
-__attribute__ ((visibility ("internal")))
-int set_fragment_payload_size(char *buf, int size)
+__attribute__((visibility("internal"))) int set_fragment_payload_size(char *buf, int size)
 {
-    fragment_header_t *header = (fragment_header_t *) buf;
+    fragment_header_t *header = (fragment_header_t *)buf;
 
     assert(NULL != header);
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
@@ -329,10 +316,9 @@ int set_fragment_payload_size(char *buf, int size)
     return 0;
 }
 
-__attribute__ ((visibility ("internal")))
-int get_fragment_payload_size(char *buf)
+__attribute__((visibility("internal"))) int get_fragment_payload_size(char *buf)
 {
-    fragment_header_t *header = (fragment_header_t *) buf;
+    fragment_header_t *header = (fragment_header_t *)buf;
 
     assert(NULL != header);
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
@@ -343,10 +329,9 @@ int get_fragment_payload_size(char *buf)
     return header->meta.size;
 }
 
-__attribute__ ((visibility ("internal")))
-int set_fragment_backend_metadata_size(char *buf, int size)
+__attribute__((visibility("internal"))) int set_fragment_backend_metadata_size(char *buf, int size)
 {
-    fragment_header_t *header = (fragment_header_t *) buf;
+    fragment_header_t *header = (fragment_header_t *)buf;
 
     assert(NULL != header);
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
@@ -359,10 +344,9 @@ int set_fragment_backend_metadata_size(char *buf, int size)
     return 0;
 }
 
-__attribute__ ((visibility ("internal")))
-int get_fragment_backend_metadata_size(char *buf)
+__attribute__((visibility("internal"))) int get_fragment_backend_metadata_size(char *buf)
 {
-    fragment_header_t *header = (fragment_header_t *) buf;
+    fragment_header_t *header = (fragment_header_t *)buf;
 
     assert(NULL != header);
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
@@ -373,10 +357,9 @@ int get_fragment_backend_metadata_size(char *buf)
     return header->meta.frag_backend_metadata_size;
 }
 
-__attribute__ ((visibility ("internal")))
-int get_fragment_buffer_size(char *buf)
+__attribute__((visibility("internal"))) int get_fragment_buffer_size(char *buf)
 {
-    fragment_header_t *header = (fragment_header_t *) buf;
+    fragment_header_t *header = (fragment_header_t *)buf;
 
     assert(NULL != header);
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
@@ -387,10 +370,9 @@ int get_fragment_buffer_size(char *buf)
     return header->meta.size + header->meta.frag_backend_metadata_size;
 }
 
-__attribute__ ((visibility ("internal")))
-int set_orig_data_size(char *buf, int orig_data_size)
+__attribute__((visibility("internal"))) int set_orig_data_size(char *buf, int orig_data_size)
 {
-    fragment_header_t *header = (fragment_header_t *) buf;
+    fragment_header_t *header = (fragment_header_t *)buf;
 
     assert(NULL != header);
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
@@ -403,10 +385,9 @@ int set_orig_data_size(char *buf, int orig_data_size)
     return 0;
 }
 
-__attribute__ ((visibility ("internal")))
-int get_orig_data_size(char *buf)
+__attribute__((visibility("internal"))) int get_orig_data_size(char *buf)
 {
-    fragment_header_t *header = (fragment_header_t *) buf;
+    fragment_header_t *header = (fragment_header_t *)buf;
 
     assert(NULL != header);
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
@@ -417,13 +398,12 @@ int get_orig_data_size(char *buf)
     return header->meta.orig_data_size;
 }
 
-__attribute__ ((visibility ("internal")))
-int set_libec_version(char *buf)
+__attribute__((visibility("internal"))) int set_libec_version(char *buf)
 {
     if (!is_fragment(buf)) {
-            return -1;
+        return -1;
     }
-    fragment_header_t *header = (fragment_header_t *) buf;
+    fragment_header_t *header = (fragment_header_t *)buf;
     header->libec_version = (uint32_t)LIBERASURECODE_VERSION;
     return 0;
 }
@@ -431,20 +411,19 @@ int set_libec_version(char *buf)
 int get_libec_version(char *buf, uint32_t *ver)
 {
     if (!is_fragment(buf)) {
-            return -1;
+        return -1;
     }
-    fragment_header_t *header = (fragment_header_t *) buf;
+    fragment_header_t *header = (fragment_header_t *)buf;
     *ver = header->libec_version;
     return 0;
 }
 
-__attribute__ ((visibility ("internal")))
-int set_backend_id(char *buf, ec_backend_id_t id)
+__attribute__((visibility("internal"))) int set_backend_id(char *buf, ec_backend_id_t id)
 {
     if (!is_fragment(buf)) {
-            return -1;
+        return -1;
     }
-    fragment_header_t *header = (fragment_header_t *) buf;
+    fragment_header_t *header = (fragment_header_t *)buf;
     header->meta.backend_id = (uint8_t)id;
     return 0;
 }
@@ -452,20 +431,19 @@ int set_backend_id(char *buf, ec_backend_id_t id)
 int get_backend_id(char *buf, ec_backend_id_t *id)
 {
     if (!is_fragment(buf)) {
-            return -1;
+        return -1;
     }
-    fragment_header_t *header = (fragment_header_t *) buf;
+    fragment_header_t *header = (fragment_header_t *)buf;
     *id = header->meta.backend_id;
     return 0;
 }
 
-__attribute__ ((visibility ("internal")))
-int set_backend_version(char *buf, uint32_t version)
+__attribute__((visibility("internal"))) int set_backend_version(char *buf, uint32_t version)
 {
     if (!is_fragment(buf)) {
-            return -1;
+        return -1;
     }
-    fragment_header_t *header = (fragment_header_t *) buf;
+    fragment_header_t *header = (fragment_header_t *)buf;
     header->meta.backend_version = version;
     return 0;
 }
@@ -473,19 +451,19 @@ int set_backend_version(char *buf, uint32_t version)
 int get_backend_version(char *buf, uint32_t *version)
 {
     if (!is_fragment(buf)) {
-            return -1;
+        return -1;
     }
-    fragment_header_t *header = (fragment_header_t *) buf;
+    fragment_header_t *header = (fragment_header_t *)buf;
     *version = header->meta.backend_version;
     return 0;
 }
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 
-__attribute__ ((visibility ("internal")))
-inline int set_checksum(ec_checksum_type_t ct, char *buf, int blocksize)
+__attribute__((visibility("internal"))) inline int set_checksum(
+    ec_checksum_type_t ct, char *buf, int blocksize)
 {
-    fragment_header_t* header = (fragment_header_t*) buf;
+    fragment_header_t *header = (fragment_header_t *)buf;
     char *data = get_data_ptr_from_fragment(buf);
     char *flag;
 
@@ -498,20 +476,20 @@ inline int set_checksum(ec_checksum_type_t ct, char *buf, int blocksize)
     header->meta.chksum_type = ct;
     header->meta.chksum_mismatch = 0;
 
-    switch(header->meta.chksum_type) {
-        case CHKSUM_CRC32:
-            flag = getenv("LIBERASURECODE_WRITE_LEGACY_CRC");
-            if (flag && !(flag[0] == '\0' || (flag[0] == '0' && flag[1] == '\0'))) {
-                header->meta.chksum[0] = liberasurecode_crc32_alt(0, data, blocksize);
-            } else {
-                header->meta.chksum[0] = crc32(0, (unsigned char *) data, blocksize);
-            }
-            break;
-        case CHKSUM_MD5:
-            break;
-        case CHKSUM_NONE:
-        default:
-            break;
+    switch (header->meta.chksum_type) {
+    case CHKSUM_CRC32:
+        flag = getenv("LIBERASURECODE_WRITE_LEGACY_CRC");
+        if (flag && !(flag[0] == '\0' || (flag[0] == '0' && flag[1] == '\0'))) {
+            header->meta.chksum[0] = liberasurecode_crc32_alt(0, data, blocksize);
+        } else {
+            header->meta.chksum[0] = crc32(0, (unsigned char *)data, blocksize);
+        }
+        break;
+    case CHKSUM_MD5:
+        break;
+    case CHKSUM_NONE:
+    default:
+        break;
     }
 
     return 0;

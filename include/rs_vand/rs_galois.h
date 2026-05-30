@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright 2015 Kevin M Greenan
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,4 +41,3 @@ void rs_galois_init_tables(void);
 void rs_galois_deinit_tables(void);
 int rs_galois_mult(int x, int y);
 int rs_galois_inverse(int x);
-

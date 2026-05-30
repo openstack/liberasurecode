@@ -22,8 +22,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <dlfcn.h>
 #include <alg_sig.h>
+#include <dlfcn.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,9 +31,10 @@
 #define GALOIS_UNINIT "galois_uninit_field"
 
 /* valid GF w values: 8, 16 */
-static int valid_pairs[][2] = { { 8, 32}, {16, 32}, {16, 64}, {-1, -1} };
+static int valid_pairs[][2] = { { 8, 32 }, { 16, 32 }, { 16, 64 }, { -1, -1 } };
 
-static galois_single_multiply_func get_galois_multi_func(void *handle) {
+static galois_single_multiply_func get_galois_multi_func(void *handle)
+{
     /*
      * ISO C forbids casting a void* to a function pointer.
      * Since dlsym return returns a void*, we use this union to
@@ -42,14 +43,15 @@ static galois_single_multiply_func get_galois_multi_func(void *handle) {
     union {
         galois_single_multiply_func fptr;
         void *vptr;
-    } func_handle = {.vptr = NULL};
-    func_handle.vptr = dlsym(handle,  GALOIS_SINGLE_MULTIPLY);
+    } func_handle = { .vptr = NULL };
+    func_handle.vptr = dlsym(handle, GALOIS_SINGLE_MULTIPLY);
     return func_handle.fptr;
 }
 
-static void stub_galois_uninit_field(int w){}
+static void stub_galois_uninit_field(int w) { }
 
-static galois_uninit_field_func get_galois_uninit_func(void *handle) {
+static galois_uninit_field_func get_galois_uninit_func(void *handle)
+{
     /*
      * ISO C forbids casting a void* to a function pointer.
      * Since dlsym return returns a void*, we use this union to
@@ -58,23 +60,19 @@ static galois_uninit_field_func get_galois_uninit_func(void *handle) {
     union {
         galois_uninit_field_func fptr;
         void *vptr;
-    } func_handle = {.vptr = NULL};
-    func_handle.vptr = dlsym(handle,  GALOIS_UNINIT);
+    } func_handle = { .vptr = NULL };
+    func_handle.vptr = dlsym(handle, GALOIS_UNINIT);
     return func_handle.fptr;
 }
 
-
-static void *get_jerasure_sohandle(void)
-{
-    return dlopen(JERASURE_SONAME, RTLD_LAZY | RTLD_LOCAL);
-}
+static void *get_jerasure_sohandle(void) { return dlopen(JERASURE_SONAME, RTLD_LAZY | RTLD_LOCAL); }
 
 static int load_gf_functions(void *sohandle, struct jerasure_mult_routines *routines)
 {
     routines->galois_single_multiply = get_galois_multi_func(sohandle);
     routines->galois_uninit_field = get_galois_uninit_func(sohandle);
     if (NULL == routines->galois_single_multiply) {
-      return -1;
+        return -1;
     }
     /**
      * It is possible that the underlying Jerasure implementation
@@ -86,14 +84,13 @@ static int load_gf_functions(void *sohandle, struct jerasure_mult_routines *rout
      * GF functions into alg_sig, this can jsut go away.
      */
     if (NULL == routines->galois_uninit_field) {
-      routines->galois_uninit_field = &stub_galois_uninit_field;
+        routines->galois_uninit_field = &stub_galois_uninit_field;
     }
 
     return 0;
 }
 
-static
-alg_sig_t *init_alg_sig_w8(void *jerasure_sohandle, int sig_len)
+static alg_sig_t *init_alg_sig_w8(void *jerasure_sohandle, int sig_len)
 {
     alg_sig_t *alg_sig_handle;
     int num_gf_lr_table_syms;
@@ -104,14 +101,15 @@ alg_sig_t *init_alg_sig_w8(void *jerasure_sohandle, int sig_len)
 
     alg_sig_handle = (alg_sig_t *)malloc(sizeof(alg_sig_t));
     if (NULL == alg_sig_handle) {
-      return NULL;
+        return NULL;
     }
 
     alg_sig_handle->jerasure_sohandle = jerasure_sohandle;
 
-    if (load_gf_functions(alg_sig_handle->jerasure_sohandle, &(alg_sig_handle->mult_routines)) < 0) {
-      free(alg_sig_handle);
-      return NULL;
+    if (load_gf_functions(alg_sig_handle->jerasure_sohandle, &(alg_sig_handle->mult_routines))
+        < 0) {
+        free(alg_sig_handle);
+        return NULL;
     }
 
     alg_sig_handle->sig_len = sig_len;
@@ -120,12 +118,12 @@ alg_sig_t *init_alg_sig_w8(void *jerasure_sohandle, int sig_len)
     num_gf_lr_table_syms = 1 << (w >> 1);
 
     if (num_components >= 4) {
-      alg_sig_handle->tbl1_l = (int*)malloc(sizeof(int) * num_gf_lr_table_syms);
-      alg_sig_handle->tbl1_r = (int*)malloc(sizeof(int) * num_gf_lr_table_syms);
-      alg_sig_handle->tbl2_l = (int*)malloc(sizeof(int) * num_gf_lr_table_syms);
-      alg_sig_handle->tbl2_r = (int*)malloc(sizeof(int) * num_gf_lr_table_syms);
-      alg_sig_handle->tbl3_l = (int*)malloc(sizeof(int) * num_gf_lr_table_syms);
-      alg_sig_handle->tbl3_r = (int*)malloc(sizeof(int) * num_gf_lr_table_syms);
+        alg_sig_handle->tbl1_l = (int *)malloc(sizeof(int) * num_gf_lr_table_syms);
+        alg_sig_handle->tbl1_r = (int *)malloc(sizeof(int) * num_gf_lr_table_syms);
+        alg_sig_handle->tbl2_l = (int *)malloc(sizeof(int) * num_gf_lr_table_syms);
+        alg_sig_handle->tbl2_r = (int *)malloc(sizeof(int) * num_gf_lr_table_syms);
+        alg_sig_handle->tbl3_l = (int *)malloc(sizeof(int) * num_gf_lr_table_syms);
+        alg_sig_handle->tbl3_r = (int *)malloc(sizeof(int) * num_gf_lr_table_syms);
     }
 
     /*
@@ -134,23 +132,28 @@ alg_sig_t *init_alg_sig_w8(void *jerasure_sohandle, int sig_len)
      * Note that \gamme = 8 (\alpha ^ 3)
      */
     for (i = 0; i < 16; i++) {
-      if (num_components >= 4) {
-        alg_sig_handle->tbl1_l[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned char)(i << 4) & 0xf0, alpha, w);
-        alg_sig_handle->tbl1_r[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned char) i, alpha, w);
+        if (num_components >= 4) {
+            alg_sig_handle->tbl1_l[i] = alg_sig_handle->mult_routines.galois_single_multiply(
+                (unsigned char)(i << 4) & 0xf0, alpha, w);
+            alg_sig_handle->tbl1_r[i]
+                = alg_sig_handle->mult_routines.galois_single_multiply((unsigned char)i, alpha, w);
 
-        alg_sig_handle->tbl2_l[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned char) (i << 4) & 0xf0, beta, w);
-        alg_sig_handle->tbl2_r[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned char) i, beta, w);
+            alg_sig_handle->tbl2_l[i] = alg_sig_handle->mult_routines.galois_single_multiply(
+                (unsigned char)(i << 4) & 0xf0, beta, w);
+            alg_sig_handle->tbl2_r[i]
+                = alg_sig_handle->mult_routines.galois_single_multiply((unsigned char)i, beta, w);
 
-        alg_sig_handle->tbl3_l[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned char) (i << 4) & 0xf0, gamma, w);
-        alg_sig_handle->tbl3_r[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned char) i, gamma, w);
-      }
+            alg_sig_handle->tbl3_l[i] = alg_sig_handle->mult_routines.galois_single_multiply(
+                (unsigned char)(i << 4) & 0xf0, gamma, w);
+            alg_sig_handle->tbl3_r[i]
+                = alg_sig_handle->mult_routines.galois_single_multiply((unsigned char)i, gamma, w);
+        }
     }
 
     return alg_sig_handle;
 }
 
-static
-alg_sig_t *init_alg_sig_w16(void *jerasure_sohandle, int sig_len)
+static alg_sig_t *init_alg_sig_w16(void *jerasure_sohandle, int sig_len)
 {
     alg_sig_t *alg_sig_handle;
     int num_gf_lr_table_syms;
@@ -165,14 +168,15 @@ alg_sig_t *init_alg_sig_w16(void *jerasure_sohandle, int sig_len)
 
     alg_sig_handle = (alg_sig_t *)malloc(sizeof(alg_sig_t));
     if (NULL == alg_sig_handle) {
-      return NULL;
+        return NULL;
     }
 
     alg_sig_handle->jerasure_sohandle = jerasure_sohandle;
 
-    if (load_gf_functions(alg_sig_handle->jerasure_sohandle, &(alg_sig_handle->mult_routines)) < 0) {
-      free(alg_sig_handle);
-      return NULL;
+    if (load_gf_functions(alg_sig_handle->jerasure_sohandle, &(alg_sig_handle->mult_routines))
+        < 0) {
+        free(alg_sig_handle);
+        return NULL;
     }
 
     alg_sig_handle->sig_len = sig_len;
@@ -181,30 +185,30 @@ alg_sig_t *init_alg_sig_w16(void *jerasure_sohandle, int sig_len)
     num_gf_lr_table_syms = 1 << (w >> 1);
 
     if (num_components >= 2) {
-      alg_sig_handle->tbl1_l = (int*)malloc(sizeof(int) * num_gf_lr_table_syms);
-      alg_sig_handle->tbl1_r = (int*)malloc(sizeof(int) * num_gf_lr_table_syms);
-      if (NULL == alg_sig_handle->tbl1_l || NULL == alg_sig_handle->tbl1_r) {
-        free(alg_sig_handle->tbl1_l);
-        free(alg_sig_handle->tbl1_r);
-        free(alg_sig_handle);
-        return NULL;
-      }
+        alg_sig_handle->tbl1_l = (int *)malloc(sizeof(int) * num_gf_lr_table_syms);
+        alg_sig_handle->tbl1_r = (int *)malloc(sizeof(int) * num_gf_lr_table_syms);
+        if (NULL == alg_sig_handle->tbl1_l || NULL == alg_sig_handle->tbl1_r) {
+            free(alg_sig_handle->tbl1_l);
+            free(alg_sig_handle->tbl1_r);
+            free(alg_sig_handle);
+            return NULL;
+        }
     }
 
     if (num_components >= 4) {
-      alg_sig_handle->tbl2_l = (int*)malloc(sizeof(int) * num_gf_lr_table_syms);
-      alg_sig_handle->tbl2_r = (int*)malloc(sizeof(int) * num_gf_lr_table_syms);
-      alg_sig_handle->tbl3_l = (int*)malloc(sizeof(int) * num_gf_lr_table_syms);
-      alg_sig_handle->tbl3_r = (int*)malloc(sizeof(int) * num_gf_lr_table_syms);
-      if (NULL == alg_sig_handle->tbl2_l || NULL == alg_sig_handle->tbl2_r ||
-          NULL == alg_sig_handle->tbl3_l || NULL == alg_sig_handle->tbl3_r) {
-        free(alg_sig_handle->tbl2_l);
-        free(alg_sig_handle->tbl2_r);
-        free(alg_sig_handle->tbl3_l);
-        free(alg_sig_handle->tbl3_r);
-        free(alg_sig_handle);
-        return NULL;
-      }
+        alg_sig_handle->tbl2_l = (int *)malloc(sizeof(int) * num_gf_lr_table_syms);
+        alg_sig_handle->tbl2_r = (int *)malloc(sizeof(int) * num_gf_lr_table_syms);
+        alg_sig_handle->tbl3_l = (int *)malloc(sizeof(int) * num_gf_lr_table_syms);
+        alg_sig_handle->tbl3_r = (int *)malloc(sizeof(int) * num_gf_lr_table_syms);
+        if (NULL == alg_sig_handle->tbl2_l || NULL == alg_sig_handle->tbl2_r
+            || NULL == alg_sig_handle->tbl3_l || NULL == alg_sig_handle->tbl3_r) {
+            free(alg_sig_handle->tbl2_l);
+            free(alg_sig_handle->tbl2_r);
+            free(alg_sig_handle->tbl3_l);
+            free(alg_sig_handle->tbl3_r);
+            free(alg_sig_handle);
+            return NULL;
+        }
     }
 
     /*
@@ -213,243 +217,256 @@ alg_sig_t *init_alg_sig_w16(void *jerasure_sohandle, int sig_len)
      * Note that \gamme = 8 (\alpha ^ 3 MOD 2^16)
      */
     for (i = 0; i < 256; i++) {
-      if (num_components >= 2) {
-        alg_sig_handle->tbl1_l[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned short) (i << 8), alpha, w);
-        alg_sig_handle->tbl1_r[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned short) i, alpha, w);
-      }
+        if (num_components >= 2) {
+            alg_sig_handle->tbl1_l[i] = alg_sig_handle->mult_routines.galois_single_multiply(
+                (unsigned short)(i << 8), alpha, w);
+            alg_sig_handle->tbl1_r[i]
+                = alg_sig_handle->mult_routines.galois_single_multiply((unsigned short)i, alpha, w);
+        }
 
-      if (num_components >= 4) {
-        alg_sig_handle->tbl2_l[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned short) (i << 8), beta, w);
-        alg_sig_handle->tbl2_r[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned short) i, beta, w);
+        if (num_components >= 4) {
+            alg_sig_handle->tbl2_l[i] = alg_sig_handle->mult_routines.galois_single_multiply(
+                (unsigned short)(i << 8), beta, w);
+            alg_sig_handle->tbl2_r[i]
+                = alg_sig_handle->mult_routines.galois_single_multiply((unsigned short)i, beta, w);
 
-        alg_sig_handle->tbl3_l[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned short) (i << 8), gamma, w);
-        alg_sig_handle->tbl3_r[i] = alg_sig_handle->mult_routines.galois_single_multiply((unsigned short) i, gamma, w);
-      }
+            alg_sig_handle->tbl3_l[i] = alg_sig_handle->mult_routines.galois_single_multiply(
+                (unsigned short)(i << 8), gamma, w);
+            alg_sig_handle->tbl3_r[i]
+                = alg_sig_handle->mult_routines.galois_single_multiply((unsigned short)i, gamma, w);
+        }
     }
 
     return alg_sig_handle;
 }
 
-__attribute__ ((visibility ("internal")))
-alg_sig_t *init_alg_sig(int sig_len, int gf_w)
+__attribute__((visibility("internal"))) alg_sig_t *init_alg_sig(int sig_len, int gf_w)
 {
-  int i=0;
-  void *jerasure_sohandle = get_jerasure_sohandle();
+    int i = 0;
+    void *jerasure_sohandle = get_jerasure_sohandle();
 
-  if (NULL == jerasure_sohandle) {
-    fprintf (stderr, "Could not open Jerasure backend.  Install Jerasure or fix LD_LIBRARY_PATH.  Passing.\n");
-    return NULL;
-  }
-
-  while (valid_pairs[i][0] > -1) {
-    if (gf_w == valid_pairs[i][0] &&
-        sig_len == valid_pairs[i][1]) {
-      break;
+    if (NULL == jerasure_sohandle) {
+        fprintf(stderr,
+            "Could not open Jerasure backend.  Install Jerasure or fix LD_LIBRARY_PATH.  "
+            "Passing.\n");
+        return NULL;
     }
-    i++;
-  }
 
-  if (valid_pairs[i][0] == -1) {
+    while (valid_pairs[i][0] > -1) {
+        if (gf_w == valid_pairs[i][0] && sig_len == valid_pairs[i][1]) {
+            break;
+        }
+        i++;
+    }
+
+    if (valid_pairs[i][0] == -1) {
+        return NULL;
+    }
+
+    if (gf_w == 8) {
+        return init_alg_sig_w8(jerasure_sohandle, sig_len);
+    } else if (gf_w == 16) {
+        return init_alg_sig_w16(jerasure_sohandle, sig_len);
+    }
     return NULL;
-  }
-
-  if (gf_w == 8) {
-    return init_alg_sig_w8(jerasure_sohandle, sig_len);
-  } else if (gf_w == 16) {
-    return init_alg_sig_w16(jerasure_sohandle, sig_len);
-  }
-  return NULL;
 }
 
-__attribute__ ((visibility ("internal")))
-void destroy_alg_sig(alg_sig_t* alg_sig_handle)
+__attribute__((visibility("internal"))) void destroy_alg_sig(alg_sig_t *alg_sig_handle)
 {
-  if (alg_sig_handle == NULL) {
-    return;
-  }
-  if (alg_sig_handle->gf_w == 0) {
+    if (alg_sig_handle == NULL) {
+        return;
+    }
+    if (alg_sig_handle->gf_w == 0) {
+        free(alg_sig_handle);
+        return;
+    }
+
+    alg_sig_handle->mult_routines.galois_uninit_field(alg_sig_handle->gf_w);
+    dlclose(alg_sig_handle->jerasure_sohandle);
+
+    int num_components = alg_sig_handle->sig_len / alg_sig_handle->gf_w;
+
+    if (num_components >= 2) {
+        free(alg_sig_handle->tbl1_l);
+        free(alg_sig_handle->tbl1_r);
+    }
+    if (num_components >= 4) {
+        free(alg_sig_handle->tbl2_l);
+        free(alg_sig_handle->tbl2_r);
+        free(alg_sig_handle->tbl3_l);
+        free(alg_sig_handle->tbl3_r);
+    }
+
     free(alg_sig_handle);
-    return;
-  }
-
-  alg_sig_handle->mult_routines.galois_uninit_field(alg_sig_handle->gf_w);
-  dlclose(alg_sig_handle->jerasure_sohandle);
-
-  int num_components = alg_sig_handle->sig_len / alg_sig_handle->gf_w;
-
-  if (num_components >= 2) {
-    free(alg_sig_handle->tbl1_l);
-    free(alg_sig_handle->tbl1_r);
-  }
-  if (num_components >= 4) {
-    free(alg_sig_handle->tbl2_l);
-    free(alg_sig_handle->tbl2_r);
-    free(alg_sig_handle->tbl3_l);
-    free(alg_sig_handle->tbl3_r);
-  }
-
-  free(alg_sig_handle);
 }
 
-
-static
-int compute_w8_alg_sig_32(alg_sig_t *alg_sig_handle, char *buf, int len, char *sig)
+static int compute_w8_alg_sig_32(alg_sig_t *alg_sig_handle, char *buf, int len, char *sig)
 {
-  int i;
+    int i;
 
-  if (len == 0) {
-    bzero(sig, 4);
+    if (len == 0) {
+        bzero(sig, 4);
+        return 0;
+    }
+
+    sig[0] = buf[len - 1];
+    sig[1] = buf[len - 1];
+    sig[2] = buf[len - 1];
+    sig[3] = buf[len - 1];
+
+    /**
+     * This is the loop to optimize.  It is currently optimized enough : using Horner's alg.,
+     * shortened mult. tables, and other tricks.
+     */
+    for (i = len - 2; i >= 0; i--) {
+        sig[0] ^= buf[i];
+        sig[1] = (buf[i]
+            ^ (alg_sig_handle->tbl1_l[(sig[1] >> 4) & 0x0f]
+                ^ alg_sig_handle->tbl1_r[sig[1] & 0x0f]));
+        sig[2] = (buf[i]
+            ^ (alg_sig_handle->tbl2_l[(sig[2] >> 4) & 0x0f]
+                ^ alg_sig_handle->tbl2_r[sig[2] & 0x0f]));
+        sig[3] = (buf[i]
+            ^ (alg_sig_handle->tbl3_l[(sig[3] >> 4) & 0x0f]
+                ^ alg_sig_handle->tbl3_r[sig[3] & 0x0f]));
+    }
+
     return 0;
-  }
-
-  sig[0] = buf[len-1];
-  sig[1] = buf[len-1];
-  sig[2] = buf[len-1];
-  sig[3] = buf[len-1];
-
-  /**
-   * This is the loop to optimize.  It is currently optimized enough : using Horner's alg.,
-   * shortened mult. tables, and other tricks.
-   */
-  for (i = len - 2; i >= 0; i--) {
-      sig[0] ^= buf[i];
-      sig[1] = (buf[i] ^ (alg_sig_handle->tbl1_l[(sig[1] >> 4) & 0x0f] ^ alg_sig_handle->tbl1_r[sig[1] & 0x0f]));
-      sig[2] = (buf[i] ^ (alg_sig_handle->tbl2_l[(sig[2] >> 4) & 0x0f] ^ alg_sig_handle->tbl2_r[sig[2] & 0x0f]));
-      sig[3] = (buf[i] ^ (alg_sig_handle->tbl3_l[(sig[3] >> 4) & 0x0f] ^ alg_sig_handle->tbl3_r[sig[3] & 0x0f]));
-  }
-
-  return 0;
 }
 
-static
-int compute_w16_alg_sig_64(alg_sig_t *alg_sig_handle, char *buf, int len, char *sig)
+static int compute_w16_alg_sig_64(alg_sig_t *alg_sig_handle, char *buf, int len, char *sig)
 {
-  int bit_mask;
-  int adj_len = len / 2;
-  int i;
-  unsigned short *_buf = (unsigned short *)buf;
-  unsigned short sig_buf[4];
+    int bit_mask;
+    int adj_len = len / 2;
+    int i;
+    unsigned short *_buf = (unsigned short *)buf;
+    unsigned short sig_buf[4];
 
-  if (len == 0) {
-    bzero(sig, 8);
+    if (len == 0) {
+        bzero(sig, 8);
+        return 0;
+    }
+
+    switch (len % 2) {
+    case 1:
+        bit_mask = 0x00ff;
+        break;
+    default:
+        bit_mask = 0xffff;
+        break;
+    }
+
+    if (len % 2 > 0) {
+        adj_len++;
+    }
+
+    // Account for buffer not being uint16_t aligned
+    sig_buf[0] = (_buf[adj_len - 1] & bit_mask);
+    sig_buf[1] = (_buf[adj_len - 1] & bit_mask);
+    sig_buf[2] = (_buf[adj_len - 1] & bit_mask);
+    sig_buf[3] = (_buf[adj_len - 1] & bit_mask);
+
+    /**
+     * This is the loop to optimize.  It is currently optimized enough : using Horner's alg.,
+     * shortened mult. tables, and other tricks.
+     */
+    for (i = adj_len - 2; i >= 0; i--) {
+        sig_buf[0] ^= _buf[i];
+        sig_buf[1] = (_buf[i]
+            ^ (alg_sig_handle->tbl1_l[(sig_buf[1] >> 8) & 0x00ff]
+                ^ alg_sig_handle->tbl1_r[sig_buf[1] & 0x00ff]));
+        sig_buf[2] = (_buf[i]
+            ^ (alg_sig_handle->tbl2_l[(sig_buf[2] >> 8) & 0x00ff]
+                ^ alg_sig_handle->tbl2_r[sig_buf[2] & 0x00ff]));
+        sig_buf[3] = (_buf[i]
+            ^ (alg_sig_handle->tbl3_l[(sig_buf[3] >> 8) & 0x00ff]
+                ^ alg_sig_handle->tbl3_r[sig_buf[3] & 0x00ff]));
+    }
+
+    sig[0] = (char)(sig_buf[0] & 0x000ff);
+    sig[1] = (char)((sig_buf[0] >> 8) & 0x000ff);
+    sig[2] = (char)(sig_buf[1] & 0x00ff);
+    sig[3] = (char)((sig_buf[1] >> 8) & 0x00ff);
+    sig[4] = (char)(sig_buf[2] & 0x00ff);
+    sig[5] = (char)((sig_buf[2] >> 8) & 0x00ff);
+    sig[6] = (char)(sig_buf[3] & 0x00ff);
+    sig[7] = (char)((sig_buf[3] >> 8) & 0x00ff);
     return 0;
-  }
-
-  switch (len % 2) {
-      case 1:
-          bit_mask = 0x00ff;
-          break;
-      default:
-          bit_mask = 0xffff;
-          break;
-  }
-
-  if (len % 2 > 0) {
-      adj_len++;
-  }
-
-  // Account for buffer not being uint16_t aligned
-  sig_buf[0] = (_buf[adj_len - 1] & bit_mask);
-  sig_buf[1] = (_buf[adj_len - 1] & bit_mask);
-  sig_buf[2] = (_buf[adj_len - 1] & bit_mask);
-  sig_buf[3] = (_buf[adj_len - 1] & bit_mask);
-
-  /**
-   * This is the loop to optimize.  It is currently optimized enough : using Horner's alg.,
-   * shortened mult. tables, and other tricks.
-   */
-  for (i = adj_len - 2; i >= 0; i--) {
-      sig_buf[0] ^= _buf[i];
-      sig_buf[1] = (_buf[i] ^ (alg_sig_handle->tbl1_l[(sig_buf[1] >> 8) & 0x00ff] ^ alg_sig_handle->tbl1_r[sig_buf[1] & 0x00ff]));
-      sig_buf[2] = (_buf[i] ^ (alg_sig_handle->tbl2_l[(sig_buf[2] >> 8) & 0x00ff] ^ alg_sig_handle->tbl2_r[sig_buf[2] & 0x00ff]));
-      sig_buf[3] = (_buf[i] ^ (alg_sig_handle->tbl3_l[(sig_buf[3] >> 8) & 0x00ff] ^ alg_sig_handle->tbl3_r[sig_buf[3] & 0x00ff]));
-  }
-
-  sig[0] = (char) (sig_buf[0] & 0x000ff);
-  sig[1] = (char) ((sig_buf[0] >> 8) & 0x000ff);
-  sig[2] = (char) (sig_buf[1] & 0x00ff);
-  sig[3] = (char) ((sig_buf[1] >> 8) & 0x00ff);
-  sig[4] = (char) (sig_buf[2] & 0x00ff);
-  sig[5] = (char) ((sig_buf[2] >> 8) & 0x00ff);
-  sig[6] = (char) (sig_buf[3] & 0x00ff);
-  sig[7] = (char) ((sig_buf[3] >> 8) & 0x00ff);
-  return 0;
 }
 
-static
-int compute_w16_alg_sig_32(alg_sig_t *alg_sig_handle, char *buf, int len, char *sig)
+static int compute_w16_alg_sig_32(alg_sig_t *alg_sig_handle, char *buf, int len, char *sig)
 {
-  int bit_mask;
-  int adj_len = len / 2;
-  int i;
-  unsigned short *_buf = (unsigned short *)buf;
-  unsigned short sig_buf[2];
+    int bit_mask;
+    int adj_len = len / 2;
+    int i;
+    unsigned short *_buf = (unsigned short *)buf;
+    unsigned short sig_buf[2];
 
-  if (len == 0) {
-    bzero(sig, 8);
+    if (len == 0) {
+        bzero(sig, 8);
+        return 0;
+    }
+
+    switch (len % 2) {
+    case 1:
+        bit_mask = 0x00ff;
+        break;
+    default:
+        bit_mask = 0xffff;
+        break;
+    }
+
+    if (len % 2 > 0) {
+        adj_len++;
+    }
+
+    // Account for buffer not being uint16_t aligned
+    sig_buf[0] = (_buf[adj_len - 1] & bit_mask);
+    sig_buf[1] = (_buf[adj_len - 1] & bit_mask);
+
+    /**
+     * This is the loop to optimize.  It is currently optimized enough : using Horner's alg.,
+     * shortened mult. tables, and other tricks.
+     */
+    for (i = adj_len - 2; i >= 0; i--) {
+        sig_buf[0] ^= _buf[i];
+        sig_buf[1] = (_buf[i]
+            ^ (alg_sig_handle->tbl1_l[(sig_buf[1] >> 8) & 0x00ff]
+                ^ alg_sig_handle->tbl1_r[sig_buf[1] & 0x00ff]));
+    }
+
+    sig[0] = (char)(sig_buf[0] & 0x000ff);
+    sig[1] = (char)((sig_buf[0] >> 8) & 0x000ff);
+    sig[2] = (char)(sig_buf[1] & 0x00ff);
+    sig[3] = (char)((sig_buf[1] >> 8) & 0x00ff);
     return 0;
-  }
-
-  switch (len % 2) {
-      case 1:
-          bit_mask = 0x00ff;
-          break;
-      default:
-          bit_mask = 0xffff;
-          break;
-  }
-
-  if (len % 2 > 0) {
-      adj_len++;
-  }
-
-  // Account for buffer not being uint16_t aligned
-  sig_buf[0] = (_buf[adj_len - 1] & bit_mask);
-  sig_buf[1] = (_buf[adj_len - 1] & bit_mask);
-
-  /**
-   * This is the loop to optimize.  It is currently optimized enough : using Horner's alg.,
-   * shortened mult. tables, and other tricks.
-   */
-  for (i = adj_len - 2; i >= 0; i--) {
-      sig_buf[0] ^= _buf[i];
-      sig_buf[1] = (_buf[i] ^ (alg_sig_handle->tbl1_l[(sig_buf[1] >> 8) & 0x00ff] ^ alg_sig_handle->tbl1_r[sig_buf[1] & 0x00ff]));
-  }
-
-  sig[0] = (char) (sig_buf[0] & 0x000ff);
-  sig[1] = (char) ((sig_buf[0] >> 8) & 0x000ff);
-  sig[2] = (char) (sig_buf[1] & 0x00ff);
-  sig[3] = (char) ((sig_buf[1] >> 8) & 0x00ff);
-  return 0;
 }
 
-static
-int compute_alg_sig_32(alg_sig_t *alg_sig_handle, char *buf, int len, char *sig)
+static int compute_alg_sig_32(alg_sig_t *alg_sig_handle, char *buf, int len, char *sig)
 {
-  if (alg_sig_handle->gf_w == 8) {
-    return compute_w8_alg_sig_32(alg_sig_handle, buf, len, sig);
-  } else if (alg_sig_handle->gf_w == 16) {
-    return compute_w16_alg_sig_32(alg_sig_handle, buf, len, sig);
-  }
-  return -1;
+    if (alg_sig_handle->gf_w == 8) {
+        return compute_w8_alg_sig_32(alg_sig_handle, buf, len, sig);
+    } else if (alg_sig_handle->gf_w == 16) {
+        return compute_w16_alg_sig_32(alg_sig_handle, buf, len, sig);
+    }
+    return -1;
 }
 
-static
-int compute_alg_sig_64(alg_sig_t *alg_sig_handle, char *buf, int len, char *sig)
+static int compute_alg_sig_64(alg_sig_t *alg_sig_handle, char *buf, int len, char *sig)
 {
-  if (alg_sig_handle->gf_w == 16) {
-    return compute_w16_alg_sig_64(alg_sig_handle, buf, len, sig);
-  }
-  return -1;
+    if (alg_sig_handle->gf_w == 16) {
+        return compute_w16_alg_sig_64(alg_sig_handle, buf, len, sig);
+    }
+    return -1;
 }
 
-__attribute__ ((visibility ("internal")))
-int compute_alg_sig(alg_sig_t *alg_sig_handle, char *buf, int len, char *sig)
+__attribute__((visibility("internal"))) int compute_alg_sig(
+    alg_sig_t *alg_sig_handle, char *buf, int len, char *sig)
 {
-  if (alg_sig_handle->sig_len == 32) {
-    return compute_alg_sig_32(alg_sig_handle, buf, len, sig);
-  } else if (alg_sig_handle->sig_len == 64) {
-    return compute_alg_sig_64(alg_sig_handle, buf, len, sig);
-  }
-  return -1;
+    if (alg_sig_handle->sig_len == 32) {
+        return compute_alg_sig_32(alg_sig_handle, buf, len, sig);
+    } else if (alg_sig_handle->sig_len == 64) {
+        return compute_alg_sig_64(alg_sig_handle, buf, len, sig);
+    }
+    return -1;
 }

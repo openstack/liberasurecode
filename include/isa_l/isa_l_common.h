@@ -32,10 +32,11 @@
 #define ISA_L_W 8
 
 /* Forward declarations */
-typedef void (*ec_encode_data_func)(int, int, int, unsigned char*, unsigned char **, unsigned char **);
-typedef void (*ec_init_tables_func)(int, int, unsigned char*, unsigned char *);
-typedef void (*gf_gen_encoding_matrix_func)(unsigned char*, int, int);
-typedef int (*gf_invert_matrix_func)(unsigned char*, unsigned char*, const int);
+typedef void (*ec_encode_data_func)(
+    int, int, int, unsigned char *, unsigned char **, unsigned char **);
+typedef void (*ec_init_tables_func)(int, int, unsigned char *, unsigned char *);
+typedef void (*gf_gen_encoding_matrix_func)(unsigned char *, int, int);
+typedef int (*gf_invert_matrix_func)(unsigned char *, unsigned char *, const int);
 typedef unsigned char (*gf_mul_func)(unsigned char, unsigned char);
 
 typedef struct {
@@ -57,21 +58,20 @@ typedef struct {
     unsigned char *encode_tables;
     int k;
     int m;
-    int l; //local parities
+    int l; // local parities
     int w;
 } isa_l_descriptor;
 
 int isa_l_encode(void *desc, char **data, char **parity, int blocksize);
-int isa_l_decode(void *desc, char **data, char **parity, int *missing_idxs,
-        int blocksize);
-int isa_l_reconstruct(void *desc, char **data, char **parity,
-        int *missing_idxs, int destination_idx, int blocksize);
-int isa_l_min_fragments(void *desc, int *missing_idxs,
-        int *fragments_to_exclude, int *fragments_needed);
-int isa_l_element_size(void* desc);
+int isa_l_decode(void *desc, char **data, char **parity, int *missing_idxs, int blocksize);
+int isa_l_reconstruct(
+    void *desc, char **data, char **parity, int *missing_idxs, int destination_idx, int blocksize);
+int isa_l_min_fragments(
+    void *desc, int *missing_idxs, int *fragments_to_exclude, int *fragments_needed);
+int isa_l_element_size(void *desc);
 int isa_l_exit(void *desc);
-void * isa_l_common_init(struct ec_backend_args *args, void *backend_sohandle,
-        const char* gen_matrix_func_name);
+void *isa_l_common_init(
+    struct ec_backend_args *args, void *backend_sohandle, const char *gen_matrix_func_name);
 
 /* global helper functions */
 static inline int get_num_missing_elements(int *missing_idxs)
@@ -85,11 +85,8 @@ static inline int get_num_missing_elements(int *missing_idxs)
     return i;
 }
 
-static inline void mult_and_xor_row(unsigned char *to_row,
-                             unsigned char *from_row,
-                             unsigned char val,
-                             int num_elems,
-                             gf_mul_func gf_mul)
+static inline void mult_and_xor_row(unsigned char *to_row, unsigned char *from_row,
+    unsigned char val, int num_elems, gf_mul_func gf_mul)
 {
     int i;
 
@@ -98,7 +95,8 @@ static inline void mult_and_xor_row(unsigned char *to_row,
     }
 }
 /* LRC helper functions */
-static inline int local_group_size(int k, int l, int n) {
+static inline int local_group_size(int k, int l, int n)
+{
     int extra = k % l;
     if (n < extra) {
         return (k / l) + 1;
@@ -107,7 +105,8 @@ static inline int local_group_size(int k, int l, int n) {
     }
 }
 
-static inline int local_group_data_lower(int k, int l, int n) {
+static inline int local_group_data_lower(int k, int l, int n)
+{
     int extra = k % l;
     int group_size = (k / l) + 1;
     if (n < extra) {
@@ -117,11 +116,13 @@ static inline int local_group_data_lower(int k, int l, int n) {
     }
 }
 
-static inline int local_group_data_upper(int k, int l, int n) {
+static inline int local_group_data_upper(int k, int l, int n)
+{
     return local_group_data_lower(k, l, n + 1);
 }
 
-static inline int local_group_for_data(int k, int l, int n) {
+static inline int local_group_for_data(int k, int l, int n)
+{
     int extra = k % l;
     /**
      * Start off assuming larger groups; we'll adjust them

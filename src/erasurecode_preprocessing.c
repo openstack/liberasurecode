@@ -26,23 +26,21 @@
  * vi: set noai tw=79 ts=4 sw=4:
  */
 
+#include "erasurecode_preprocessing.h"
 #include "erasurecode_backend.h"
 #include "erasurecode_helpers.h"
 #include "erasurecode_helpers_ext.h"
 #include "erasurecode_log.h"
-#include "erasurecode_preprocessing.h"
 #include "erasurecode_stdinc.h"
 
-__attribute__ ((visibility ("internal")))
-int prepare_fragments_for_encode(ec_backend_t instance,
-        int k, int m,
-        const char *orig_data, uint64_t orig_data_size, /* input */
-        char **encoded_data, char **encoded_parity,     /* output */
-        int *blocksize)
+__attribute__((visibility("internal"))) int prepare_fragments_for_encode(ec_backend_t instance,
+    int k, int m, const char *orig_data, uint64_t orig_data_size, /* input */
+    char **encoded_data, char **encoded_parity, /* output */
+    int *blocksize)
 {
     int i, ret = 0;
-    int data_len;           /* data len to write to fragment headers */
-    int aligned_data_len;   /* EC algorithm compatible data length */
+    int data_len; /* data len to write to fragment headers */
+    int aligned_data_len; /* EC algorithm compatible data length */
     int buffer_size, payload_size = 0;
     int metadata_size, data_offset = 0;
 
@@ -50,17 +48,15 @@ int prepare_fragments_for_encode(ec_backend_t instance,
     data_len = orig_data_size;
     aligned_data_len = get_aligned_data_size(instance, orig_data_size);
     *blocksize = payload_size = (aligned_data_len / k);
-    metadata_size = instance->common.ops->get_backend_metadata_size(
-                                    instance->desc.backend_desc,
-                                    *blocksize);
-    data_offset = instance->common.ops->get_encode_offset(
-                                    instance->desc.backend_desc,
-                                    metadata_size);
+    metadata_size
+        = instance->common.ops->get_backend_metadata_size(instance->desc.backend_desc, *blocksize);
+    data_offset
+        = instance->common.ops->get_encode_offset(instance->desc.backend_desc, metadata_size);
     buffer_size = payload_size + metadata_size;
 
     for (i = 0; i < k; i++) {
         int copy_size = data_len > payload_size ? payload_size : data_len;
-        char *fragment = (char *) alloc_fragment_buffer(buffer_size);
+        char *fragment = (char *)alloc_fragment_buffer(buffer_size);
         if (NULL == fragment) {
             ret = -ENOMEM;
             goto out_error;
@@ -78,7 +74,7 @@ int prepare_fragments_for_encode(ec_backend_t instance,
     }
 
     for (i = 0; i < m; i++) {
-        char *fragment = (char *) alloc_fragment_buffer(buffer_size);
+        char *fragment = (char *)alloc_fragment_buffer(buffer_size);
         if (NULL == fragment) {
             ret = -ENOMEM;
             goto out_error;
@@ -91,7 +87,7 @@ out:
     return ret;
 
 out_error:
-    printf ("ERROR in encode\n");
+    printf("ERROR in encode\n");
     if (encoded_data) {
         for (i = 0; i < k; i++) {
             if (encoded_data[i])
@@ -118,15 +114,11 @@ out_error:
  * case, the caller has to free up in the success case, so it may as well do
  * so in the failure case.
  */
-__attribute__ ((visibility ("internal")))
-int prepare_fragments_for_decode(
-        int k, int m,
-        char **data, char **parity,
-        int  *missing_idxs,
-        int *orig_size, int *fragment_payload_size, int fragment_size,
-        struct ec_bm *realloc_bm)
+__attribute__((visibility("internal"))) int prepare_fragments_for_decode(int k, int m, char **data,
+    char **parity, int *missing_idxs, int *orig_size, int *fragment_payload_size, int fragment_size,
+    struct ec_bm *realloc_bm)
 {
-    int i;                            /* a counter */
+    int i; /* a counter */
     struct ec_bm missing_bm = NEW_BM; /* bitmap form of missing indexes list */
     int orig_data_size = -1;
     int payload_size = -1;
@@ -165,7 +157,7 @@ int prepare_fragments_for_decode(
         }
 
         /* Need to determine the size of the original data */
-       if (!bm_get_value(&missing_bm, i) && orig_data_size < 0) {
+        if (!bm_get_value(&missing_bm, i) && orig_data_size < 0) {
             orig_data_size = get_orig_data_size(data[i]);
             if (orig_data_size < 0) {
                 log_error("Invalid orig_data_size in fragment header!");
@@ -176,7 +168,7 @@ int prepare_fragments_for_decode(
                 log_error("Invalid fragment_size in fragment header!");
                 return -EBADHEADER;
             }
-       }
+        }
     }
 
     /* Perform the same allocation, alignment checks on the parity fragments */
@@ -186,14 +178,14 @@ int prepare_fragments_for_decode(
          * DO NOT FREE: the python GC should free the original when cleaning up 'data_list'
          */
         if (NULL == parity[i]) {
-            parity[i] = alloc_fragment_buffer(fragment_size-sizeof(fragment_header_t));
+            parity[i] = alloc_fragment_buffer(fragment_size - sizeof(fragment_header_t));
             if (NULL == parity[i]) {
                 log_error("Could not allocate parity buffer!");
                 return -ENOMEM;
             }
             bm_set_value(realloc_bm, k + i, 1);
         } else if (!is_addr_aligned((unsigned long)parity[i], 16)) {
-            char *tmp_buf = alloc_fragment_buffer(fragment_size-sizeof(fragment_header_t));
+            char *tmp_buf = alloc_fragment_buffer(fragment_size - sizeof(fragment_header_t));
             if (NULL == tmp_buf) {
                 log_error("Could not allocate temp buffer!");
                 return -ENOMEM;
@@ -203,8 +195,8 @@ int prepare_fragments_for_decode(
             bm_set_value(realloc_bm, k + i, 1);
         }
 
-       /* Need to determine the size of the original data */
-       if (!bm_get_value(&missing_bm, k + i) && orig_data_size < 0) {
+        /* Need to determine the size of the original data */
+        if (!bm_get_value(&missing_bm, k + i) && orig_data_size < 0) {
             orig_data_size = get_orig_data_size(parity[i]);
             if (orig_data_size < 0) {
                 log_error("Invalid orig_data_size in fragment header!");
@@ -215,8 +207,7 @@ int prepare_fragments_for_decode(
                 log_error("Invalid fragment_size in fragment header!");
                 return -EBADHEADER;
             }
-       }
-
+        }
     }
 
     *orig_size = orig_data_size;
@@ -226,9 +217,7 @@ int prepare_fragments_for_decode(
 }
 
 int get_fragment_partition(
-        int k, int m,
-        char **fragments, int num_fragments,
-        char **data, char **parity, int *missing)
+    int k, int m, char **fragments, int num_fragments, char **data, char **parity, int *missing)
 {
     int i = 0;
     int num_missing = 0;
@@ -277,10 +266,8 @@ int get_fragment_partition(
     return 0;
 }
 
-__attribute__ ((visibility ("internal")))
-int fragments_to_string(int k, int m,
-        char **fragments, int num_fragments,
-        char **orig_payload, uint64_t *payload_len)
+__attribute__((visibility("internal"))) int fragments_to_string(
+    int k, int m, char **fragments, int num_fragments, char **orig_payload, uint64_t *payload_len)
 {
     char *internal_payload = NULL;
     char **data = NULL;
@@ -300,7 +287,7 @@ int fragments_to_string(int k, int m,
         goto out;
     }
 
-    data = (char **) get_aligned_buffer16(sizeof(char *) * k);
+    data = (char **)get_aligned_buffer16(sizeof(char *) * k);
 
     if (NULL == data) {
         log_error("Could not allocate buffer for data!!");
@@ -350,7 +337,7 @@ int fragments_to_string(int k, int m,
     }
 
     /* Create the string to return */
-    internal_payload = (char *) get_aligned_buffer16(orig_data_size);
+    internal_payload = (char *)get_aligned_buffer16(orig_data_size);
     if (NULL == internal_payload) {
         log_error("Could not allocate buffer for decoded string!");
         ret = -ENOMEM;
@@ -362,7 +349,7 @@ int fragments_to_string(int k, int m,
 
     /* Copy fragment data into cstring (fragments should be in index order) */
     for (i = 0; i < num_data && orig_data_size > 0; i++) {
-        char* fragment_data = get_data_ptr_from_fragment(data[i]);
+        char *fragment_data = get_data_ptr_from_fragment(data[i]);
         int fragment_size = get_fragment_payload_size(data[i]);
         int payload_size = orig_data_size > fragment_size ? fragment_size : orig_data_size;
         memcpy(internal_payload + string_off, fragment_data, payload_size);
@@ -381,5 +368,3 @@ out:
     *orig_payload = internal_payload;
     return ret;
 }
-
-

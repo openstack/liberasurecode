@@ -25,7 +25,7 @@
  */
 
 void free_systematic_matrix(int *matrix);
-int* make_systematic_matrix(int k, int m);
+int *make_systematic_matrix(int k, int m);
 int is_missing(int *missing_idxs, int index_to_check);
 int gaussj_inversion(int *matrix, int *inverse, int n);
 int rs_galois_inverse(int x);
@@ -36,6 +36,9 @@ void print_matrix(int *matrix, int rows, int cols);
 void square_matrix_multiply(int *m1, int *m2, int *prod, int n);
 int create_decoding_matrix(int *gen_matrix, int *dec_matrix, int *missing_idxs, int k, int m);
 int is_identity_matrix(int *matrix, int n);
-int liberasurecode_rs_vand_encode(int *generator_matrix, char **data, char **parity, int k, int m, int blocksize);
-int liberasurecode_rs_vand_decode(int *generator_matrix, char **data, char **parity, int k, int m, int *missing, int blocksize, int rebuild_parity);
-int liberasurecode_rs_vand_reconstruct(int *generator_matrix, char **data, char **parity, int k, int m, int *missing, int destination_idx, int blocksize);
+int liberasurecode_rs_vand_encode(
+    int *generator_matrix, char **data, char **parity, int k, int m, int blocksize);
+int liberasurecode_rs_vand_decode(int *generator_matrix, char **data, char **parity, int k, int m,
+    int *missing, int blocksize, int rebuild_parity);
+int liberasurecode_rs_vand_reconstruct(int *generator_matrix, char **data, char **parity, int k,
+    int m, int *missing, int destination_idx, int blocksize);

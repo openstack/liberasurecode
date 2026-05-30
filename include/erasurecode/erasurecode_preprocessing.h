@@ -32,29 +32,18 @@
 #include "erasurecode_backend.h"
 #include "erasurecode_helpers.h"
 
-int prepare_fragments_for_encode(
-        ec_backend_t instance,
-        int k, int m,
-        const char *orig_data, uint64_t orig_data_size, /* input */
-        char **encoded_data, char **encoded_parity,     /* output */
-        int *blocksize);
+int prepare_fragments_for_encode(ec_backend_t instance, int k, int m, const char *orig_data,
+    uint64_t orig_data_size, /* input */
+    char **encoded_data, char **encoded_parity, /* output */
+    int *blocksize);
 
-int prepare_fragments_for_decode(
-        int k, int m,
-        char **data, char **parity,
-        int *missing_idxs,
-        int *orig_size, int *fragment_payload_size, int fragment_size,
-        struct ec_bm *realloc_bm);
+int prepare_fragments_for_decode(int k, int m, char **data, char **parity, int *missing_idxs,
+    int *orig_size, int *fragment_payload_size, int fragment_size, struct ec_bm *realloc_bm);
 
 int get_fragment_partition(
-        int k, int m,
-        char **fragments, int num_fragments,
-        char **data, char **parity,
-        int *missing);
+    int k, int m, char **fragments, int num_fragments, char **data, char **parity, int *missing);
 
 int fragments_to_string(
-        int k, int m,
-        char **fragments, int num_fragments,
-        char **orig_payload, uint64_t *payload_len);
+    int k, int m, char **fragments, int num_fragments, char **orig_payload, uint64_t *payload_len);
 
 #endif

@@ -30,8 +30,8 @@ typedef int (*galois_single_multiply_func)(int, int, int);
 typedef void (*galois_uninit_field_func)(int);
 
 struct jerasure_mult_routines {
-  galois_single_multiply_func galois_single_multiply;
-  galois_uninit_field_func galois_uninit_field;
+    galois_single_multiply_func galois_single_multiply;
+    galois_uninit_field_func galois_uninit_field;
 };
 
 #if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
@@ -40,25 +40,23 @@ struct jerasure_mult_routines {
 #define JERASURE_SONAME "libJerasure.so.2"
 #endif
 
-typedef struct alg_sig_s
-{
-  int gf_w;
-  int sig_len;
-  struct jerasure_mult_routines mult_routines;
-  void *jerasure_sohandle;
-  int *tbl1_l;
-  int *tbl1_r;
-  int *tbl2_l;
-  int *tbl2_r;
-  int *tbl3_l;
-  int *tbl3_r;
+typedef struct alg_sig_s {
+    int gf_w;
+    int sig_len;
+    struct jerasure_mult_routines mult_routines;
+    void *jerasure_sohandle;
+    int *tbl1_l;
+    int *tbl1_r;
+    int *tbl2_l;
+    int *tbl2_r;
+    int *tbl3_l;
+    int *tbl3_r;
 } alg_sig_t;
 
 alg_sig_t *init_alg_sig(int sig_len, int gf_w);
-void destroy_alg_sig(alg_sig_t* alg_sig_handle);
+void destroy_alg_sig(alg_sig_t *alg_sig_handle);
 
-int compute_alg_sig(alg_sig_t* alg_sig_handle, char *buf, int len, char *sig);
+int compute_alg_sig(alg_sig_t *alg_sig_handle, char *buf, int len, char *sig);
 int liberasurecode_crc32_alt(int crc, const void *buf, size_t size);
 
 #endif
-

@@ -33,7 +33,7 @@
 #include "erasurecode_backend.h"
 #define NULL_LIB_MAJOR 1
 #define NULL_LIB_MINOR 0
-#define NULL_LIB_REV   0
+#define NULL_LIB_REV 0
 #define NULL_LIB_VER_STR "1.0"
 #define NULL_LIB_NAME "null"
 #if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
@@ -43,10 +43,10 @@
 #endif
 /* Forward declarations */
 
-typedef void* (*init_null_code_func)(int, int, int);
+typedef void *(*init_null_code_func)(int, int, int);
 typedef int (*null_code_encode_func)(void *, char **, char **, int);
 typedef int (*null_code_decode_func)(void *, char **, char **, int *, int, int);
-typedef int (*null_reconstruct_func)(char  **, int, uint64_t, int, char *);
+typedef int (*null_reconstruct_func)(char **, int, uint64_t, int, char *);
 typedef int (*null_code_fragments_needed_func)(void *, int *, int *, int *);
 struct null_descriptor {
     /* calls required for init */
@@ -74,25 +74,21 @@ struct null_descriptor {
 
 #define DEFAULT_W 32
 
-static int null_encode(void *desc, char **data, char **parity, int blocksize)
+static int null_encode(void *desc, char **data, char **parity, int blocksize) { return 0; }
+
+static int null_decode(void *desc, char **data, char **parity, int *missing_idxs, int blocksize)
 {
     return 0;
 }
 
-static int null_decode(void *desc, char **data, char **parity,
-        int *missing_idxs, int blocksize)
+static int null_reconstruct(
+    void *desc, char **data, char **parity, int *missing_idxs, int destination_idx, int blocksize)
 {
     return 0;
 }
 
-static int null_reconstruct(void *desc, char **data, char **parity,
-        int *missing_idxs, int destination_idx, int blocksize)
-{
-    return 0;
-}
-
-static int null_min_fragments(void *desc, int *missing_idxs,
-        int *fragments_to_exclude, int *fragments_needed)
+static int null_min_fragments(
+    void *desc, int *missing_idxs, int *fragments_to_exclude, int *fragments_needed)
 {
     return 0;
 }
@@ -101,18 +97,14 @@ static int null_min_fragments(void *desc, int *missing_idxs,
  * Return the element-size, which is the number of bits stored
  * on a given device, per codeword.  This is usually just 'w'.
  */
-static int
-null_element_size(void* desc)
-{
-    return DEFAULT_W;
-}
+static int null_element_size(void *desc) { return DEFAULT_W; }
 
-static void * null_init(struct ec_backend_args *args, void *backend_sohandle)
+static void *null_init(struct ec_backend_args *args, void *backend_sohandle)
 {
     struct null_descriptor *xdesc = NULL;
 
     /* allocate and fill in null_descriptor */
-    xdesc = (struct null_descriptor *) malloc(sizeof(struct null_descriptor));
+    xdesc = (struct null_descriptor *)malloc(sizeof(struct null_descriptor));
     if (NULL == xdesc) {
         return NULL;
     }
@@ -155,7 +147,7 @@ static void * null_init(struct ec_backend_args *args, void *backend_sohandle)
         null_reconstruct_func reconp;
         null_code_fragments_needed_func fragsneededp;
         void *vptr;
-    } func_handle = {.vptr = NULL};
+    } func_handle = { .vptr = NULL };
 
     /* fill in function addresses */
     func_handle.vptr = NULL;
@@ -193,48 +185,43 @@ static void * null_init(struct ec_backend_args *args, void *backend_sohandle)
         goto error;
     }
 
-    return (void *) xdesc;
+    return (void *)xdesc;
 
 error:
-    free (xdesc);
+    free(xdesc);
 
     return NULL;
 }
 
 static int null_exit(void *desc)
 {
-    struct null_descriptor *xdesc = (struct null_descriptor *) desc;
+    struct null_descriptor *xdesc = (struct null_descriptor *)desc;
 
-    free (xdesc);
+    free(xdesc);
     return 0;
 }
 
-static bool null_is_compatible_with(uint32_t version) {
-    return true;
-}
+static bool null_is_compatible_with(uint32_t version) { return true; }
 
 static struct ec_backend_op_stubs null_op_stubs = {
-    .INIT                       = null_init,
-    .EXIT                       = null_exit,
-    .ISSYSTEMATIC               = 1,
-    .ENCODE                     = null_encode,
-    .DECODE                     = null_decode,
-    .FRAGSNEEDED                = null_min_fragments,
-    .RECONSTRUCT                = null_reconstruct,
-    .ELEMENTSIZE                = null_element_size,
-    .ISCOMPATIBLEWITH           = null_is_compatible_with,
-    .GETMETADATASIZE            = get_backend_metadata_size_zero,
-    .GETENCODEOFFSET            = get_encode_offset_zero,
+    .INIT = null_init,
+    .EXIT = null_exit,
+    .ISSYSTEMATIC = 1,
+    .ENCODE = null_encode,
+    .DECODE = null_decode,
+    .FRAGSNEEDED = null_min_fragments,
+    .RECONSTRUCT = null_reconstruct,
+    .ELEMENTSIZE = null_element_size,
+    .ISCOMPATIBLEWITH = null_is_compatible_with,
+    .GETMETADATASIZE = get_backend_metadata_size_zero,
+    .GETENCODEOFFSET = get_encode_offset_zero,
 };
 
-__attribute__ ((visibility ("internal")))
-struct ec_backend_common backend_null = {
-    .id                         = EC_BACKEND_NULL,
-    .name                       = NULL_LIB_NAME,
-    .soname                     = NULL_SO_NAME,
-    .soversion                  = NULL_LIB_VER_STR,
-    .ops                        = &null_op_stubs,
-    .ec_backend_version         = _VERSION(NULL_LIB_MAJOR, NULL_LIB_MINOR,
-                                           NULL_LIB_REV),
+__attribute__((visibility("internal"))) struct ec_backend_common backend_null = {
+    .id = EC_BACKEND_NULL,
+    .name = NULL_LIB_NAME,
+    .soname = NULL_SO_NAME,
+    .soversion = NULL_LIB_VER_STR,
+    .ops = &null_op_stubs,
+    .ec_backend_version = _VERSION(NULL_LIB_MAJOR, NULL_LIB_MINOR, NULL_LIB_REV),
 };
-

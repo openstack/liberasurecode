@@ -26,16 +26,16 @@
  * vi: set noai tw=79 ts=4 sw=4:
  */
 
-#include <assert.h>
-#include <zlib.h>
-#include "list.h"
 #include "erasurecode.h"
 #include "erasurecode_backend.h"
 #include "erasurecode_helpers.h"
 #include "erasurecode_helpers_ext.h"
-#include "erasurecode_preprocessing.h"
 #include "erasurecode_postprocessing.h"
+#include "erasurecode_preprocessing.h"
 #include "erasurecode_stdinc.h"
+#include "list.h"
+#include <assert.h>
+#include <zlib.h>
 
 #include "alg_sig.h"
 #include "erasurecode_log.h"
@@ -56,25 +56,25 @@ extern struct ec_backend_common backend_isa_l_rs_vand_inv;
 extern struct ec_backend_common backend_isa_l_rs_lrc;
 
 static ec_backend_t ec_backends_supported[] = {
-    (ec_backend_t) &backend_null,
-    (ec_backend_t) &backend_jerasure_rs_vand,
-    (ec_backend_t) &backend_jerasure_rs_cauchy,
-    (ec_backend_t) &backend_flat_xor_hd,
-    (ec_backend_t) &backend_isa_l_rs_vand,
-    (ec_backend_t) &backend_shss,
-    (ec_backend_t) &backend_liberasurecode_rs_vand,
-    (ec_backend_t) &backend_isa_l_rs_cauchy,
-    (ec_backend_t) &backend_libphazr,
-    (ec_backend_t) &backend_isa_l_rs_vand_inv,
-    (ec_backend_t) &backend_isa_l_rs_lrc,
+    (ec_backend_t)&backend_null,
+    (ec_backend_t)&backend_jerasure_rs_vand,
+    (ec_backend_t)&backend_jerasure_rs_cauchy,
+    (ec_backend_t)&backend_flat_xor_hd,
+    (ec_backend_t)&backend_isa_l_rs_vand,
+    (ec_backend_t)&backend_shss,
+    (ec_backend_t)&backend_liberasurecode_rs_vand,
+    (ec_backend_t)&backend_isa_l_rs_cauchy,
+    (ec_backend_t)&backend_libphazr,
+    (ec_backend_t)&backend_isa_l_rs_vand_inv,
+    (ec_backend_t)&backend_isa_l_rs_lrc,
     NULL,
 };
 
 /* =~=*=~==~=*=~==~=*=~= EC backend instance management =~=*=~==~=*=~==~=*= */
 
 /* Registered erasure code backend instances */
-static SLIST_HEAD(backend_list, ec_backend) active_instances =
-    SLIST_HEAD_INITIALIZER(active_instances);
+static SLIST_HEAD(backend_list, ec_backend) active_instances
+    = SLIST_HEAD_INITIALIZER(active_instances);
 /**
  * This lock keeps us thread-safe. It needs to guard not only read/write
  * access to the active_instances list, but also the ec_backend instances
@@ -97,7 +97,8 @@ static int next_backend_desc = 0;
 ec_backend_t liberasurecode_backend_instance_get_by_desc(int desc)
 {
     struct ec_backend *b = NULL;
-    SLIST_FOREACH(b, &active_instances, link) {
+    SLIST_FOREACH(b, &active_instances, link)
+    {
         if (b->idesc == desc)
             break;
     }
@@ -132,7 +133,7 @@ static void print_dlerror(const char *caller)
 }
 
 /* Generic dlopen/dlclose routines */
-static void* liberasurecode_backend_open(ec_backend_t instance)
+static void *liberasurecode_backend_open(ec_backend_t instance)
 {
     if (NULL == instance)
         return NULL;
@@ -146,7 +147,7 @@ static int liberasurecode_backend_close(ec_backend_t instance)
         return 0;
 
     dlclose(instance->desc.backend_sohandle);
-    dlerror();    /* Clear any existing errors */
+    dlerror(); /* Clear any existing errors */
 
     instance->desc.backend_sohandle = NULL;
     return 0;
@@ -154,16 +155,13 @@ static int liberasurecode_backend_close(ec_backend_t instance)
 
 /* =*=~==~=*=~==~=*=~= liberasurecode init/exit routines =~=*=~==~=*=~==~=*= */
 
-void __attribute__ ((constructor))
-liberasurecode_init(void) {
+void __attribute__((constructor)) liberasurecode_init(void)
+{
     /* init logging */
     openlog("liberasurecode", LOG_PID | LOG_CONS, LOG_USER);
 }
 
-void __attribute__ ((destructor))
-liberasurecode_exit(void) {
-    closelog();
-}
+void __attribute__((destructor)) liberasurecode_exit(void) { closelog(); }
 
 /* =~=*=~==~=*=~= liberasurecode frontend API implementation =~=*=~==~=*=~== */
 
@@ -174,13 +172,13 @@ liberasurecode_exit(void) {
  *
  * @returns 1 if a backend is available; 0 otherwise
  */
-int liberasurecode_backend_available(const ec_backend_id_t backend_id) {
+int liberasurecode_backend_available(const ec_backend_id_t backend_id)
+{
     struct ec_backend backend;
     if (backend_id >= EC_BACKENDS_MAX)
         return 0;
 
-    backend.desc.backend_sohandle = liberasurecode_backend_open(
-            ec_backends_supported[backend_id]);
+    backend.desc.backend_sohandle = liberasurecode_backend_open(ec_backends_supported[backend_id]);
     if (!backend.desc.backend_sohandle) {
         return 0;
     }
@@ -208,13 +206,12 @@ int liberasurecode_backend_available(const ec_backend_id_t backend_id) {
  *
  * @returns liberasurecode instance descriptor (int > 0)
  */
-int liberasurecode_instance_create(const ec_backend_id_t id,
-                                   struct ec_args *args)
+int liberasurecode_instance_create(const ec_backend_id_t id, struct ec_args *args)
 {
     ec_backend_t instance = NULL;
     struct ec_backend_args bargs;
-    int desc = -1;  /* descriptor to return */
-    int rc = 0;     /* return call value */
+    int desc = -1; /* descriptor to return */
+    int rc = 0; /* return call value */
     if (!args)
         return -EINVALIDPARAMS;
 
@@ -224,8 +221,7 @@ int liberasurecode_instance_create(const ec_backend_id_t id,
     if (args->k < 0 || args->m < 0)
         return -EINVALIDPARAMS;
     if ((args->k + args->m) > EC_MAX_FRAGMENTS) {
-        log_error("Total number of fragments (k + m) must be less than %d\n",
-                  EC_MAX_FRAGMENTS);
+        log_error("Total number of fragments (k + m) must be less than %d\n", EC_MAX_FRAGMENTS);
         return -EINVALIDPARAMS;
     }
 
@@ -236,7 +232,7 @@ int liberasurecode_instance_create(const ec_backend_id_t id,
 
     /* Copy common backend, args struct */
     instance->common = ec_backends_supported[id]->common;
-    memcpy(&(bargs.uargs), args, sizeof (struct ec_args));
+    memcpy(&(bargs.uargs), args, sizeof(struct ec_args));
     instance->args = bargs;
 
     /* Open backend .so if not already open */
@@ -255,8 +251,8 @@ int liberasurecode_instance_create(const ec_backend_id_t id,
     rc = rwlock_wrlock(&active_instances_rwlock);
     if (rc == 0) {
         /* Call private init() for the backend */
-        instance->desc.backend_desc = instance->common.ops->init(
-                &instance->args, instance->desc.backend_sohandle);
+        instance->desc.backend_desc
+            = instance->common.ops->init(&instance->args, instance->desc.backend_sohandle);
         if (NULL == instance->desc.backend_desc) {
             free(instance);
             desc = -EBACKENDINITERR;
@@ -291,8 +287,8 @@ exit:
  */
 int liberasurecode_instance_destroy(int desc)
 {
-    ec_backend_t instance = NULL;  /* instance to destroy */
-    int rc = 0;                    /* return code */
+    ec_backend_t instance = NULL; /* instance to destroy */
+    int rc = 0; /* return code */
 
     rc = rwlock_wrlock(&active_instances_rwlock);
     if (rc == 0) {
@@ -331,9 +327,7 @@ int liberasurecode_instance_destroy(int desc)
  *        fragments (char *), allocated by liberasurecode_encode
  * @return 0 in success; -error otherwise
  */
-int liberasurecode_encode_cleanup(int desc,
-                                  char **encoded_data,
-                                  char **encoded_parity)
+int liberasurecode_encode_cleanup(int desc, char **encoded_data, char **encoded_parity)
 {
     int i, k, m;
 
@@ -386,15 +380,14 @@ int liberasurecode_encode_cleanup(int desc,
  *
  * @return 0 on success, -error code otherwise
  */
-int liberasurecode_encode(int desc,
-        const char *orig_data, uint64_t orig_data_size, /* input */
-        char ***encoded_data, char ***encoded_parity,   /* output */
-        uint64_t *fragment_len)                         /* output */
+int liberasurecode_encode(int desc, const char *orig_data, uint64_t orig_data_size, /* input */
+    char ***encoded_data, char ***encoded_parity, /* output */
+    uint64_t *fragment_len) /* output */
 {
     int k, m;
-    int ret = 0;            /* return code */
+    int ret = 0; /* return code */
 
-    int blocksize = 0;      /* length of each of k data elements */
+    int blocksize = 0; /* length of each of k data elements */
 
     if (orig_data == NULL) {
         log_error("Pointer to data buffer is null!");
@@ -436,20 +429,20 @@ int liberasurecode_encode(int desc,
     /*
      * Allocate arrays for data, parity and missing_idxs
      */
-    *encoded_data = (char **) alloc_zeroed_buffer(sizeof(char *) * k);
+    *encoded_data = (char **)alloc_zeroed_buffer(sizeof(char *) * k);
     if (NULL == *encoded_data) {
         log_error("Could not allocate data buffer!");
         goto unlock;
     }
 
-    *encoded_parity = (char **) alloc_zeroed_buffer(sizeof(char *) * m);
+    *encoded_parity = (char **)alloc_zeroed_buffer(sizeof(char *) * m);
     if (NULL == *encoded_parity) {
         log_error("Could not allocate parity buffer!");
         goto unlock;
     }
 
-    ret = prepare_fragments_for_encode(instance, k, m, orig_data, orig_data_size,
-                                       *encoded_data, *encoded_parity, &blocksize);
+    ret = prepare_fragments_for_encode(
+        instance, k, m, orig_data, orig_data_size, *encoded_data, *encoded_parity, &blocksize);
     if (ret < 0) {
         // ensure encoded_data/parity point the head of fragment_ptr
         get_fragment_ptr_array_from_data(*encoded_data, *encoded_data, k);
@@ -458,8 +451,8 @@ int liberasurecode_encode(int desc,
     }
 
     /* call the backend encode function passing it desc instance */
-    ret = instance->common.ops->encode(instance->desc.backend_desc,
-                                       *encoded_data, *encoded_parity, blocksize);
+    ret = instance->common.ops->encode(
+        instance->desc.backend_desc, *encoded_data, *encoded_parity, blocksize);
     if (ret < 0) {
         // ensure encoded_data/parity point the head of fragment_ptr
         get_fragment_ptr_array_from_data(*encoded_data, *encoded_data, k);
@@ -467,8 +460,8 @@ int liberasurecode_encode(int desc,
         goto unlock;
     }
 
-    ret = finalize_fragments_after_encode(instance, k, m, blocksize, orig_data_size,
-                                          *encoded_data, *encoded_parity);
+    ret = finalize_fragments_after_encode(
+        instance, k, m, blocksize, orig_data_size, *encoded_data, *encoded_parity);
 
     *fragment_len = get_fragment_size((*encoded_data)[0]);
 
@@ -527,11 +520,10 @@ int liberasurecode_decode_cleanup(int desc, char *data)
  * @param out_data_len - _output_ length of decoded output
  * @return 0 on success, -error code otherwise
  */
-int liberasurecode_decode(int desc,
-        char **available_fragments,                     /* input */
-        int num_fragments, uint64_t fragment_len,       /* input */
-        int force_metadata_checks,                      /* input */
-        char **out_data, uint64_t *out_data_len)        /* output */
+int liberasurecode_decode(int desc, char **available_fragments, /* input */
+    int num_fragments, uint64_t fragment_len, /* input */
+    int force_metadata_checks, /* input */
+    char **out_data, uint64_t *out_data_len) /* output */
 {
     int i, j;
     int ret = 0;
@@ -581,23 +573,21 @@ int liberasurecode_decode(int desc,
     m = instance->args.uargs.m;
 
     if (num_fragments < k) {
-        log_error("Not enough fragments to decode, got %d, need %d!",
-                  num_fragments, k);
+        log_error("Not enough fragments to decode, got %d, need %d!", num_fragments, k);
         ret = -EINSUFFFRAGS;
         goto out;
     }
 
     if (fragment_len < sizeof(fragment_header_t)) {
         log_error("Fragments not long enough to include headers! "
-                  "Need %zu, but got %lu.", sizeof(fragment_header_t),
-                  (unsigned long)fragment_len);
+                  "Need %zu, but got %lu.",
+            sizeof(fragment_header_t), (unsigned long)fragment_len);
         ret = -EBADHEADER;
         goto out;
     }
     for (i = 0; i < num_fragments; ++i) {
         /* Verify metadata checksum */
-        if (is_invalid_fragment_header(
-                (fragment_header_t *) available_fragments[i])) {
+        if (is_invalid_fragment_header((fragment_header_t *)available_fragments[i])) {
             log_error("Invalid fragment header information!");
             ret = -EBADHEADER;
             goto out;
@@ -608,9 +598,7 @@ int liberasurecode_decode(int desc,
         /*
          * Try to re-assebmle the original data before attempting a decode
          */
-        ret = fragments_to_string(k, m,
-                                  available_fragments, num_fragments,
-                                  out_data, out_data_len);
+        ret = fragments_to_string(k, m, available_fragments, num_fragments, out_data, out_data_len);
 
         if (ret == 0) {
             /* We were able to get the original data without decoding! */
@@ -621,19 +609,19 @@ int liberasurecode_decode(int desc,
     /*
      * Allocate arrays for data, parity and missing_idxs
      */
-    data = alloc_zeroed_buffer(sizeof(char*) * k);
+    data = alloc_zeroed_buffer(sizeof(char *) * k);
     if (NULL == data) {
         log_error("Could not allocate data buffer!");
         goto out;
     }
 
-    parity = alloc_zeroed_buffer(sizeof(char*) * m);
+    parity = alloc_zeroed_buffer(sizeof(char *) * m);
     if (NULL == parity) {
         log_error("Could not allocate parity buffer!");
         goto out;
     }
 
-    missing_idxs = alloc_and_set_buffer(sizeof(char*) * (k + m), -1);
+    missing_idxs = alloc_and_set_buffer(sizeof(char *) * (k + m), -1);
     if (NULL == missing_idxs) {
         log_error("Could not allocate missing_idxs buffer!");
         goto out;
@@ -658,8 +646,8 @@ int liberasurecode_decode(int desc,
      * Separate the fragments into data and parity.  Also determine which
      * pieces are missing.
      */
-    ret = get_fragment_partition(k, m, available_fragments, num_fragments,
-            data, parity, missing_idxs);
+    ret = get_fragment_partition(
+        k, m, available_fragments, num_fragments, data, parity, missing_idxs);
 
     if (ret < 0) {
         log_error("Could not properly partition the fragments!");
@@ -673,10 +661,8 @@ int liberasurecode_decode(int desc,
      * (realloc_bm).
      *
      */
-    ret = prepare_fragments_for_decode(k, m,
-                                       data, parity, missing_idxs,
-                                       &orig_data_size, &blocksize,
-                                       fragment_len, &realloc_bm);
+    ret = prepare_fragments_for_decode(
+        k, m, data, parity, missing_idxs, &orig_data_size, &blocksize, fragment_len, &realloc_bm);
     if (ret < 0) {
         log_error("Could not prepare fragments for decode!");
         goto out;
@@ -688,9 +674,8 @@ int liberasurecode_decode(int desc,
     get_data_ptr_array_from_fragments(parity_segments, parity, m);
 
     /* call the backend decode function passing it desc instance */
-    ret = instance->common.ops->decode(instance->desc.backend_desc,
-                                       data_segments, parity_segments,
-                                       missing_idxs, blocksize);
+    ret = instance->common.ops->decode(
+        instance->desc.backend_desc, data_segments, parity_segments, missing_idxs, blocksize);
 
     if (ret < 0) {
         log_error("Encountered error in backend decode function!");
@@ -709,9 +694,8 @@ int liberasurecode_decode(int desc,
             /* Generate headers */
             char *fragment_ptr = data[missing_idx];
             init_fragment_header(fragment_ptr);
-            add_fragment_metadata(instance, fragment_ptr, missing_idx,
-                    orig_data_size, blocksize, instance->args.uargs.ct,
-                    !set_chksum);
+            add_fragment_metadata(instance, fragment_ptr, missing_idx, orig_data_size, blocksize,
+                instance->args.uargs.ct, !set_chksum);
         }
         j++;
     }
@@ -761,11 +745,10 @@ out:
  * @param out_fragment - output of reconstruct
  * @return 0 on success, -error code otherwise
  */
-int liberasurecode_reconstruct_fragment(int desc,
-        char **available_fragments,                     /* input */
-        int num_fragments, uint64_t fragment_len,       /* input */
-        int destination_idx,                            /* input */
-        char* out_fragment)                             /* output */
+int liberasurecode_reconstruct_fragment(int desc, char **available_fragments, /* input */
+    int num_fragments, uint64_t fragment_len, /* input */
+    int destination_idx, /* input */
+    char *out_fragment) /* output */
 {
     int ret = 0;
     int blocksize = 0;
@@ -811,8 +794,7 @@ int liberasurecode_reconstruct_fragment(int desc,
 
     for (i = 0; i < num_fragments; i++) {
         /* Verify metadata checksum */
-        if (is_invalid_fragment_header(
-                (fragment_header_t *) available_fragments[i])) {
+        if (is_invalid_fragment_header((fragment_header_t *)available_fragments[i])) {
             log_error("Invalid fragment header information!");
             ret = -EBADHEADER;
             goto out;
@@ -822,21 +804,21 @@ int liberasurecode_reconstruct_fragment(int desc,
     /*
      * Allocate arrays for data, parity and missing_idxs
      */
-    data = alloc_zeroed_buffer(sizeof(char*) * k);
+    data = alloc_zeroed_buffer(sizeof(char *) * k);
     if (NULL == data) {
         log_error("Could not allocate data buffer!");
         ret = -ENOMEM;
         goto out;
     }
 
-    parity = alloc_zeroed_buffer(sizeof(char*) * m);
+    parity = alloc_zeroed_buffer(sizeof(char *) * m);
     if (NULL == parity) {
         log_error("Could not allocate parity buffer!");
         ret = -ENOMEM;
         goto out;
     }
 
-    missing_idxs = alloc_and_set_buffer(sizeof(int*) * (k + m), -1);
+    missing_idxs = alloc_and_set_buffer(sizeof(int *) * (k + m), -1);
     if (NULL == missing_idxs) {
         log_error("Could not allocate missing_idxs buffer!");
         ret = -ENOMEM;
@@ -847,8 +829,8 @@ int liberasurecode_reconstruct_fragment(int desc,
      * Separate the fragments into data and parity.  Also determine which
      * pieces are missing.
      */
-    ret = get_fragment_partition(k, m, available_fragments, num_fragments,
-                                 data, parity, missing_idxs);
+    ret = get_fragment_partition(
+        k, m, available_fragments, num_fragments, data, parity, missing_idxs);
 
     if (ret < 0) {
         log_error("Could not properly partition the fragments!");
@@ -889,10 +871,7 @@ int liberasurecode_reconstruct_fragment(int desc,
         }
     } else {
         ret = instance->common.ops->check_reconstruct_fragments(
-            instance->desc.backend_desc,
-            missing_idxs,
-            destination_idx
-        );
+            instance->desc.backend_desc, missing_idxs, destination_idx);
         if (ret < 0) {
             goto out;
         }
@@ -904,9 +883,8 @@ int liberasurecode_reconstruct_fragment(int desc,
      * It passes back a bitmap telling us which buffers need to be freed by
      * us (realloc_bm).
      */
-    ret = prepare_fragments_for_decode(k, m, data, parity, missing_idxs,
-                                       &orig_data_size, &blocksize,
-                                       fragment_len, &realloc_bm);
+    ret = prepare_fragments_for_decode(
+        k, m, data, parity, missing_idxs, &orig_data_size, &blocksize, fragment_len, &realloc_bm);
     if (ret < 0) {
         log_error("Could not prepare fragments for reconstruction!");
         goto out;
@@ -916,12 +894,9 @@ int liberasurecode_reconstruct_fragment(int desc,
     get_data_ptr_array_from_fragments(data_segments, data, k);
     get_data_ptr_array_from_fragments(parity_segments, parity, m);
 
-
     /* call the backend reconstruct function passing it desc instance */
-    ret = instance->common.ops->reconstruct(instance->desc.backend_desc,
-                                            data_segments, parity_segments,
-                                            missing_idxs, destination_idx,
-                                            blocksize);
+    ret = instance->common.ops->reconstruct(instance->desc.backend_desc, data_segments,
+        parity_segments, missing_idxs, destination_idx, blocksize);
     if (ret < 0) {
         log_error("Could not reconstruct fragment!");
         goto out;
@@ -936,9 +911,8 @@ int liberasurecode_reconstruct_fragment(int desc,
         fragment_ptr = parity[destination_idx - k];
     }
     init_fragment_header(fragment_ptr);
-    add_fragment_metadata(instance, fragment_ptr, destination_idx,
-                          orig_data_size, blocksize, instance->args.uargs.ct,
-                          set_chksum);
+    add_fragment_metadata(instance, fragment_ptr, destination_idx, orig_data_size, blocksize,
+        instance->args.uargs.ct, set_chksum);
 
 destination_available:
     /*
@@ -988,10 +962,8 @@ out:
  *
  * @return 0 on success; -error code otherwise
  */
-int liberasurecode_fragments_needed(int desc,
-                                    int *fragments_to_reconstruct,
-                                    int *fragments_to_exclude,
-                                    int *fragments_needed)
+int liberasurecode_fragments_needed(
+    int desc, int *fragments_to_reconstruct, int *fragments_to_exclude, int *fragments_needed)
 {
     int ret = 0;
 
@@ -1006,19 +978,22 @@ int liberasurecode_fragments_needed(int desc,
         goto out_error;
     }
     if (NULL == fragments_to_reconstruct) {
-        log_error("Unable to determine list of fragments needed, pointer to list of indexes to reconstruct is NULL.");
+        log_error("Unable to determine list of fragments needed, pointer to list of indexes to "
+                  "reconstruct is NULL.");
         ret = -EINVALIDPARAMS;
         goto out_error;
     }
 
     if (NULL == fragments_to_exclude) {
-        log_error("Unable to determine list of fragments needed, pointer to list of fragments to exclude is NULL.");
+        log_error("Unable to determine list of fragments needed, pointer to list of fragments to "
+                  "exclude is NULL.");
         ret = -EINVALIDPARAMS;
         goto out_error;
     }
 
     if (NULL == fragments_needed) {
-        log_error("Unable to determine list of fragments needed, pointer to list of fragments to reconstruct is NULL.");
+        log_error("Unable to determine list of fragments needed, pointer to list of fragments to "
+                  "reconstruct is NULL.");
         ret = -EINVALIDPARAMS;
         goto out_error;
     }
@@ -1026,9 +1001,8 @@ int liberasurecode_fragments_needed(int desc,
     /* FIXME preprocessing */
 
     /* call the backend fragments_needed function passing it desc instance */
-    ret = instance->common.ops->fragments_needed(
-            instance->desc.backend_desc,
-            fragments_to_reconstruct, fragments_to_exclude, fragments_needed);
+    ret = instance->common.ops->fragments_needed(instance->desc.backend_desc,
+        fragments_to_reconstruct, fragments_to_exclude, fragments_needed);
 
 out_error:
     rwlock_unlock(&active_instances_rwlock);
@@ -1047,8 +1021,7 @@ out_error:
  * @param fragment_metadata - pointer to output fragment metadata struct
  *          (reference passed by the user)
  */
-int liberasurecode_get_fragment_metadata(char *fragment,
-        fragment_metadata_t *fragment_metadata)
+int liberasurecode_get_fragment_metadata(char *fragment, fragment_metadata_t *fragment_metadata)
 {
     int ret = 0;
     fragment_header_t *fragment_hdr = NULL;
@@ -1066,14 +1039,14 @@ int liberasurecode_get_fragment_metadata(char *fragment,
     }
 
     /* Verify metadata checksum */
-    if (is_invalid_fragment_header((fragment_header_t *) fragment)) {
+    if (is_invalid_fragment_header((fragment_header_t *)fragment)) {
         log_error("Invalid fragment header information!");
         ret = -EBADHEADER;
         goto out;
     }
 
     memcpy(fragment_metadata, fragment, sizeof(struct fragment_metadata));
-    fragment_hdr = (fragment_header_t *) fragment;
+    fragment_hdr = (fragment_header_t *)fragment;
     if (LIBERASURECODE_FRAG_HEADER_MAGIC != fragment_hdr->magic) {
         if (LIBERASURECODE_FRAG_HEADER_MAGIC != bswap_32(fragment_hdr->magic)) {
             log_error("Invalid fragment, illegal magic value");
@@ -1084,48 +1057,43 @@ int liberasurecode_get_fragment_metadata(char *fragment,
             // Fix it in fragment_metadata
             fragment_metadata->idx = bswap_32(fragment_metadata->idx);
             fragment_metadata->size = bswap_32(fragment_metadata->size);
-            fragment_metadata->frag_backend_metadata_size =
-                bswap_32(fragment_metadata->frag_backend_metadata_size);
-            fragment_metadata->orig_data_size =
-                bswap_64(fragment_metadata->orig_data_size);
-            fragment_metadata->chksum_type =
-                bswap_32(fragment_metadata->chksum_type);
+            fragment_metadata->frag_backend_metadata_size
+                = bswap_32(fragment_metadata->frag_backend_metadata_size);
+            fragment_metadata->orig_data_size = bswap_64(fragment_metadata->orig_data_size);
+            fragment_metadata->chksum_type = bswap_32(fragment_metadata->chksum_type);
             for (int i = 0; i < LIBERASURECODE_MAX_CHECKSUM_LEN; i++) {
-                fragment_metadata->chksum[i] =
-                    bswap_32(fragment_metadata->chksum[i]);
+                fragment_metadata->chksum[i] = bswap_32(fragment_metadata->chksum[i]);
             }
-            fragment_metadata->backend_version =
-                bswap_32(fragment_metadata->backend_version);
+            fragment_metadata->backend_version = bswap_32(fragment_metadata->backend_version);
         }
     }
 
-    switch(fragment_metadata->chksum_type) {
-        case CHKSUM_CRC32: {
-            uint32_t computed_chksum = 0;
-            uint32_t stored_chksum = fragment_metadata->chksum[0];
-            char *fragment_data = get_data_ptr_from_fragment(fragment);
-            uint64_t fragment_size = fragment_metadata->size;
-            computed_chksum = crc32(0, (unsigned char *) fragment_data, fragment_size);
+    switch (fragment_metadata->chksum_type) {
+    case CHKSUM_CRC32: {
+        uint32_t computed_chksum = 0;
+        uint32_t stored_chksum = fragment_metadata->chksum[0];
+        char *fragment_data = get_data_ptr_from_fragment(fragment);
+        uint64_t fragment_size = fragment_metadata->size;
+        computed_chksum = crc32(0, (unsigned char *)fragment_data, fragment_size);
+        if (stored_chksum != computed_chksum) {
+            // Try again with our "alternative" crc32; see
+            // https://bugs.launchpad.net/liberasurecode/+bug/1666320
+            computed_chksum = liberasurecode_crc32_alt(0, fragment_data, fragment_size);
             if (stored_chksum != computed_chksum) {
-                // Try again with our "alternative" crc32; see
-                // https://bugs.launchpad.net/liberasurecode/+bug/1666320
-                computed_chksum = liberasurecode_crc32_alt(
-                    0, fragment_data, fragment_size);
-                if (stored_chksum != computed_chksum) {
-                    fragment_metadata->chksum_mismatch = 1;
-                } else {
-                    fragment_metadata->chksum_mismatch = 0;
-                }
+                fragment_metadata->chksum_mismatch = 1;
             } else {
                 fragment_metadata->chksum_mismatch = 0;
             }
-            break;
+        } else {
+            fragment_metadata->chksum_mismatch = 0;
         }
-        case CHKSUM_MD5:
-            break;
-        case CHKSUM_NONE:
-        default:
-            break;
+        break;
+    }
+    case CHKSUM_MD5:
+        break;
+    case CHKSUM_NONE:
+    default:
+        break;
     }
 
 out:
@@ -1135,7 +1103,7 @@ out:
 int is_invalid_fragment_header(fragment_header_t *header)
 {
     uint32_t csum = 0, metadata_chksum = 0, libec_version = 0;
-    assert (NULL != header);
+    assert(NULL != header);
     if (header->libec_version == 0)
         /* libec_version must be bigger than 0 */
         return 1;
@@ -1155,11 +1123,11 @@ int is_invalid_fragment_header(fragment_header_t *header)
         }
     }
 
-    if (libec_version < _VERSION(1,2,0))
+    if (libec_version < _VERSION(1, 2, 0))
         /* no metadata checksum support */
         return 0;
 
-    csum = crc32(0, (unsigned char *) &header->meta, sizeof(fragment_metadata_t));
+    csum = crc32(0, (unsigned char *)&header->meta, sizeof(fragment_metadata_t));
     if (metadata_chksum == csum) {
         return 0;
     }
@@ -1169,8 +1137,7 @@ int is_invalid_fragment_header(fragment_header_t *header)
     return (metadata_chksum != csum);
 }
 
-int liberasurecode_verify_fragment_metadata(ec_backend_t be,
-                                            fragment_metadata_t *md)
+int liberasurecode_verify_fragment_metadata(ec_backend_t be, fragment_metadata_t *md)
 {
     int k = be->args.uargs.k;
     int m = be->args.uargs.m;
@@ -1180,7 +1147,7 @@ int liberasurecode_verify_fragment_metadata(ec_backend_t be,
     if (md->backend_id != be->common.id) {
         return 1;
     }
-    if (!be->common.ops->is_compatible_with(md->backend_version))  {
+    if (!be->common.ops->is_compatible_with(md->backend_version)) {
         return 1;
     }
     return 0;
@@ -1196,17 +1163,15 @@ static int is_invalid_fragment_metadata(int desc, fragment_metadata_t *fragment_
     }
     ec_backend_t be = liberasurecode_backend_instance_get_by_desc(desc);
     if (!be) {
-        log_error("Unable to verify fragment metadata: invalid backend id %d.",
-                desc);
+        log_error("Unable to verify fragment metadata: invalid backend id %d.", desc);
         ret = -EINVALIDPARAMS;
         goto out;
     }
-    if (liberasurecode_verify_fragment_metadata(be,
-            fragment_metadata) != 0) {
+    if (liberasurecode_verify_fragment_metadata(be, fragment_metadata) != 0) {
         ret = -EBADHEADER;
         goto out;
     }
-    if (!be->common.ops->is_compatible_with(fragment_metadata->backend_version))  {
+    if (!be->common.ops->is_compatible_with(fragment_metadata->backend_version)) {
         ret = -EBADHEADER;
         goto out;
     }
@@ -1231,8 +1196,7 @@ int is_invalid_fragment(int desc, char *fragment)
     }
     ec_backend_t be = liberasurecode_backend_instance_get_by_desc(desc);
     if (!be) {
-        log_error("Unable to verify fragment metadata: invalid backend id %d.",
-                desc);
+        log_error("Unable to verify fragment metadata: invalid backend id %d.", desc);
         ret = 1;
         goto out;
     }
@@ -1241,8 +1205,7 @@ int is_invalid_fragment(int desc, char *fragment)
         ret = 1;
         goto out;
     }
-    if (get_libec_version(fragment, &ver) != 0 ||
-            ver > LIBERASURECODE_VERSION) {
+    if (get_libec_version(fragment, &ver) != 0 || ver > LIBERASURECODE_VERSION) {
         ret = 1;
         goto out;
     }
@@ -1259,8 +1222,7 @@ out:
     return ret;
 }
 
-int liberasurecode_verify_stripe_metadata(int desc,
-        char **fragments, int num_fragments)
+int liberasurecode_verify_stripe_metadata(int desc, char **fragments, int num_fragments)
 {
     int i = 0;
     if (!fragments) {
@@ -1269,7 +1231,7 @@ int liberasurecode_verify_stripe_metadata(int desc,
     }
     if (num_fragments <= 0) {
         log_error("Unable to verify stripe metadata: "
-                "number of fragments must be greater than 0.");
+                  "number of fragments must be greater than 0.");
         return -EINVALIDPARAMS;
     }
 
@@ -1280,7 +1242,7 @@ int liberasurecode_verify_stripe_metadata(int desc,
         return rc;
     }
     for (i = 0; i < num_fragments; i++) {
-        fragment_metadata_t *fragment_metadata = (fragment_metadata_t*)fragments[i];
+        fragment_metadata_t *fragment_metadata = (fragment_metadata_t *)fragments[i];
         ret = is_invalid_fragment_metadata(desc, fragment_metadata);
         if (ret < 0) {
             goto out;
@@ -1320,13 +1282,11 @@ int liberasurecode_get_aligned_data_size(int desc, uint64_t data_len)
 
     k = instance->args.uargs.k;
 
-    word_size = instance->common.ops->element_size(
-            instance->desc.backend_desc) / 8;
+    word_size = instance->common.ops->element_size(instance->desc.backend_desc) / 8;
 
     alignment_multiple = k * word_size;
 
-    ret = ((data_len + alignment_multiple - 1) / alignment_multiple)
-            * alignment_multiple;
+    ret = ((data_len + alignment_multiple - 1) / alignment_multiple) * alignment_multiple;
 
 out:
     rwlock_unlock(&active_instances_rwlock);
@@ -1357,24 +1317,19 @@ int liberasurecode_get_fragment_size(int desc, int data_len)
     }
     int aligned_data_len = get_aligned_data_size(instance, data_len);
     int blocksize = aligned_data_len / instance->args.uargs.k;
-    int metadata_size = instance->common.ops->get_backend_metadata_size(
-                                                instance->desc.backend_desc,
-                                                blocksize);
+    int metadata_size
+        = instance->common.ops->get_backend_metadata_size(instance->desc.backend_desc, blocksize);
     int size = blocksize + metadata_size;
 
     rwlock_unlock(&active_instances_rwlock);
     return size;
 }
 
-
 /**
  * This will return the liberasurecode version for the descriptor
  */
 
-uint32_t liberasurecode_get_version(void)
-{
-    return LIBERASURECODE_VERSION;
-}
+uint32_t liberasurecode_get_version(void) { return LIBERASURECODE_VERSION; }
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=* misc *=~==~=*=~==~=*=~==~=*=~==~=*=~== */
 

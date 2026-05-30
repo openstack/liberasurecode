@@ -34,7 +34,7 @@
 
 #define LIBERASURECODE_RS_VAND_LIB_MAJOR 1
 #define LIBERASURECODE_RS_VAND_LIB_MINOR 0
-#define LIBERASURECODE_RS_VAND_LIB_REV   0
+#define LIBERASURECODE_RS_VAND_LIB_REV 0
 #define LIBERASURECODE_RS_VAND_LIB_VER_STR "1.0"
 #define LIBERASURECODE_RS_VAND_LIB_NAME "liberasurecode_rs_vand"
 #if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
@@ -47,13 +47,14 @@
 struct ec_backend_common backend_liberasurecode_rs_vand;
 
 typedef int (*liberasurecode_rs_vand_encode_func)(int *, char **, char **, int, int, int);
-typedef int (*liberasurecode_rs_vand_decode_func)(int *, char **, char **, int, int, int *, int, int);
-typedef int (*liberasurecode_rs_vand_reconstruct_func)(int *, char **, char **, int, int, int *, int, int);
+typedef int (*liberasurecode_rs_vand_decode_func)(
+    int *, char **, char **, int, int, int *, int, int);
+typedef int (*liberasurecode_rs_vand_reconstruct_func)(
+    int *, char **, char **, int, int, int *, int, int);
 typedef void (*init_liberasurecode_rs_vand_func)(int, int);
 typedef void (*deinit_liberasurecode_rs_vand_func)(void);
 typedef void (*free_systematic_matrix_func)(int *);
-typedef int* (*make_systematic_matrix_func)(int, int);
-
+typedef int *(*make_systematic_matrix_func)(int, int);
 
 struct liberasurecode_rs_vand_descriptor {
     /* calls required for init */
@@ -78,36 +79,35 @@ struct liberasurecode_rs_vand_descriptor {
     int w;
 };
 
-static int liberasurecode_rs_vand_encode(void *desc, char **data, char **parity,
-        int blocksize)
+static int liberasurecode_rs_vand_encode(void *desc, char **data, char **parity, int blocksize)
 {
-    struct liberasurecode_rs_vand_descriptor *rs_vand_desc =
-        (struct liberasurecode_rs_vand_descriptor*) desc;
+    struct liberasurecode_rs_vand_descriptor *rs_vand_desc
+        = (struct liberasurecode_rs_vand_descriptor *)desc;
 
     /* FIXME: Should this return something? */
-    rs_vand_desc->liberasurecode_rs_vand_encode(rs_vand_desc->matrix, data, parity,
-        rs_vand_desc->k, rs_vand_desc->m, blocksize);
+    rs_vand_desc->liberasurecode_rs_vand_encode(
+        rs_vand_desc->matrix, data, parity, rs_vand_desc->k, rs_vand_desc->m, blocksize);
     return 0;
 }
 
-static int liberasurecode_rs_vand_decode(void *desc, char **data, char **parity,
-        int *missing_idxs, int blocksize)
+static int liberasurecode_rs_vand_decode(
+    void *desc, char **data, char **parity, int *missing_idxs, int blocksize)
 {
-    struct liberasurecode_rs_vand_descriptor *rs_vand_desc =
-        (struct liberasurecode_rs_vand_descriptor*) desc;
+    struct liberasurecode_rs_vand_descriptor *rs_vand_desc
+        = (struct liberasurecode_rs_vand_descriptor *)desc;
 
     /* FIXME: Should this return something? */
-    rs_vand_desc->liberasurecode_rs_vand_decode(rs_vand_desc->matrix, data, parity,
-        rs_vand_desc->k, rs_vand_desc->m, missing_idxs, blocksize, 1);
+    rs_vand_desc->liberasurecode_rs_vand_decode(rs_vand_desc->matrix, data, parity, rs_vand_desc->k,
+        rs_vand_desc->m, missing_idxs, blocksize, 1);
 
     return 0;
 }
 
-static int liberasurecode_rs_vand_reconstruct(void *desc, char **data, char **parity,
-        int *missing_idxs, int destination_idx, int blocksize)
+static int liberasurecode_rs_vand_reconstruct(
+    void *desc, char **data, char **parity, int *missing_idxs, int destination_idx, int blocksize)
 {
-    struct liberasurecode_rs_vand_descriptor *rs_vand_desc =
-        (struct liberasurecode_rs_vand_descriptor*) desc;
+    struct liberasurecode_rs_vand_descriptor *rs_vand_desc
+        = (struct liberasurecode_rs_vand_descriptor *)desc;
 
     /* FIXME: Should this return something? */
     rs_vand_desc->liberasurecode_rs_vand_reconstruct(rs_vand_desc->matrix, data, parity,
@@ -116,11 +116,11 @@ static int liberasurecode_rs_vand_reconstruct(void *desc, char **data, char **pa
     return 0;
 }
 
-static int liberasurecode_rs_vand_min_fragments(void *desc, int *missing_idxs,
-        int *fragments_to_exclude, int *fragments_needed)
+static int liberasurecode_rs_vand_min_fragments(
+    void *desc, int *missing_idxs, int *fragments_to_exclude, int *fragments_needed)
 {
-    struct liberasurecode_rs_vand_descriptor *rs_vand_desc =
-        (struct liberasurecode_rs_vand_descriptor*)desc;
+    struct liberasurecode_rs_vand_descriptor *rs_vand_desc
+        = (struct liberasurecode_rs_vand_descriptor *)desc;
 
     struct ec_bm missing_bm = NEW_BM;
     convert_list_to_bitmap(fragments_to_exclude, &missing_bm);
@@ -144,13 +144,12 @@ static int liberasurecode_rs_vand_min_fragments(void *desc, int *missing_idxs,
     return ret;
 }
 
-static void * liberasurecode_rs_vand_init(struct ec_backend_args *args,
-        void *backend_sohandle)
+static void *liberasurecode_rs_vand_init(struct ec_backend_args *args, void *backend_sohandle)
 {
     struct liberasurecode_rs_vand_descriptor *desc = NULL;
 
-    desc = (struct liberasurecode_rs_vand_descriptor *)
-           malloc(sizeof(struct liberasurecode_rs_vand_descriptor));
+    desc = (struct liberasurecode_rs_vand_descriptor *)malloc(
+        sizeof(struct liberasurecode_rs_vand_descriptor));
     if (NULL == desc) {
         return NULL;
     }
@@ -167,7 +166,7 @@ static void * liberasurecode_rs_vand_init(struct ec_backend_args *args,
         goto error;
     }
 
-     /*
+    /*
      * ISO C forbids casting a void* to a function pointer.
      * Since dlsym return returns a void*, we use this union to
      * "transform" the void* to a function pointer.
@@ -181,8 +180,7 @@ static void * liberasurecode_rs_vand_init(struct ec_backend_args *args,
         liberasurecode_rs_vand_decode_func decodep;
         liberasurecode_rs_vand_reconstruct_func reconstructp;
         void *vptr;
-    } func_handle = {.vptr = NULL};
-
+    } func_handle = { .vptr = NULL };
 
     /* fill in function addresses */
     func_handle.vptr = NULL;
@@ -257,12 +255,11 @@ error:
  *
  * Returns the size in bits!
  */
-static int
-liberasurecode_rs_vand_element_size(void* desc)
+static int liberasurecode_rs_vand_element_size(void *desc)
 {
     struct liberasurecode_rs_vand_descriptor *rs_vand_desc = NULL;
 
-    rs_vand_desc = (struct liberasurecode_rs_vand_descriptor*) desc;
+    rs_vand_desc = (struct liberasurecode_rs_vand_descriptor *)desc;
 
     return rs_vand_desc->w;
 }
@@ -271,7 +268,7 @@ static int liberasurecode_rs_vand_exit(void *desc)
 {
     struct liberasurecode_rs_vand_descriptor *rs_vand_desc = NULL;
 
-    rs_vand_desc = (struct liberasurecode_rs_vand_descriptor*) desc;
+    rs_vand_desc = (struct liberasurecode_rs_vand_descriptor *)desc;
 
     rs_vand_desc->free_systematic_matrix(rs_vand_desc->matrix);
     rs_vand_desc->deinit_liberasurecode_rs_vand();
@@ -284,32 +281,31 @@ static int liberasurecode_rs_vand_exit(void *desc)
  * For the time being, we only claim compatibility with versions that
  * match exactly
  */
-static bool liberasurecode_rs_vand_is_compatible_with(uint32_t version) {
+static bool liberasurecode_rs_vand_is_compatible_with(uint32_t version)
+{
     return version == backend_liberasurecode_rs_vand.ec_backend_version;
 }
 
 static struct ec_backend_op_stubs liberasurecode_rs_vand_op_stubs = {
-    .INIT                       = liberasurecode_rs_vand_init,
-    .EXIT                       = liberasurecode_rs_vand_exit,
-    .ISSYSTEMATIC               = 1,
-    .ENCODE                     = liberasurecode_rs_vand_encode,
-    .DECODE                     = liberasurecode_rs_vand_decode,
-    .FRAGSNEEDED                = liberasurecode_rs_vand_min_fragments,
-    .RECONSTRUCT                = liberasurecode_rs_vand_reconstruct,
-    .ELEMENTSIZE                = liberasurecode_rs_vand_element_size,
-    .ISCOMPATIBLEWITH           = liberasurecode_rs_vand_is_compatible_with,
-    .GETMETADATASIZE            = get_backend_metadata_size_zero,
-    .GETENCODEOFFSET            = get_encode_offset_zero,
+    .INIT = liberasurecode_rs_vand_init,
+    .EXIT = liberasurecode_rs_vand_exit,
+    .ISSYSTEMATIC = 1,
+    .ENCODE = liberasurecode_rs_vand_encode,
+    .DECODE = liberasurecode_rs_vand_decode,
+    .FRAGSNEEDED = liberasurecode_rs_vand_min_fragments,
+    .RECONSTRUCT = liberasurecode_rs_vand_reconstruct,
+    .ELEMENTSIZE = liberasurecode_rs_vand_element_size,
+    .ISCOMPATIBLEWITH = liberasurecode_rs_vand_is_compatible_with,
+    .GETMETADATASIZE = get_backend_metadata_size_zero,
+    .GETENCODEOFFSET = get_encode_offset_zero,
 };
 
-__attribute__ ((visibility ("internal")))
-struct ec_backend_common backend_liberasurecode_rs_vand = {
-    .id                         = EC_BACKEND_LIBERASURECODE_RS_VAND,
-    .name                       = LIBERASURECODE_RS_VAND_LIB_NAME,
-    .soname                     = LIBERASURECODE_RS_VAND_SO_NAME,
-    .soversion                  = LIBERASURECODE_RS_VAND_LIB_VER_STR,
-    .ops                        = &liberasurecode_rs_vand_op_stubs,
-    .ec_backend_version         = _VERSION(LIBERASURECODE_RS_VAND_LIB_MAJOR,
-                                           LIBERASURECODE_RS_VAND_LIB_MINOR,
-                                           LIBERASURECODE_RS_VAND_LIB_REV),
+__attribute__((visibility("internal"))) struct ec_backend_common backend_liberasurecode_rs_vand = {
+    .id = EC_BACKEND_LIBERASURECODE_RS_VAND,
+    .name = LIBERASURECODE_RS_VAND_LIB_NAME,
+    .soname = LIBERASURECODE_RS_VAND_SO_NAME,
+    .soversion = LIBERASURECODE_RS_VAND_LIB_VER_STR,
+    .ops = &liberasurecode_rs_vand_op_stubs,
+    .ec_backend_version = _VERSION(LIBERASURECODE_RS_VAND_LIB_MAJOR,
+        LIBERASURECODE_RS_VAND_LIB_MINOR, LIBERASURECODE_RS_VAND_LIB_REV),
 };

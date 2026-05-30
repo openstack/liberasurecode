@@ -26,35 +26,32 @@
  * vi: set noai tw=79 ts=4 sw=4:
  */
 
-#include <zlib.h>
+#include "alg_sig.h"
 #include "erasurecode_backend.h"
 #include "erasurecode_helpers.h"
 #include "erasurecode_helpers_ext.h"
 #include "erasurecode_log.h"
 #include "erasurecode_stdinc.h"
-#include "alg_sig.h"
+#include <zlib.h>
 
-__attribute__ ((visibility ("internal")))
-void add_fragment_metadata(ec_backend_t be, char *fragment,
-        int idx, uint64_t orig_data_size, int blocksize,
-        ec_checksum_type_t ct, int add_chksum)
+__attribute__((visibility("internal"))) void add_fragment_metadata(ec_backend_t be, char *fragment,
+    int idx, uint64_t orig_data_size, int blocksize, ec_checksum_type_t ct, int add_chksum)
 {
-    //TODO EDL we are ignoring the return codes here, fix that
+    // TODO EDL we are ignoring the return codes here, fix that
     set_libec_version(fragment);
     set_fragment_idx(fragment, idx);
     set_orig_data_size(fragment, orig_data_size);
     set_fragment_payload_size(fragment, blocksize);
     set_backend_id(fragment, be->common.id);
     set_backend_version(fragment, be->common.ec_backend_version);
-    set_fragment_backend_metadata_size(fragment, be->common.ops->get_backend_metadata_size(
-                                                    be->desc.backend_desc,
-                                                    blocksize));
+    set_fragment_backend_metadata_size(
+        fragment, be->common.ops->get_backend_metadata_size(be->desc.backend_desc, blocksize));
 
     if (add_chksum) {
         set_checksum(ct, fragment, blocksize);
     }
 
-    fragment_header_t* header = (fragment_header_t*) fragment;
+    fragment_header_t *header = (fragment_header_t *)fragment;
 
     if (header->magic != LIBERASURECODE_FRAG_HEADER_MAGIC) {
         log_error("Invalid fragment header (add fragment metadata)!\n");
@@ -63,18 +60,17 @@ void add_fragment_metadata(ec_backend_t be, char *fragment,
 
     char *flag = getenv("LIBERASURECODE_WRITE_LEGACY_CRC");
     if (flag && !(flag[0] == '\0' || (flag[0] == '0' && flag[1] == '\0'))) {
-        header->metadata_chksum = liberasurecode_crc32_alt(
-            0, &header->meta, sizeof(fragment_metadata_t));
+        header->metadata_chksum
+            = liberasurecode_crc32_alt(0, &header->meta, sizeof(fragment_metadata_t));
     } else {
-        header->metadata_chksum = crc32(0, (unsigned char *) &header->meta,
-                                        sizeof(fragment_metadata_t));
+        header->metadata_chksum
+            = crc32(0, (unsigned char *)&header->meta, sizeof(fragment_metadata_t));
     }
 }
 
-__attribute__ ((visibility ("internal")))
-int finalize_fragments_after_encode(ec_backend_t instance,
-        int k, int m, int blocksize, uint64_t orig_data_size,
-        char **encoded_data, char **encoded_parity)
+__attribute__((visibility("internal"))) int finalize_fragments_after_encode(ec_backend_t instance,
+    int k, int m, int blocksize, uint64_t orig_data_size, char **encoded_data,
+    char **encoded_parity)
 {
     int i, set_chksum = 1;
     ec_checksum_type_t ct = instance->args.uargs.ct;
@@ -82,16 +78,14 @@ int finalize_fragments_after_encode(ec_backend_t instance,
     /* finalize data fragments */
     for (i = 0; i < k; i++) {
         char *fragment = get_fragment_ptr_from_data(encoded_data[i]);
-        add_fragment_metadata(instance, fragment, i, orig_data_size,
-                blocksize, ct, set_chksum);
+        add_fragment_metadata(instance, fragment, i, orig_data_size, blocksize, ct, set_chksum);
         encoded_data[i] = fragment;
     }
 
     /* finalize parity fragments */
     for (i = 0; i < m; i++) {
         char *fragment = get_fragment_ptr_from_data(encoded_parity[i]);
-        add_fragment_metadata(instance, fragment, i + k, orig_data_size,
-                blocksize, ct, set_chksum);
+        add_fragment_metadata(instance, fragment, i + k, orig_data_size, blocksize, ct, set_chksum);
         encoded_parity[i] = fragment;
     }
 

@@ -36,7 +36,7 @@
 
 #define JERASURE_RS_CAUCHY_LIB_MAJOR 2
 #define JERASURE_RS_CAUCHY_LIB_MINOR 0
-#define JERASURE_RS_CAUCHY_LIB_REV   0
+#define JERASURE_RS_CAUCHY_LIB_REV 0
 #define JERASURE_RS_CAUCHY_LIB_VER_STR "2.0"
 #define JERASURE_RS_CAUCHY_LIB_NAME "jerasure_rs_cauchy"
 #if defined(__MACOS__) || defined(__MACOSX__) || defined(__OSX__) || defined(__APPLE__)
@@ -48,19 +48,16 @@
 /* Forward declarations */
 struct ec_backend_common backend_jerasure_rs_cauchy;
 
-typedef int* (*cauchy_original_coding_matrix_func)(int, int, int);
-typedef int* (*jerasure_matrix_to_bitmatrix_func)(int, int, int, int *);
-typedef int** (*jerasure_smart_bitmatrix_to_schedule_func)
-    (int, int, int, int *);
-typedef void (*jerasure_bitmatrix_encode_func)
-    (int, int, int, int *, char **, char **, int, int);
-typedef int (*jerasure_bitmatrix_decode_func)
-    (int, int, int, int *, int, int *,char **, char **, int, int);
-typedef int * (*jerasure_erasures_to_erased_func)(int, int, int *);
-typedef int (*jerasure_make_decoding_bitmatrix_func)
-    (int, int, int, int *, int *, int *, int *);
-typedef void (*jerasure_bitmatrix_dotprod_func)
-    (int, int, int *, int *, int,char **, char **, int, int);
+typedef int *(*cauchy_original_coding_matrix_func)(int, int, int);
+typedef int *(*jerasure_matrix_to_bitmatrix_func)(int, int, int, int *);
+typedef int **(*jerasure_smart_bitmatrix_to_schedule_func)(int, int, int, int *);
+typedef void (*jerasure_bitmatrix_encode_func)(int, int, int, int *, char **, char **, int, int);
+typedef int (*jerasure_bitmatrix_decode_func)(
+    int, int, int, int *, int, int *, char **, char **, int, int);
+typedef int *(*jerasure_erasures_to_erased_func)(int, int, int *);
+typedef int (*jerasure_make_decoding_bitmatrix_func)(int, int, int, int *, int *, int *, int *);
+typedef void (*jerasure_bitmatrix_dotprod_func)(
+    int, int, int *, int *, int, char **, char **, int, int);
 typedef void (*galois_uninit_field_func)(int);
 
 /*
@@ -81,10 +78,8 @@ struct jerasure_rs_cauchy_descriptor {
     /* calls required for encode */
     jerasure_bitmatrix_encode_func jerasure_bitmatrix_encode;
 
-
     /* calls required for decode */
     jerasure_bitmatrix_decode_func jerasure_bitmatrix_decode;
-
 
     /* calls required for reconstruct */
     jerasure_erasures_to_erased_func jerasure_erasures_to_erased;
@@ -99,82 +94,69 @@ struct jerasure_rs_cauchy_descriptor {
     int m;
     int w;
 };
-static void free_rs_cauchy_desc(
-        struct jerasure_rs_cauchy_descriptor *jerasure_desc );
+static void free_rs_cauchy_desc(struct jerasure_rs_cauchy_descriptor *jerasure_desc);
 
-
-static int jerasure_rs_cauchy_encode(void *desc, char **data, char **parity,
-        int blocksize)
+static int jerasure_rs_cauchy_encode(void *desc, char **data, char **parity, int blocksize)
 {
-    struct jerasure_rs_cauchy_descriptor *jerasure_desc =
-        (struct jerasure_rs_cauchy_descriptor*) desc;
+    struct jerasure_rs_cauchy_descriptor *jerasure_desc
+        = (struct jerasure_rs_cauchy_descriptor *)desc;
 
     /* FIXME - make jerasure_bitmatrix_encode return a value */
-    jerasure_desc->jerasure_bitmatrix_encode(jerasure_desc->k, jerasure_desc->m,
-                                jerasure_desc->w, jerasure_desc->bitmatrix,
-                                data, parity, blocksize,
-                                PYECC_CAUCHY_PACKETSIZE);
+    jerasure_desc->jerasure_bitmatrix_encode(jerasure_desc->k, jerasure_desc->m, jerasure_desc->w,
+        jerasure_desc->bitmatrix, data, parity, blocksize, PYECC_CAUCHY_PACKETSIZE);
 
     return 0;
 }
 
-static int jerasure_rs_cauchy_decode(void *desc, char **data, char **parity,
-        int *missing_idxs, int blocksize)
+static int jerasure_rs_cauchy_decode(
+    void *desc, char **data, char **parity, int *missing_idxs, int blocksize)
 {
-    struct jerasure_rs_cauchy_descriptor *jerasure_desc =
-        (struct jerasure_rs_cauchy_descriptor*)desc;
+    struct jerasure_rs_cauchy_descriptor *jerasure_desc
+        = (struct jerasure_rs_cauchy_descriptor *)desc;
 
-    return jerasure_desc->jerasure_bitmatrix_decode(jerasure_desc->k,
-                                             jerasure_desc->m,
-                                             jerasure_desc->w,
-                                             jerasure_desc->bitmatrix,
-                                             0,
-                                             missing_idxs,
-                                             data,
-                                             parity,
-                                             blocksize,
-                                             PYECC_CAUCHY_PACKETSIZE);
+    return jerasure_desc->jerasure_bitmatrix_decode(jerasure_desc->k, jerasure_desc->m,
+        jerasure_desc->w, jerasure_desc->bitmatrix, 0, missing_idxs, data, parity, blocksize,
+        PYECC_CAUCHY_PACKETSIZE);
 }
 
-static int jerasure_rs_cauchy_reconstruct(void *desc, char **data, char **parity,
-        int *missing_idxs, int destination_idx, int blocksize)
+static int jerasure_rs_cauchy_reconstruct(
+    void *desc, char **data, char **parity, int *missing_idxs, int destination_idx, int blocksize)
 {
-    int k, m, w;                  /* erasure code paramters */
-    int ret = 0;                  /* return code */
-    int *decoding_row = NULL;     /* decoding matrix row for decode */
-    int *erased = NULL;           /* k+m length list of erased frag ids */
-    int *dm_ids = NULL;           /* k length list of fragment ids */
-    int *decoding_matrix = NULL;  /* matrix for decoding */
+    int k, m, w; /* erasure code paramters */
+    int ret = 0; /* return code */
+    int *decoding_row = NULL; /* decoding matrix row for decode */
+    int *erased = NULL; /* k+m length list of erased frag ids */
+    int *dm_ids = NULL; /* k length list of fragment ids */
+    int *decoding_matrix = NULL; /* matrix for decoding */
 
-    struct jerasure_rs_cauchy_descriptor *jerasure_desc =
-        (struct jerasure_rs_cauchy_descriptor*) desc;
+    struct jerasure_rs_cauchy_descriptor *jerasure_desc
+        = (struct jerasure_rs_cauchy_descriptor *)desc;
     k = jerasure_desc->k;
     m = jerasure_desc->m;
     w = jerasure_desc->w;
 
     if (destination_idx < k) {
-        dm_ids = (int *) alloc_zeroed_buffer(sizeof(int) * k);
-        decoding_matrix = (int *) alloc_zeroed_buffer(sizeof(int *) * k * k * w * w);
+        dm_ids = (int *)alloc_zeroed_buffer(sizeof(int) * k);
+        decoding_matrix = (int *)alloc_zeroed_buffer(sizeof(int *) * k * k * w * w);
         erased = jerasure_desc->jerasure_erasures_to_erased(k, m, missing_idxs);
         if (NULL == decoding_matrix || NULL == dm_ids || NULL == erased) {
             goto out;
         }
 
-        ret = jerasure_desc->jerasure_make_decoding_bitmatrix(k, m, w,
-                                               jerasure_desc->bitmatrix,
-                                               erased, decoding_matrix, dm_ids);
+        ret = jerasure_desc->jerasure_make_decoding_bitmatrix(
+            k, m, w, jerasure_desc->bitmatrix, erased, decoding_matrix, dm_ids);
         if (ret == 0) {
             decoding_row = decoding_matrix + (destination_idx * k * w * w);
 
             jerasure_desc->jerasure_bitmatrix_dotprod(jerasure_desc->k, jerasure_desc->w,
-                                   decoding_row, dm_ids, destination_idx,
-                                   data, parity, blocksize, PYECC_CAUCHY_PACKETSIZE);
+                decoding_row, dm_ids, destination_idx, data, parity, blocksize,
+                PYECC_CAUCHY_PACKETSIZE);
         } else {
-           /*
-            * ToDo (KMG) I know this is not needed, but keeping to prevent future
-            * memory leaks, as this function will be better optimized for decoding
-            * missing parity
-            */
+            /*
+             * ToDo (KMG) I know this is not needed, but keeping to prevent future
+             * memory leaks, as this function will be better optimized for decoding
+             * missing parity
+             */
             goto out;
         }
     } else {
@@ -184,14 +166,8 @@ static int jerasure_rs_cauchy_reconstruct(void *desc, char **data, char **parity
          * fine for most cases.  We can adjust the decoding matrix like we
          * did with ISA-L.
          */
-        jerasure_desc->jerasure_bitmatrix_decode(k, m, w,
-                                             jerasure_desc->bitmatrix,
-                                             0,
-                                             missing_idxs,
-                                             data,
-                                             parity,
-                                             blocksize,
-                                             PYECC_CAUCHY_PACKETSIZE);
+        jerasure_desc->jerasure_bitmatrix_decode(k, m, w, jerasure_desc->bitmatrix, 0, missing_idxs,
+            data, parity, blocksize, PYECC_CAUCHY_PACKETSIZE);
     }
 
 out:
@@ -206,11 +182,11 @@ out:
  * Caller will allocate an array of size k for fragments_needed
  *
  */
-static int jerasure_rs_cauchy_min_fragments(void *desc, int *missing_idxs,
-        int *fragments_to_exclude, int *fragments_needed)
+static int jerasure_rs_cauchy_min_fragments(
+    void *desc, int *missing_idxs, int *fragments_to_exclude, int *fragments_needed)
 {
-    struct jerasure_rs_cauchy_descriptor *jerasure_desc =
-        (struct jerasure_rs_cauchy_descriptor*)desc;
+    struct jerasure_rs_cauchy_descriptor *jerasure_desc
+        = (struct jerasure_rs_cauchy_descriptor *)desc;
     struct ec_bm exclude_bm = NEW_BM, missing_bm = NEW_BM;
     convert_list_to_bitmap(fragments_to_exclude, &exclude_bm);
     convert_list_to_bitmap(missing_idxs, &missing_bm);
@@ -235,14 +211,13 @@ static int jerasure_rs_cauchy_min_fragments(void *desc, int *missing_idxs,
 }
 
 #define DEFAULT_W 4
-static void * jerasure_rs_cauchy_init(struct ec_backend_args *args,
-        void *backend_sohandle)
+static void *jerasure_rs_cauchy_init(struct ec_backend_args *args, void *backend_sohandle)
 {
     struct jerasure_rs_cauchy_descriptor *desc = NULL;
     int k, m, w;
 
-    desc = (struct jerasure_rs_cauchy_descriptor *)
-           malloc(sizeof(struct jerasure_rs_cauchy_descriptor));
+    desc = (struct jerasure_rs_cauchy_descriptor *)malloc(
+        sizeof(struct jerasure_rs_cauchy_descriptor));
     if (NULL == desc) {
         return NULL;
     }
@@ -274,7 +249,7 @@ static void * jerasure_rs_cauchy_init(struct ec_backend_args *args,
      * "transform" the void* to a function pointer.
      */
     union {
-        cauchy_original_coding_matrix_func  initp;
+        cauchy_original_coding_matrix_func initp;
         jerasure_matrix_to_bitmatrix_func matrixtobitmatrixp;
         jerasure_smart_bitmatrix_to_schedule_func matrixschedulep;
         galois_uninit_field_func uninitp;
@@ -284,7 +259,7 @@ static void * jerasure_rs_cauchy_init(struct ec_backend_args *args,
         jerasure_make_decoding_bitmatrix_func decodematrixp;
         jerasure_bitmatrix_dotprod_func dotprodp;
         void *vptr;
-    } func_handle = {.vptr = NULL};
+    } func_handle = { .vptr = NULL };
 
     /* fill in function addresses */
     func_handle.vptr = NULL;
@@ -381,17 +356,15 @@ error:
  *
  * Returns the size in bits!
  */
-static int
-jerasure_rs_cauchy_element_size(void* desc)
+static int jerasure_rs_cauchy_element_size(void *desc)
 {
-    struct jerasure_rs_cauchy_descriptor *jerasure_desc =
-        (struct jerasure_rs_cauchy_descriptor*)desc;
+    struct jerasure_rs_cauchy_descriptor *jerasure_desc
+        = (struct jerasure_rs_cauchy_descriptor *)desc;
 
     return jerasure_desc->w * PYECC_CAUCHY_PACKETSIZE * 8;
 }
 
-static void free_rs_cauchy_desc(
-        struct jerasure_rs_cauchy_descriptor *jerasure_desc )
+static void free_rs_cauchy_desc(struct jerasure_rs_cauchy_descriptor *jerasure_desc)
 {
     int i = 0;
     int **schedule = NULL;
@@ -437,8 +410,8 @@ static void free_rs_cauchy_desc(
 
 static int jerasure_rs_cauchy_exit(void *desc)
 {
-    struct jerasure_rs_cauchy_descriptor *jerasure_desc =
-        (struct jerasure_rs_cauchy_descriptor*)desc;
+    struct jerasure_rs_cauchy_descriptor *jerasure_desc
+        = (struct jerasure_rs_cauchy_descriptor *)desc;
     free_rs_cauchy_desc(jerasure_desc);
     return 0;
 }
@@ -447,32 +420,31 @@ static int jerasure_rs_cauchy_exit(void *desc)
  * For the time being, we only claim compatibility with versions that
  * match exactly
  */
-static bool jerasure_rs_cauchy_is_compatible_with(uint32_t version) {
+static bool jerasure_rs_cauchy_is_compatible_with(uint32_t version)
+{
     return version == backend_jerasure_rs_cauchy.ec_backend_version;
 }
 
 static struct ec_backend_op_stubs jerasure_rs_cauchy_op_stubs = {
-    .INIT                       = jerasure_rs_cauchy_init,
-    .EXIT                       = jerasure_rs_cauchy_exit,
-    .ISSYSTEMATIC               = 1,
-    .ENCODE                     = jerasure_rs_cauchy_encode,
-    .DECODE                     = jerasure_rs_cauchy_decode,
-    .FRAGSNEEDED                = jerasure_rs_cauchy_min_fragments,
-    .RECONSTRUCT                = jerasure_rs_cauchy_reconstruct,
-    .ELEMENTSIZE                = jerasure_rs_cauchy_element_size,
-    .ISCOMPATIBLEWITH           = jerasure_rs_cauchy_is_compatible_with,
-    .GETMETADATASIZE            = get_backend_metadata_size_zero,
-    .GETENCODEOFFSET            = get_encode_offset_zero,
+    .INIT = jerasure_rs_cauchy_init,
+    .EXIT = jerasure_rs_cauchy_exit,
+    .ISSYSTEMATIC = 1,
+    .ENCODE = jerasure_rs_cauchy_encode,
+    .DECODE = jerasure_rs_cauchy_decode,
+    .FRAGSNEEDED = jerasure_rs_cauchy_min_fragments,
+    .RECONSTRUCT = jerasure_rs_cauchy_reconstruct,
+    .ELEMENTSIZE = jerasure_rs_cauchy_element_size,
+    .ISCOMPATIBLEWITH = jerasure_rs_cauchy_is_compatible_with,
+    .GETMETADATASIZE = get_backend_metadata_size_zero,
+    .GETENCODEOFFSET = get_encode_offset_zero,
 };
 
-__attribute__ ((visibility ("internal")))
-struct ec_backend_common backend_jerasure_rs_cauchy = {
-    .id                         = EC_BACKEND_JERASURE_RS_CAUCHY,
-    .name                       = JERASURE_RS_CAUCHY_LIB_NAME,
-    .soname                     = JERASURE_RS_CAUCHY_SO_NAME,
-    .soversion                  = JERASURE_RS_CAUCHY_LIB_VER_STR,
-    .ops                        = &jerasure_rs_cauchy_op_stubs,
-    .ec_backend_version         = _VERSION(JERASURE_RS_CAUCHY_LIB_MAJOR,
-                                           JERASURE_RS_CAUCHY_LIB_MINOR,
-                                           JERASURE_RS_CAUCHY_LIB_REV),
+__attribute__((visibility("internal"))) struct ec_backend_common backend_jerasure_rs_cauchy = {
+    .id = EC_BACKEND_JERASURE_RS_CAUCHY,
+    .name = JERASURE_RS_CAUCHY_LIB_NAME,
+    .soname = JERASURE_RS_CAUCHY_SO_NAME,
+    .soversion = JERASURE_RS_CAUCHY_LIB_VER_STR,
+    .ops = &jerasure_rs_cauchy_op_stubs,
+    .ec_backend_version = _VERSION(
+        JERASURE_RS_CAUCHY_LIB_MAJOR, JERASURE_RS_CAUCHY_LIB_MINOR, JERASURE_RS_CAUCHY_LIB_REV),
 };
