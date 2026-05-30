@@ -41,6 +41,15 @@
       make_target: check-symbols
 
 - job:
+    name: liberasurecode-check-headers
+    parent: unittests
+    description: |
+      Check that all headers are independently include-able for liberasurecode.
+    run: playbooks/unittests/run.yaml
+    vars:
+      make_target: check-headers
+
+- job:
     name: liberasurecode-unittests-arm64
     parent: liberasurecode-unittests
     nodeset: ubuntu-noble-arm64
@@ -68,6 +77,7 @@
     check:
       jobs:
         - liberasurecode-check-symbols
+        - liberasurecode-check-headers
         - liberasurecode-unittests
         - liberasurecode-unittests-memcheck
         - liberasurecode-unittests-helgrind
@@ -79,6 +89,7 @@
     gate:
       jobs:
         - liberasurecode-check-symbols
+        - liberasurecode-check-headers
         - liberasurecode-unittests
         - liberasurecode-unittests-memcheck
         - liberasurecode-unittests-helgrind

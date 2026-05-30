@@ -30,6 +30,7 @@
 #define _ERASURECODE_PREPROCESSING_H_
 
 #include "erasurecode_backend.h"
+#include "erasurecode_helpers.h"
 
 int prepare_fragments_for_encode(
         ec_backend_t instance,

@@ -30,6 +30,7 @@
 #define _ERASURECODE_HELPERS_H_
 
 #include <assert.h>
+#include "erasurecode.h"
 #include "erasurecode_stdinc.h"
 
 /* ==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~==~=*=~== */

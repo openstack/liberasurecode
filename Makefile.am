@@ -73,6 +73,9 @@ helgrind-test: check
 check-symbols: all
 	@./check-symbols.sh check
 
+check-headers:
+	@find include -name '*.h' | xargs -L 1 gcc -Werror -I include -I include/erasurecode
+
 CLEANFILES = cscope.in.out cscope.out cscope.po.out
 
 .PHONY: cscope
